@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EXPERIENCES } from '../experiences';
 
 // Live Ego Check runs on the existing, verified engine one level up (/PulsePlay/). Phase 1b moves live rooms into this app.
@@ -8,10 +8,11 @@ export const LEGACY_URL = (() => { try { return new URL('../', location.origin +
 export function Play() {
   const [code, setCode] = useState('');
   const [err, setErr] = useState('');
+  const nav = useNavigate();
   const join = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^\d{6}$/.test(code)) return setErr('Room codes have 6 digits.');
-    location.href = `${LEGACY_URL}#join-${code}`;
+    nav(`/j/${code}`);
   };
   return (
     <div className="max-w-xl mx-auto px-4 py-10 grid gap-8">
@@ -25,6 +26,7 @@ export function Play() {
         {err && <p id="code-err" className="text-coral-500 font-bold text-sm">{err}</p>}
         <button className="btn-primary">Join 🚗</button>
         <p className="text-xs text-ink-soft text-center">No account needed. You'll choose a nickname next.</p>
+        <p className="text-xs text-ink-soft text-center">Joining a room from the classic Ego Check screen? <a className="underline" href={`${LEGACY_URL}#join-${code}`}>Use the classic join page</a>.</p>
       </form>
       <section className="grid gap-3">
         <h2 className="text-xl font-extrabold">Or play on your own</h2>

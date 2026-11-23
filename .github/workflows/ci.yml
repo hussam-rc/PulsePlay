@@ -18,3 +18,25 @@ jobs:
         run: |
           rm -rf /tmp/app && cp -r dist /tmp/app
           diff -r /tmp/app ../app && echo "app/ is up to date" || (echo "::warning::app/ is stale. Run npm run publish:pages and commit." )
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env: { PGHOST: localhost, PGUSER: postgres, PGPASSWORD: postgres, PGDATABASE: postgres }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations (pp engine + seed) on a clean database
+        run: |
+          psql -v ON_ERROR_STOP=1 -q -f supabase/tests/setup_local.sql
+          for f in supabase/migrations/2026112[4-9]_*.sql; do echo "applying $f"; psql -v ON_ERROR_STOP=1 -q -f "$f"; done
+      - name: Integration tests
+        run: |
+          for t in supabase/tests/*_test.sql; do
+            out=$(psql -q -At -f "$t"); echo "$out"
+            echo "$out" | grep -q "^FAIL" && exit 1 || true
+          done

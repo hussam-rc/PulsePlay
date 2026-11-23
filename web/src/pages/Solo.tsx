@@ -5,6 +5,7 @@ import { flatActivities } from '../engine/schema';
 import { personalResult, Responses, ResponseValue } from '../engine/scoring';
 import { randomId } from '../engine/random';
 import { ActivityInput } from '../ui/Activity';
+import { publicActivity } from '../live/view';
 import { Bar, ResultCard, resultText } from '../ui/bits';
 
 /** Self-paced mode: one person, no timer, nothing sent anywhere. */
@@ -40,7 +41,7 @@ export function Solo() {
           <div className="flex justify-between items-center"><span className="chip bg-violet-50 text-violet-700">{i + 1} / {acts.length}</span><span className="text-sm text-ink-soft">{e.title}</span></div>
           <Bar pct={(100 * i) / acts.length} />
           <h2 className="text-2xl font-extrabold leading-tight">{a.prompt}</h2>
-          <ActivityInput activity={a} seed={seed} value={resp[a.id]} disabled={resp[a.id] != null} onPick={pick} reveal={revealed && e.reveal === 'correct' ? 'correct' : null} />
+          <ActivityInput activity={publicActivity(a)} seed={seed} value={resp[a.id]} disabled={resp[a.id] != null} onPick={pick} correctId={revealed && e.reveal === 'correct' && a.type === 'choice' ? a.options.find(o => o.correct)?.id : null} />
           {revealed && (
             <div className="grid gap-3 anim-pop">
               {e.reveal === 'correct' && a.type === 'choice' && (

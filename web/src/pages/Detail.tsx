@@ -2,7 +2,6 @@ import { Link, useParams, Navigate } from 'react-router-dom';
 import { byId, CATEGORY_LABEL } from '../experiences';
 import { flatActivities } from '../engine/schema';
 import { Chip } from '../ui/bits';
-import { LEGACY_URL } from './Play';
 
 export function Detail() {
   const e = byId(useParams().id ?? '');
@@ -23,9 +22,7 @@ export function Detail() {
         <p className="text-xl text-ink-soft">{e.tagline}</p>
       </header>
       <div className="grid gap-3 sm:grid-cols-3">
-        {e.modes.includes('live') && (e.id === 'ego-check'
-          ? <a className="btn-primary" href={LEGACY_URL}>🎤 Host live</a>
-          : <span className="btn-ghost cursor-not-allowed opacity-60" title="Live rooms for this game arrive in Phase 1b">🎤 Live: coming soon</span>)}
+        {e.modes.includes('live') && <Link className="btn-primary" to={`/host/${e.id}`}>🎤 Host live</Link>}
         {e.modes.includes('practice') && <Link className="btn-ghost" to={`/practice/${e.id}`}>🧪 Practice with simulated players</Link>}
         {e.modes.includes('self') && <Link className="btn-ghost" to={`/play/${e.id}`}>📱 Play solo</Link>}
       </div>

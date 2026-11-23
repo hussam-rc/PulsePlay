@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-U='http://localhost:4174/PulsePlay/app/'; import os; out=os.environ.get('SHOTS','/tmp')
+import os; U=os.environ.get('BASE','http://localhost:8788/PulsePlay/app/'); import os; out=os.environ.get('SHOTS','/tmp')
 def ok(c, m): print(('PASS ' if c else 'FAIL ')+m, flush=True)
 with sync_playwright() as p:
     b=p.chromium.launch(args=['--no-sandbox'])
@@ -9,7 +9,7 @@ with sync_playwright() as p:
     pg.fill('#search','myth'); ok(pg.locator('article').count()==1, 'search filters'); pg.fill('#search','')
     # practice: Ego Check
     pg.goto(U+'#/practice/ego-check'); pg.wait_for_selector('[data-testid=joined]')
-    pg.fill('[data-testid=phone] input.field','Hussam'); pg.check('[data-testid=phone] input[type=checkbox]'); pg.click('[data-testid=phone] button.btn-primary')
+    pg.fill('[data-testid=phone] [data-testid=nickname]','Hussam'); pg.check('[data-testid=phone] [data-testid=consent]'); pg.click('[data-testid=phone] [data-testid=join]')
     pg.wait_for_selector('text=You\'re in, Hussam!'); ok(pg.inner_text('[data-testid=joined]')=='7', 'lobby shows 7 (6 simulated + you)')
     pg.screenshot(path=out+'/02_lobby.png')
     pg.click('[data-testid=next]'); pg.click('[data-testid=next]')
@@ -48,11 +48,11 @@ with sync_playwright() as p:
     pg.evaluate("document.querySelector('#src').value=''"); pg.fill('#src','{"schemaVersion":1}'); pg.click('text=Check experience'); ok('problem' in pg.inner_text('main'), 'checker reports problems')
     # mobile
     m=b.new_page(viewport={'width':375,'height':800}, is_mobile=True)
-    for path in ['', '#/practice/ego-check', '#/play', '#/x/ego-check', '#/play/ego-check']:
+    for path in ['', '#/practice/ego-check', '#/play', '#/x/ego-check', '#/play/ego-check', '#/j/123456', '#/host/myth-or-fact', '#/host']:
         m.goto(U+path); m.wait_for_timeout(500)
         ok(not m.evaluate('document.documentElement.scrollWidth>window.innerWidth'), f'no horizontal overflow at 375px: /{path}')
     m.goto(U); m.screenshot(path=out+'/09_mobile.png', full_page=True)
     m.goto(U+'#/play'); m.fill('input[inputmode=numeric]','482913'); 
-    with m.expect_navigation(): m.click('text=Join 🚗')
-    ok('#join-482913' in m.url and m.url.endswith('/PulsePlay/#join-482913'), 'join code routes to live Ego Check: '+m.url)
+    m.click('text=Join 🚗'); m.wait_for_timeout(800)
+    ok(m.url.endswith('#/j/482913'), 'join code opens the live join page: '+m.url)
     print('page errors:', errs); b.close()

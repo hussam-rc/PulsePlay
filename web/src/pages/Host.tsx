@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { EXPERIENCES } from '../experiences';
-import { LEGACY_URL } from './Play';
 
 export function Host() {
   return (
@@ -14,12 +13,12 @@ export function Host() {
             <div className="min-w-0 flex-1"><b className="text-lg block">{e.title}</b><span className="text-ink-soft">{e.tagline} · {e.durationMin} min</span></div>
             <div className="flex gap-2 flex-wrap">
               <Link className="btn-ghost" to={`/practice/${e.id}`}>🧪 Practice</Link>
-              {e.id === 'ego-check' ? <a className="btn-primary" href={LEGACY_URL}>Host live</a> : <span className="btn-ghost opacity-60 cursor-not-allowed" title="Coming in Phase 1b">Live soon</span>}
+              <Link className="btn-primary" to={`/host/${e.id}`} data-testid={`host-${e.id}`}>🎤 Host live</Link>
             </div>
           </div>
         ))}
       </div>
-      <p className="text-sm text-ink-soft">Live rooms currently run for Ego Check on the proven engine. Live rooms for every experience arrive with the PulsePlay backend (Phase 1b).</p>
+      <p className="text-sm text-ink-soft">All three games run live on one shared engine: a QR code to join, server-checked timers, private results and anonymous group totals.</p>
     </div>
   );
 }

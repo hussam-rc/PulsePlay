@@ -12,7 +12,7 @@ export const mythOrFact: Experience = {
   tagline: 'Ten claims. Trust your gut, then learn why.',
   emoji: '🧠',
   category: 'trivia',
-  description: 'A quick knowledge game: decide whether each statement is a myth or a fact, then see the explanation. The room sees how many got each one right; nobody is ranked.',
+  description: 'A quick knowledge game: decide whether each statement is a myth or a fact, then see the explanation. The room sees how many got each one right. Nobody is ranked unless they choose to join the optional leaderboard.',
   durationMin: 10,
   players: { min: 1, max: 200 },
   languages: ['en'],
@@ -23,7 +23,7 @@ export const mythOrFact: Experience = {
   reveal: 'correct',
   privacy: { individualResults: true, groupMinimum: 3, retainResponses: false },
   scoring: { kind: 'correct', minAnsweredRatio: 0.7 },
-  disclaimer: 'Explanations are short summaries of widely accepted findings. No leaderboard: only your own score and the group average.',
+  disclaimer: 'Explanations are short summaries of widely accepted findings. Scores are private unless you choose to appear on the optional leaderboard.',
   creator: 'PulsePlay',
   status: 'published',
   rounds: [{

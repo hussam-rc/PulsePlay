@@ -11,6 +11,8 @@ import { Host } from './pages/Host';
 import { Practice } from './pages/Practice';
 import { Create } from './pages/Create';
 import { Workspace } from './pages/Workspace';
+import { HostLive } from './pages/HostLive';
+import { JoinLive } from './pages/JoinLive';
 
 document.documentElement.dir = dir();
 
@@ -49,6 +51,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <HashRouter>
       <Routes>
         <Route path="/practice/:id" element={<Practice />} />
+        <Route path="/host/:id" element={<HostLive />} />
+        <Route path="/j" element={<JoinLive />} />
+        <Route path="/j/:code" element={<JoinLive />} />
         <Route path="*" element={<Shell><Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/discover" element={<Discover />} />
