@@ -1,0 +1,66 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter, Routes, Route, NavLink, Link, Navigate } from 'react-router-dom';
+import './index.css';
+import { t, dir } from './i18n';
+import { Discover } from './pages/Discover';
+import { Detail } from './pages/Detail';
+import { Play } from './pages/Play';
+import { Solo } from './pages/Solo';
+import { Host } from './pages/Host';
+import { Practice } from './pages/Practice';
+import { Create } from './pages/Create';
+import { Workspace } from './pages/Workspace';
+
+document.documentElement.dir = dir();
+
+const NAV: [string, string, string][] = [['/discover', '🔭', t('nav.discover')], ['/play', '📱', t('nav.play')], ['/create', '🛠️', t('nav.create')], ['/host', '🎤', t('nav.host')], ['/workspace', '🗂️', t('nav.workspace')]];
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-paper-line">
+        <div className="max-w-6xl mx-auto px-4 flex items-center gap-4 h-16">
+          <Link to="/discover" className="flex items-center gap-2 font-extrabold text-lg shrink-0" aria-label="PulsePlay home">
+            <span className="w-9 h-9 rounded-xl grid place-items-center text-white bg-gradient-to-br from-violet-600 to-teal-500" aria-hidden>◉</span>
+            <span>Pulse<span className="text-violet-600">Play</span></span>
+          </Link>
+          <nav className="flex gap-1 overflow-x-auto ms-auto" aria-label="Main">
+            {NAV.map(([to, ic, label]) => (
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
+                <span aria-hidden>{ic}</span><span className="hidden sm:inline">{label}</span><span className="sm:hidden sr-only">{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="border-t border-paper-line text-sm text-ink-soft">
+        <div className="max-w-6xl mx-auto px-4 py-6 flex flex-wrap gap-x-6 gap-y-2 justify-between">
+          <span>PulsePlay · {t('tagline')}</span><span>{t('privacy.short')}</span>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <HashRouter>
+      <Routes>
+        <Route path="/practice/:id" element={<Practice />} />
+        <Route path="*" element={<Shell><Routes>
+          <Route path="/" element={<Navigate to="/discover" replace />} />
+          <Route path="/discover" element={<Discover />} />
+          <Route path="/x/:id" element={<Detail />} />
+          <Route path="/play" element={<Play />} />
+          <Route path="/play/:id" element={<Solo />} />
+          <Route path="/host" element={<Host />} />
+          <Route path="/create" element={<Create />} />
+          <Route path="/workspace" element={<Workspace />} />
+          <Route path="*" element={<Navigate to="/discover" replace />} />
+        </Routes></Shell>} />
+      </Routes>
+    </HashRouter>
+  </React.StrictMode>,
+);

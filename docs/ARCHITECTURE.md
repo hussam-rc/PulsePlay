@@ -92,14 +92,15 @@ RLS: org data visible to members by role; public library is published and approv
 
 ## 7. Phased backlog
 
-**Phase 1a: done in this release** (frontend, no new backend)
+**Phase 1a: done (23 Nov)** (frontend; served at `/PulsePlay/app/`)
 - App shell, design system, hash routing, RTL-safe layout (logical CSS)
 - Schema v1 + validator, scoring engine, result-band validator
 - Experiences: Ego Check, Would You Rather?, Myth or Fact?
 - Practice mode with 5–20 simulated players (projector + phone view)
 - Self-paced play for all three
 - Live Ego Check stays on the existing backend (Play → join code routes there)
-- Unit tests + end-to-end tests, CI workflow
+- Unit tests (19, Vitest) + browser tests (21 checks, Playwright) + CI workflow (type-check, tests, build)
+- Ego Check backend moved to the dedicated `pulseplay` Supabase project
 
 **Phase 1b: needs the dedicated Supabase Pro project**
 - Migrations for the data model above, RLS, RPCs, Realtime broadcast

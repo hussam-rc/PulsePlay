@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus-visible { outline: 3px solid #2F6FEB; outline-offset: 2px; border-radius: 6px; }
+  h1, h2, h3 { letter-spacing: -0.02em; text-wrap: balance; }
+}
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 min-h-[48px] font-bold text-base transition active:translate-y-px disabled:opacity-40 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-violet-600 text-white shadow-[0_8px_20px_-8px_#5A36F0] hover:bg-violet-700; }
+  .btn-ghost { @apply btn bg-white border border-paper-line text-ink hover:border-violet-500; }
+  .card { @apply bg-paper-card border border-paper-line rounded-xl2 shadow-soft; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold; }
+  .field { @apply w-full min-h-[50px] rounded-xl border-[1.5px] border-paper-line bg-white px-4 text-lg; }
+}
+@keyframes pop { from { transform: scale(.6); opacity: 0 } }
+@keyframes rise { from { transform: translateY(24px) scale(.5); opacity: 0 } }
+@keyframes pulse-num { 0% { transform: scale(1) } 15% { transform: scale(1.12) } 100% { transform: scale(1) } }
+@keyframes fall { to { transform: translateY(700px) rotate(540deg); opacity: .2 } }
+.anim-pop { animation: pop .35s ease-out }
+.anim-rise { animation: rise .7s cubic-bezier(.3,1.5,.5,1) }
+.anim-pulse { animation: pulse-num 1s infinite }
+.confetti i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: fall 2.6s ease-in forwards }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important } }

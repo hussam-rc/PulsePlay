@@ -1,17 +1,43 @@
-# PulsePlay — Ego Check LIVE 🪞🚗
+# PulsePlay
 
-A presenter-led team reflection game for Remotecoders: *Who's driving today — you or your ego?*
+*Bring people together. One game at a time.*
 
-**Play:** https://hussam-rc.github.io/PulsePlay/
+| What | Where | Status |
+|---|---|---|
+| **PulsePlay app** (Discover, Play, Host Studio, practice mode, checker) | https://hussam-rc.github.io/PulsePlay/app/ | Phase 1a |
+| **Ego Check LIVE** (live rooms, QR join, phones as controllers) | https://hussam-rc.github.io/PulsePlay/ | Live |
 
-- 🎤 **Host a Game** on the projector, 📱 **join** by QR code (no account), 🧪 **Demo Mode** works offline.
-- Answers stay private: names (lobby) and answers are stored in unlinked tables; the projector only shows counts and an anonymous team average (5+ finished players).
-- Server-checked timers, duplicate/late answers rejected, phones can reconnect after a refresh.
-- Rooms are deleted when the host ends the game, or after 24 hours.
+Architecture, decisions and the phased backlog: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-## How it's built
-- `index.html` — the whole app (built from `game-src.html` by `python3 build.py <SUPABASE_URL> <PUBLISHABLE_KEY>`).
-- `supabase/migrations/` — database: everything in schema `egocheck`, plus 8 `public.egocheck_*` API functions. Removal instructions are at the end of the file.
-- The publishable key in `index.html` is meant to be public; it can only call the 8 game functions.
+## Repository layout
+```
+index.html, game-src.html, build.py   Ego Check LIVE (single-file app, live on Supabase)
+app/                                  Built PulsePlay app, served by GitHub Pages (generated; do not edit)
+web/                                  PulsePlay source: React + TypeScript + Vite + Tailwind
+  src/engine/                         Pure-TS engine: schema v1, validation, scoring, session state machine
+  src/experiences/                    Ego Check, Would You Rather?, Myth or Fact?
+  src/pages/, src/ui/                 Screens and components
+  tests/                              Unit tests (Vitest)
+  e2e/                                Browser tests (Playwright for Python)
+supabase/migrations/                  Database for live Ego Check (schema `egocheck` + 8 public RPCs)
+.github/workflows/ci.yml              Type-check, unit tests, build on every push
+```
 
-A light-hearted reflection activity — not a validated assessment or a performance tool.
+## Develop
+```bash
+cd web
+npm ci
+npm run dev              # local dev server
+npm test                 # unit tests (engine, scoring, privacy thresholds, timing)
+npm run publish:pages    # build into ../app — commit the result to deploy
+```
+Browser tests: build, serve the repo root so the app sits at `/PulsePlay/app/` (for example by copying `index.html` and `app/` into `/tmp/site/PulsePlay/` and running `python3 -m http.server 4174` there), then run `npm run e2e`. They need `pip install playwright && playwright install chromium`.
+
+## Backend
+- Supabase project **`pulseplay`** (Pro, Frankfurt). The browser holds only the *publishable* key, which can call only the 8 `egocheck_*` functions. No secret keys anywhere in this repo.
+- Live game state, deadlines and scoring are checked on the server. Names and answers are stored in unlinked tables, and rooms are deleted when the host ends them or after 24 hours.
+
+## Deploy and roll back
+GitHub Pages serves branch `main` from the repository root. To deploy, commit and push. To roll back, revert the commit and push.
+
+A light-hearted reflection and engagement platform: not a psychological assessment or a performance tool.
