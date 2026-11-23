@@ -121,9 +121,9 @@ Challenged / simplified on purpose
 - [x] Server-side deadlines, duplicate/late rejection, host token (Ego Check live)
 - [x] Unlinked identity vs responses; group minimum 5; distribution only from 10
 - [x] No privileged keys in the frontend (publishable key only reaches the game RPCs)
-- [ ] Rate limiting on public RPCs (Phase 1b, Edge Function or pg-based limiter)
-- [ ] Audit events for privileged actions (Phase 1b)
-- [ ] Cross-organisation access tests with multiple users (Phase 1b)
+- [x] Rate limiting on public RPCs (pg-based, per IP)
+- [x] Audit events for organisation actions
+- [x] Cross-organisation access tests with multiple users (SQL + browser)
 
 ## 9. Rollback
 - Frontend: Pages serves `main`. To roll back, revert the commit; the previous `index.html` is restored.
@@ -136,4 +136,4 @@ Challenged / simplified on purpose
 - Drafts, template copies, libraries (personal and per organisation), immutable versions, session insights (anonymous totals).
 - Publishing goes only through the `publish` Edge Function: it re-validates with the same schema as the app (sync enforced by a unit test) and is the only holder of the service key. Public Discover listing needs a review step (not built).
 - Hosting an org/personal experience uses its latest published version (`pp_get_published`), never the draft.
-- Tests: SQL 40 engine + 46 isolation + 9 grants (also run on production inside a rolled-back transaction), 13 publish-function tests, browser 34 live + 19 app + 33 workspace (local emulator).
+- Tests: SQL 40 engine + 46 isolation + 9 grants locally and in CI. On production (inside a rolled-back transaction): 40 engine + 43 isolation + grant checks. 13 publish-function tests (local Deno). Browser: 34 live + 19 app + 33 workspace on a local Auth/REST/Function emulator, not yet against production Auth.
