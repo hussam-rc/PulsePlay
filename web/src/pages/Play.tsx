@@ -26,7 +26,7 @@ export function Play() {
         {err && <p id="code-err" className="text-coral-500 font-bold text-sm">{err}</p>}
         <button className="btn-primary">Join 🚗</button>
         <p className="text-xs text-ink-soft text-center">No account needed. You'll choose a nickname next.</p>
-        <p className="text-xs text-ink-soft text-center">Joining a room from the classic Ego Check screen? <a className="underline" href={`${LEGACY_URL}#join-${code}`}>Use the classic join page</a>.</p>
+        <p className="text-xs text-ink-soft text-center">Joining a room from the classic Who is in Control? screen? <a className="underline" href={`${LEGACY_URL}#join-${code}`}>Use the classic join page</a>.</p>
       </form>
       <section className="grid gap-3">
         <h2 className="text-xl font-extrabold">Or play on your own</h2>

@@ -4,6 +4,7 @@ import { requestSignIn, verifyCode, signOut } from '../live/auth';
 import { api, useAuth, Me, LibraryItem, Role, ROLE_INFO, SessionSummary } from '../live/workspace';
 import { EXPERIENCES } from '../experiences';
 import { Chip } from '../ui/bits';
+import { blankDraft, GameKind, KINDS } from '../builder/model';
 
 const SPACE_KEY = 'pp_space';
 
@@ -123,13 +124,20 @@ function Library({ org }: { org: Me['orgs'][number] | null }) {
   const [tpl, setTpl] = useState(EXPERIENCES[0].id);
   const canCreate = !org || ['owner', 'admin', 'creator'].includes(org.role);
   useEffect(() => { api.library(org?.id ?? null).then(setItems).catch(e => setErr(e.message)); }, [org?.id]);
+  const blank = async (k: GameKind) => { try { const d = blankDraft(k); const { id } = await api.saveDraft(null, org?.id ?? null, d.title, d); nav(`/workspace/edit/${id}`); } catch (e) { setErr((e as Error).message); } };
   const copy = async () => { try { const { id } = await api.copyTemplate(tpl, org?.id ?? null); nav(`/workspace/edit/${id}`); } catch (e) { setErr((e as Error).message); } };
   return (
     <section className="grid gap-4" data-testid="library">
-      {canCreate && <div className="card p-4 flex flex-wrap items-end gap-3">
-        <label className="grid gap-1 text-sm font-bold flex-1 min-w-[220px]" htmlFor="tpl">Start from a template
-          <select id="tpl" className="field !min-h-[46px] !text-base" value={tpl} onChange={e => setTpl(e.target.value)}>{EXPERIENCES.map(e => <option key={e.id} value={e.id}>{e.emoji} {e.title}</option>)}</select></label>
-        <button className="btn-primary !min-h-[46px]" onClick={copy} data-testid="copy-template">Create draft</button>
+      {canCreate && <div className="card p-5 grid gap-4">
+        <h2 className="text-xl font-extrabold">Create a game, no code needed</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{(Object.keys(KINDS) as GameKind[]).map(k =>
+          <button key={k} className="text-left rounded-2xl p-4 border-2 border-paper-line bg-white hover:border-violet-500" onClick={() => blank(k)} data-testid={`new-${k}`}>
+            <div className="text-lg font-extrabold">{KINDS[k].emoji} {KINDS[k].label}</div><div className="text-sm text-ink-soft mt-1">{KINDS[k].blurb}</div></button>)}</div>
+        <div className="flex flex-wrap items-end gap-3 pt-3 border-t border-paper-line">
+          <label className="grid gap-1 text-sm font-bold flex-1 min-w-[220px]" htmlFor="tpl">…or copy a ready-made game and adapt it
+            <select id="tpl" className="field !min-h-[46px] !text-base" value={tpl} onChange={e => setTpl(e.target.value)}>{EXPERIENCES.map(e => <option key={e.id} value={e.id}>{e.emoji} {e.title}</option>)}</select></label>
+          <button className="btn-ghost !min-h-[46px]" onClick={copy} data-testid="copy-template">Copy and edit</button>
+        </div>
       </div>}
       {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
       {items === null ? <p className="text-ink-soft">Loading…</p> : items.length === 0

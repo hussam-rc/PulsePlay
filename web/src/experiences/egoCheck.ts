@@ -10,7 +10,7 @@ const c = (id: string, theme: string, prompt: string, o: [string, number][]) => 
 export const egoCheck: Experience = {
   schemaVersion: 1,
   id: 'ego-check',
-  title: 'Ego Check LIVE',
+  title: 'Who is in Control?',
   tagline: "Who's driving today — you or your ego?",
   emoji: '🪞🚗',
   category: 'reflection',

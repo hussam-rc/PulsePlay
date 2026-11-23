@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ego Check LIVE</title>
+<title>Who is in Control?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -170,7 +170,7 @@ kbd{font:600 12px/1 inherit;border:1px solid var(--line);border-bottom-width:2px
 </head>
 <body>
 <header class="top">
-  <button class="brand" data-act="home" aria-label="Ego Check LIVE home"><span>🪞</span><span>Ego Check <b>LIVE</b></span></button>
+  <button class="brand" data-act="home" aria-label="Who is in Control? home"><span>🪞</span><span>Who is in <b>Control?</b></span></button>
   <span class="sp"></span>
   <span id="live" class="pill hide-s"><span class="dot"></span>Checking live mode…</span>
   <button class="ghost" data-act="motion" id="motionBtn" aria-pressed="false">Motion: on</button>
@@ -620,7 +620,7 @@ function phoneBody(p) {
   if (!p || !p.joined) {
     const code = p?.code || app.joinCode || '';
     return `<div class="pcard card" style="display:grid;gap:14px">
-      <div style="text-align:center"><div style="font-size:46px">📱🚗</div><h2 style="font-size:26px">Join Ego Check</h2></div>
+      <div style="text-align:center"><div style="font-size:46px">📱🚗</div><h2 style="font-size:26px">Join Who is in Control?</h2></div>
       ${p?.demo ? `<p class="small muted" style="text-align:center">Demo room <b>${esc(code)}</b> — you're the only real player.</p>` : `<label class="field">Room code<input class="codein" type="text" inputmode="numeric" maxlength="6" id="codeIn" value="${esc(code)}" autocomplete="off" placeholder="000000"></label>`}
       <label class="field">First name or nickname<input type="text" id="nickIn" maxlength="20" placeholder="e.g. Sam" autocomplete="nickname" value="${p?.demo ? 'You' : ''}"></label>
       ${privacyBlock()}
@@ -731,8 +731,8 @@ async function resume() {
   pl.nick = rec.nick; try { await pl.join(rec.nick, rec); } catch (e) { app.player = null; try { localStorage.removeItem('ec_session'); } catch (e2) {} return false; } paint(); return true;
 }
 function resultText(p) {
-  const ev = evaluate(p.answers, p.seed); if (!ev.valid) return `Ego Check LIVE 🪞 — I answered ${ev.answered}/10, not enough for a score this time.`;
-  const c = CATS[ev.cat]; return `Ego Check LIVE 🪞\n${c.e} ${c.t} — ${ev.score}/100 Ego Driving Score\n${ev.obs.map(o => '• ' + o.t).join('\n')}\nHabit: ${ev.habit}\nTomorrow: ${ev.challenge}`;
+  const ev = evaluate(p.answers, p.seed); if (!ev.valid) return `Who is in Control? 🪞 — I answered ${ev.answered}/10, not enough for a score this time.`;
+  const c = CATS[ev.cat]; return `Who is in Control? 🪞\n${c.e} ${c.t} — ${ev.score}/100 Ego Driving Score\n${ev.obs.map(o => '• ' + o.t).join('\n')}\nHabit: ${ev.habit}\nTomorrow: ${ev.challenge}`;
 }
 async function fullscreen() { const el = $('#stageEl'); try { if (document.fullscreenElement) await document.exitFullscreen(); else { await (el?.requestFullscreen?.()); app.fs = true; paintStage(); } } catch (e) { app.fs = !app.fs; paintStage(); } }
 document.addEventListener('fullscreenchange', () => { app.fs = !!document.fullscreenElement; paintStage(); });

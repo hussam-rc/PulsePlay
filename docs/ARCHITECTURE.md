@@ -137,3 +137,9 @@ Challenged / simplified on purpose
 - Publishing goes only through the `publish` Edge Function: it re-validates with the same schema as the app (sync enforced by a unit test) and is the only holder of the service key. Public Discover listing needs a review step (not built).
 - Hosting an org/personal experience uses its latest published version (`pp_get_published`), never the draft.
 - Tests: SQL 40 engine + 46 isolation + 9 grants locally and in CI. On production (inside a rolled-back transaction): 40 engine + 43 isolation + grant checks. 13 publish-function tests (local Deno). Browser: 34 live + 19 app + 33 workspace on a local Auth/REST/Function emulator, not yet against production Auth.
+
+## 11. Phase 1b slice 3: no-code builder (24 Nov)
+- Creation is form-based only (`web/src/builder/`): 4 game types (Quiz, Opinion poll, Self-reflection, Conversation starter), basics, timing, privacy, questions (add, duplicate, reorder, delete, answers, correct answer or 0–3 score, explanation, scales), results with one-click even split and a coverage bar, ending and privacy note.
+- Plain-language checker beside the form; each problem links to the field. Autosave; preview with simulated players; publish. The game file is hidden under "Advanced".
+- Switching game type keeps all question and answer texts.
+- Built-in "Ego Check" renamed "Who is in Control?" (new version 2; id `ego-check` and links unchanged).

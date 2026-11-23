@@ -44,8 +44,7 @@ with sync_playwright() as p:
         pg.click(f'button[data-option="{a}"]'); pg.click('button.btn-primary:has-text("Next"), button.btn-primary:has-text("See my result")')
     ok(pg.inner_text('[data-testid=score]').startswith('10/10'), 'solo trivia 10/10'); pg.screenshot(path=out+'/08_solo.png', full_page=True)
     # checker
-    pg.goto(U+'#/create'); pg.click('text=Check experience'); ok('Ready to publish' in pg.inner_text('main'), 'checker accepts valid experience')
-    pg.evaluate("document.querySelector('#src').value=''"); pg.fill('#src','{"schemaVersion":1}'); pg.click('text=Check experience'); ok('problem' in pg.inner_text('main'), 'checker reports problems')
+    pg.goto(U+'#/create'); pg.wait_for_selector('[data-testid=open-builder]'); ok('No code' in pg.inner_text('main'), 'create page leads to the no-code builder')
     # mobile
     m=b.new_page(viewport={'width':375,'height':800}, is_mobile=True)
     for path in ['', '#/practice/ego-check', '#/play', '#/x/ego-check', '#/play/ego-check', '#/j/123456', '#/host/myth-or-fact', '#/host']:
