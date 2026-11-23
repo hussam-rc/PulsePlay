@@ -1,12 +1,13 @@
--- Ego Check LIVE — Supabase backend (public QR join, no accounts)
--- Use a NEW, dedicated Supabase project. Not Remotecoders Academy, not RotaPot.
--- Design: names and answers are stored in unlinked tables; all writes go through
+-- Ego Check LIVE (PulsePlay): isolated inside an existing Supabase project.
+-- Everything lives in schema "egocheck". The only objects outside it are 8 public
+-- wrapper functions named egocheck_* (the API entry points). Nothing existing is altered.
+create schema if not exists egocheck;
+revoke all on schema egocheck from public, anon, authenticated;
 -- SECURITY DEFINER functions; the server clock decides deadlines.
 
-create extension if not exists pgcrypto;
 
 -- ---------- Tables ----------
-create table public.rooms (
+create table egocheck.rooms (
   code             text primary key check (code ~ '^[0-9]{6}$'),
   stage            text not null default 'welcome'
                    check (stage in ('welcome','join','ready','q','results','company','reflect','ended')),
@@ -21,35 +22,35 @@ create table public.rooms (
   expires_at       timestamptz not null default now() + interval '24 hours'
 );
 
-create table public.room_secrets (          -- host credential, never readable by clients
-  code       text primary key references public.rooms(code) on delete cascade,
+create table egocheck.room_secrets (          -- host credential, never readable by clients
+  code       text primary key references egocheck.rooms(code) on delete cascade,
   token_hash text not null
 );
 
-create table public.lobby (                 -- attendance only: what the projector shows
+create table egocheck.lobby (                 -- attendance only: what the projector shows
   id         uuid primary key default gen_random_uuid(),
-  room_code  text not null references public.rooms(code) on delete cascade,
+  room_code  text not null references egocheck.rooms(code) on delete cascade,
   nickname   text not null check (char_length(nickname) between 1 and 20),
   joined_at  timestamptz not null default now()
 );
 
-create table public.players (               -- answer identity: NO nickname, NO link to lobby
+create table egocheck.players (               -- answer identity: NO nickname, NO link to lobby
   id         uuid primary key default gen_random_uuid(),
-  room_code  text not null references public.rooms(code) on delete cascade,
+  room_code  text not null references egocheck.rooms(code) on delete cascade,
   token_hash text not null unique
 );
 
-create table public.answers (
-  player_id  uuid not null references public.players(id) on delete cascade,
+create table egocheck.answers (
+  player_id  uuid not null references egocheck.players(id) on delete cascade,
   q          int  not null check (q between 0 and 9),
   option     int  not null check (option between 0 and 3),
   primary key (player_id, q)                -- duplicate answers impossible
 );
 
-create table public.question_points (       -- transparent rubric, mirrors the app (0 = reflective, 3 = ego)
+create table egocheck.question_points (       -- transparent rubric, mirrors the app (0 = reflective, 3 = ego)
   q int, option int, points int not null check (points between 0 and 3), primary key (q, option)
 );
-insert into public.question_points values
+insert into egocheck.question_points values
  (0,0,3),(0,1,2),(0,2,0),(0,3,0), (1,0,2),(1,1,3),(1,2,0),(1,3,0),
  (2,0,0),(2,1,2),(2,2,3),(2,3,0), (3,0,2),(3,1,0),(3,2,0),(3,3,3),
  (4,0,0),(4,1,0),(4,2,3),(4,3,2), (5,0,2),(5,1,0),(5,2,3),(5,3,0),
@@ -57,34 +58,31 @@ insert into public.question_points values
  (8,0,0),(8,1,3),(8,2,0),(8,3,2), (9,0,3),(9,1,0),(9,2,1),(9,3,0);
 
 -- ---------- RLS: clients read only public state; everything else via functions ----------
-alter table public.rooms           enable row level security;
-alter table public.room_secrets    enable row level security;
-alter table public.lobby           enable row level security;
-alter table public.players         enable row level security;
-alter table public.answers         enable row level security;
-alter table public.question_points enable row level security;
+alter table egocheck.rooms           enable row level security;
+alter table egocheck.room_secrets    enable row level security;
+alter table egocheck.lobby           enable row level security;
+alter table egocheck.players         enable row level security;
+alter table egocheck.answers         enable row level security;
+alter table egocheck.question_points enable row level security;
 
-create policy rooms_read on public.rooms for select to anon, authenticated using (stage <> 'ended');
-create policy lobby_read on public.lobby for select to anon, authenticated using (true);
+create policy rooms_read on egocheck.rooms for select to anon, authenticated using (stage <> 'ended');
+create policy lobby_read on egocheck.lobby for select to anon, authenticated using (true);
 -- No policies on room_secrets / players / answers / question_points => no direct access.
-revoke insert, update, delete on all tables in schema public from anon, authenticated;
 
--- Realtime: phones and projector subscribe to rooms + lobby
-alter publication supabase_realtime add table public.rooms, public.lobby;
 
 -- ---------- Helpers ----------
-create or replace function public._hash(t text) returns text
-language sql immutable as $$ select encode(digest(t, 'sha256'), 'hex') $$;
+create or replace function egocheck._hash(t text) returns text
+language sql immutable set search_path = egocheck, extensions as $$ select encode(digest(t, 'sha256'), 'hex') $$;
 
-create or replace function public._host_ok(p_code text, p_token text) returns boolean
-language sql stable security definer set search_path = public as $$
+create or replace function egocheck._host_ok(p_code text, p_token text) returns boolean
+language sql stable security definer set search_path = egocheck, extensions as $$
   select exists(select 1 from room_secrets where code = p_code and token_hash = _hash(p_token))
 $$;
 
 -- ---------- Host functions ----------
-create or replace function public.create_room(p_read_s int default 5, p_ans_s int default 3)
+create or replace function egocheck.create_room(p_read_s int default 5, p_ans_s int default 3)
 returns table(code text, host_token text)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = egocheck, extensions as $$
 declare c text; t text := encode(gen_random_bytes(24), 'hex');
 begin
   perform purge_expired();
@@ -98,9 +96,9 @@ begin
 end $$;
 
 -- p_action: 'next' | 'set_timer' | 'end'
-create or replace function public.host_advance(p_code text, p_token text, p_action text,
+create or replace function egocheck.host_advance(p_code text, p_token text, p_action text,
   p_read_s int default null, p_ans_s int default null)
-returns rooms language plpgsql security definer set search_path = public as $$
+returns egocheck.rooms language plpgsql security definer set search_path = egocheck, extensions as $$
 declare r rooms;
 begin
   if not _host_ok(p_code, p_token) then raise exception 'not host'; end if;
@@ -143,16 +141,16 @@ begin
 end $$;
 
 -- live count for the projector: numbers only
-create or replace function public.answer_count(p_code text, p_q int) returns int
-language sql stable security definer set search_path = public as $$
+create or replace function egocheck.answer_count(p_code text, p_q int) returns int
+language sql stable security definer set search_path = egocheck, extensions as $$
   select count(*)::int from answers a join players p on p.id = a.player_id
   where p.room_code = p_code and a.q = p_q
 $$;
 
 -- team result: only after the reveal, only valid games (>=7 answered), only if >=5 of them
-create or replace function public.team_result(p_code text)
+create or replace function egocheck.team_result(p_code text)
 returns table(valid_n int, joined_n int, avg_score int, dist int[])
-language plpgsql stable security definer set search_path = public as $$
+language plpgsql stable security definer set search_path = egocheck, extensions as $$
 declare st text;
 begin
   select stage into st from rooms where code = p_code;
@@ -172,9 +170,9 @@ begin
 end $$;
 
 -- ---------- Participant functions ----------
-create or replace function public.join_room(p_code text, p_nickname text)
+create or replace function egocheck.join_room(p_code text, p_nickname text)
 returns table(lobby_id uuid, player_token text)
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = egocheck, extensions as $$
 declare t text := encode(gen_random_bytes(24), 'hex'); l uuid;
 begin
   if not exists(select 1 from rooms where code = p_code and stage <> 'ended' and expires_at > now()) then
@@ -184,8 +182,8 @@ begin
   return query select l, t;
 end $$;
 
-create or replace function public.submit_answer(p_token text, p_q int, p_option int)
-returns text language plpgsql security definer set search_path = public as $$
+create or replace function egocheck.submit_answer(p_token text, p_q int, p_option int)
+returns text language plpgsql security definer set search_path = egocheck, extensions as $$
 declare pl players; r rooms;
 begin
   select * into pl from players where token_hash = _hash(p_token);
@@ -199,9 +197,9 @@ begin
 end $$;
 
 -- private result: only the token holder can read it (token lives on the phone; reconnect = same token)
-create or replace function public.my_result(p_token text)
+create or replace function egocheck.my_result(p_token text)
 returns table(answered int, score int, answers int[])
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = egocheck, extensions as $$
   select count(a.q)::int,
          case when count(a.q) > 0 then round(100.0*sum(qp.points)/(3*count(a.q)))::int end,
          array(select coalesce((select a2.option from answers a2 where a2.player_id = p.id and a2.q = g), -1)
@@ -211,45 +209,38 @@ language sql stable security definer set search_path = public as $$
   where p.token_hash = _hash(p_token) group by p.id
 $$;
 
-create or replace function public.forget_me(p_token text) returns void
-language sql security definer set search_path = public as $$
+create or replace function egocheck.forget_me(p_token text) returns void
+language sql security definer set search_path = egocheck, extensions as $$
   delete from players where token_hash = _hash(p_token)
 $$;
 
 -- ---------- Retention ----------
-create or replace function public.purge_expired() returns void
-language sql security definer set search_path = public as $$
+create or replace function egocheck.purge_expired() returns void
+language sql security definer set search_path = egocheck, extensions as $$
   delete from rooms where expires_at < now()
 $$;
--- Requires the pg_cron extension (Database → Extensions):
--- select cron.schedule('ego-check-purge', '17 * * * *', 'select public.purge_expired()');
+-- Expired rooms are purged whenever a new room is created (no cron job added to the shared project).
 
--- ---------- Grants ----------
-revoke all on function public._host_ok(text,text) from public, anon, authenticated;
-grant execute on function public.create_room(int,int), public.host_advance(text,text,text,int,int),
-  public.answer_count(text,int), public.team_result(text), public.join_room(text,text),
-  public.submit_answer(text,int,int), public.my_result(text), public.forget_me(text)
-  to anon, authenticated;
 
 -- ---------- JSON API used by the web client (polling, no realtime needed) ----------
-create or replace function public._ms(t timestamptz) returns bigint
-language sql immutable as $$ select (extract(epoch from t)*1000)::bigint $$;
+create or replace function egocheck._ms(t timestamptz) returns bigint
+language sql immutable set search_path = egocheck as $$ select (extract(epoch from t)*1000)::bigint $$;
 
-create or replace function public._pub(r rooms) returns jsonb
-language sql stable as $$
+create or replace function egocheck._pub(r egocheck.rooms) returns jsonb
+language sql stable set search_path = egocheck as $$
   select case when r.code is null then null else jsonb_build_object(
     'stage', r.stage, 'q', r.q, 'phase', r.phase, 'readMs', r.read_ms, 'ansMs', r.ans_ms, 'seq', r.seq,
     'phaseAt', _ms(r.phase_started_at), 'deadline', _ms(r.answer_deadline)) end
 $$;
 
-create or replace function public.room_state(p_code text) returns jsonb
-language sql stable security definer set search_path = public as $$
+create or replace function egocheck.room_state(p_code text) returns jsonb
+language sql stable security definer set search_path = egocheck, extensions as $$
   select jsonb_build_object('now', _ms(now()), 'room',
     (select _pub(r) from rooms r where r.code = p_code and r.stage <> 'ended' and r.expires_at > now()))
 $$;
 
-create or replace function public.host_state(p_code text, p_token text) returns jsonb
-language plpgsql stable security definer set search_path = public as $$
+create or replace function egocheck.host_state(p_code text, p_token text) returns jsonb
+language plpgsql stable security definer set search_path = egocheck, extensions as $$
 declare r rooms; team jsonb := null;
 begin
   if not _host_ok(p_code, p_token) then raise exception 'not host'; end if;
@@ -266,9 +257,9 @@ begin
     'team', team);
 end $$;
 
-create or replace function public.host_step(p_code text, p_token text, p_action text,
+create or replace function egocheck.host_step(p_code text, p_token text, p_action text,
   p_read_s int default null, p_ans_s int default null) returns jsonb
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = egocheck, extensions as $$
 declare r rooms;
 begin
   r := host_advance(p_code, p_token, p_action, p_read_s, p_ans_s);
@@ -276,8 +267,8 @@ begin
   return jsonb_build_object('now', _ms(now()), 'room', _pub(r));
 end $$;
 
-create or replace function public.create_room_json(p_read_s int default 5, p_ans_s int default 3) returns jsonb
-language plpgsql security definer set search_path = public as $$
+create or replace function egocheck.create_room_json(p_read_s int default 5, p_ans_s int default 3) returns jsonb
+language plpgsql security definer set search_path = egocheck, extensions as $$
 declare c record;
 begin
   if p_read_s not in (3,5,8) or p_ans_s not in (3,5,8,12,20) then raise exception 'bad timer'; end if;
@@ -285,8 +276,8 @@ begin
   return jsonb_build_object('code', c.code, 'hostToken', c.host_token, 'now', _ms(now()));
 end $$;
 
-create or replace function public.join_json(p_code text, p_nickname text) returns jsonb
-language plpgsql security definer set search_path = public as $$
+create or replace function egocheck.join_json(p_code text, p_nickname text) returns jsonb
+language plpgsql security definer set search_path = egocheck, extensions as $$
 declare j record;
 begin
   if length(trim(coalesce(p_nickname,''))) = 0 then raise exception 'no nickname'; end if;
@@ -295,14 +286,38 @@ begin
   return jsonb_build_object('lobbyId', j.lobby_id, 'token', j.player_token, 'now', _ms(now()));
 end $$;
 
-create or replace function public.me_json(p_token text) returns jsonb
-language sql stable security definer set search_path = public as $$
+create or replace function egocheck.me_json(p_token text) returns jsonb
+language sql stable security definer set search_path = egocheck, extensions as $$
   select jsonb_build_object('now', _ms(now()), 'answers',
     (select to_jsonb(answers) from my_result(p_token)))
 $$;
 
-revoke all on function public.host_advance(text,text,text,int,int), public.create_room(int,int),
-  public.join_room(text,text) from public, anon, authenticated;
-grant execute on function public.room_state(text), public.host_state(text,text), public.host_step(text,text,text,int,int),
-  public.create_room_json(int,int), public.join_json(text,text), public.me_json(text),
-  public.submit_answer(text,int,int), public.forget_me(text) to anon, authenticated;
+
+-- ---------- Lock down the schema (no direct client access at all) ----------
+revoke all on all tables in schema egocheck from public, anon, authenticated;
+revoke all on all functions in schema egocheck from public, anon, authenticated;
+
+-- ---------- Public API: thin wrappers, the only objects outside the schema ----------
+create or replace function public.egocheck_room_state(p_code text) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.room_state(p_code) $$;
+create or replace function public.egocheck_host_state(p_code text, p_token text) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.host_state(p_code, p_token) $$;
+create or replace function public.egocheck_host_step(p_code text, p_token text, p_action text, p_read_s int default null, p_ans_s int default null) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.host_step(p_code, p_token, p_action, p_read_s, p_ans_s) $$;
+create or replace function public.egocheck_create_room_json(p_read_s int default 5, p_ans_s int default 3) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.create_room_json(p_read_s, p_ans_s) $$;
+create or replace function public.egocheck_join_json(p_code text, p_nickname text) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.join_json(p_code, p_nickname) $$;
+create or replace function public.egocheck_me_json(p_token text) returns jsonb
+language sql security definer set search_path = '' as $$ select egocheck.me_json(p_token) $$;
+create or replace function public.egocheck_submit_answer(p_token text, p_q int, p_option int) returns text
+language sql security definer set search_path = '' as $$ select egocheck.submit_answer(p_token, p_q, p_option) $$;
+create or replace function public.egocheck_forget_me(p_token text) returns void
+language sql security definer set search_path = '' as $$ select egocheck.forget_me(p_token) $$;
+
+-- To remove the game completely later:
+--   drop schema egocheck cascade;
+--   drop function public.egocheck_room_state(text), public.egocheck_host_state(text,text),
+--     public.egocheck_host_step(text,text,text,int,int), public.egocheck_create_room_json(int,int),
+--     public.egocheck_join_json(text,text), public.egocheck_me_json(text),
+--     public.egocheck_submit_answer(text,int,int), public.egocheck_forget_me(text);

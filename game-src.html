@@ -340,7 +340,7 @@ class RpcHub {
   constructor(code) { this.code = code; this.off = 0; this.loops = {}; this.subs = { state: [], lobby: [], prog: [], scores: [] }; this.last = null; this.counts = null; this.finished = 0; this.team = null; }
   async rpc(fn, args = {}) {
     const h = { 'content-type': 'application/json', apikey: SUPA.key }; if (!SUPA.key.startsWith('sb_')) h.Authorization = 'Bearer ' + SUPA.key;
-    const t0 = Date.now(), r = await fetch(SUPA.url.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', headers: h, body: JSON.stringify(args) }), t1 = Date.now();
+    const t0 = Date.now(), r = await fetch(SUPA.url.replace(/\/$/, '') + '/rest/v1/rpc/egocheck_' + fn, { method: 'POST', headers: h, body: JSON.stringify(args) }), t1 = Date.now();
     const j = await r.json().catch(() => null);
     if (!r.ok) throw new Error((j && (j.message || j.error)) || ('HTTP ' + r.status));
     if (j && typeof j === 'object' && j.now) this.off = j.now - (t0 + t1) / 2;
