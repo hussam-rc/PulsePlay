@@ -2,6 +2,7 @@
 import { Session } from '../engine/session';
 import type { ResponseValue } from '../engine/scoring';
 import { SUPABASE_URL, SUPABASE_KEY } from './config';
+import { accessToken } from './auth';
 import { sessionView, View, MyState } from './view';
 
 export type Cmd = 'next' | 'pause' | 'resume' | 'end';
@@ -17,7 +18,8 @@ export interface Controller {
 // ---------- RPC ----------
 export async function rpc<T = any>(fn: string, args: Record<string, unknown>): Promise<{ data: T; offset: number }> {
   const h: Record<string, string> = { 'content-type': 'application/json', apikey: SUPABASE_KEY };
-  if (!SUPABASE_KEY.startsWith('sb_')) h.Authorization = `Bearer ${SUPABASE_KEY}`;
+  const tok = await accessToken();                       // signed-in creators act as themselves; players stay anonymous
+  if (tok) h.Authorization = `Bearer ${tok}`; else if (!SUPABASE_KEY.startsWith('sb_')) h.Authorization = `Bearer ${SUPABASE_KEY}`;
   const t0 = Date.now();
   let r: Response;
   try { r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: h, body: JSON.stringify(args) }); }
@@ -27,6 +29,18 @@ export async function rpc<T = any>(fn: string, args: Record<string, unknown>): P
   if (!r.ok) throw new Error((j && (j.message || j.error)) || `Server error ${r.status}`);
   const now = j && typeof j === 'object' && typeof j.now === 'number' ? j.now : null;
   return { data: j as T, offset: now ? now - (t0 + t1) / 2 : 0 };
+}
+
+/** Calls a Supabase Edge Function as the signed-in user. */
+export async function callFunction<T = any>(name: string, body: unknown): Promise<T> {
+  const tok = await accessToken();
+  if (!tok) throw new Error('Please sign in first.');
+  let r: Response;
+  try { r = await fetch(`${SUPABASE_URL}/functions/v1/${name}`, { method: 'POST', headers: { 'content-type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${tok}` }, body: JSON.stringify(body) }); }
+  catch { throw new Error('No connection to the server. Check your internet and try again.'); }
+  const j = await r.json().catch(() => null);
+  if (!r.ok) { const e = new Error((j && j.error) || `Server error ${r.status}`) as Error & { details?: string[] }; e.details = j?.errors; throw e; }
+  return j as T;
 }
 
 abstract class Base implements Controller {

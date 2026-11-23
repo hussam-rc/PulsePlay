@@ -16,7 +16,7 @@ export function Practice() {
 }
 
 /** Practice mode: the real engine with simulated players, entirely in memory. Never touches the server. */
-function PracticeRun({ e }: { e: Experience }) {
+export function PracticeRun({ e, exitTo }: { e: Experience; exitTo?: string }) {
   const [gen, setGen] = useState(0);
   const c = useMemo(() => { const s = new Session(e); s.addSimulated(6); return new PracticeHost(s); }, [e, gen]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => c.stop(), [c]);
@@ -33,7 +33,7 @@ function PracticeRun({ e }: { e: Experience }) {
       <div className="max-w-7xl mx-auto px-4 py-4 grid gap-4">
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-sun-50 text-[#8A5A0A] px-4 py-3 font-bold text-sm" role="status">
           🧪 {t('practice.banner')}
-          <span className="ms-auto flex gap-2"><button className="btn-ghost !min-h-[38px] !px-3 text-sm" onClick={() => setGen(g => g + 1)}>↺ Restart</button><Link className="btn-ghost !min-h-[38px] !px-3 text-sm" to={`/x/${e.id}`}>Exit</Link></span>
+          <span className="ms-auto flex gap-2"><button className="btn-ghost !min-h-[38px] !px-3 text-sm" onClick={() => setGen(g => g + 1)}>↺ Restart</button><Link className="btn-ghost !min-h-[38px] !px-3 text-sm" to={exitTo ?? `/x/${e.id}`}>Exit</Link></span>
         </div>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px] items-start">
           <div className="grid gap-4">

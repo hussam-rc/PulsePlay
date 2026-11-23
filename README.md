@@ -4,7 +4,7 @@
 
 | What | Where | Status |
 |---|---|---|
-| **PulsePlay app** (Discover, Play, Host Studio, practice mode, checker) | https://hussam-rc.github.io/PulsePlay/app/ | Phase 1a |
+| **PulsePlay app** (Discover, live multiplayer for 3 games, Host Studio, Workspace with organisations) | https://hussam-rc.github.io/PulsePlay/app/ | Phase 1b |
 | **Ego Check LIVE** (live rooms, QR join, phones as controllers) | https://hussam-rc.github.io/PulsePlay/ | Live |
 
 Architecture, decisions and the phased backlog: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -19,7 +19,9 @@ web/                                  PulsePlay source: React + TypeScript + Vit
   src/pages/, src/ui/                 Screens and components
   tests/                              Unit tests (Vitest)
   e2e/                                Browser tests (Playwright for Python)
-supabase/migrations/                  Database for live Ego Check (schema `egocheck` + 8 public RPCs)
+supabase/migrations/                  egocheck (legacy), pp live engine (0100/0110), workspaces & roles (0200/0210)
+supabase/functions/publish/           Edge Function: server-side validation + versioned publish (holds the service key)
+supabase/tests/                       SQL tests (engine, isolation, grants) + publish function test
 .github/workflows/ci.yml              Type-check, unit tests, build on every push
 ```
 

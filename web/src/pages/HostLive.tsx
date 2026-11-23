@@ -5,13 +5,41 @@ import { LiveHost, rpc, saveHost, savedHost } from '../live/controllers';
 import { Presenter, useController } from '../live/Presenter';
 import type { View } from '../live/view';
 import { Chip } from '../ui/bits';
+import type { Experience } from '../engine/schema';
+import { api, isUuid, useAuth } from '../live/workspace';
+import { validateExperience } from '../engine/schema';
+import { SignIn } from './Workspace';
 
 const READS = [3, 5, 8], ANSWERS = [3, 5, 8, 12, 20], AUTO = [0, 5, 8, 12];
 
 export const joinUrlFor = (code: string) => `${location.origin}${location.pathname}#/j/${code}`;
 
 export function HostLive() {
-  const e = byId(useParams().id ?? '');
+  const id = useParams().id ?? '';
+  const builtIn = byId(id);
+  if (builtIn) return <HostLiveFor key={id} e={builtIn} expKey={id} />;
+  if (isUuid(id)) return <HostServer id={id} />;
+  return <Navigate to="/host" replace />;
+}
+
+/** Organisation and personal experiences: loaded as the signed-in user (RLS decides), hosted by id. */
+function HostServer({ id }: { id: string }) {
+  const auth = useAuth();
+  const [st, setSt] = useState<{ e?: Experience; err?: string } | null>(null);
+  useEffect(() => {
+    if (!auth) return;
+    api.published(id).then(p => {
+      if (!p) return setSt({ err: 'This experience is not published, or you do not have access to it.' });
+      const v = validateExperience(p.content); setSt(v.ok ? { e: v.experience! } : { err: 'This published version cannot be hosted.' });
+    }).catch(e => setSt({ err: e.message }));
+  }, [id, auth?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!auth) return <SignIn title="Sign in to host this experience" />;
+  if (!st) return <p className="p-10 text-ink-soft">Loading…</p>;
+  if (st.err) return <div className="max-w-xl mx-auto p-10 grid gap-3"><p className="font-bold" role="alert">{st.err}</p><Link className="btn-ghost" to="/workspace">Back to workspace</Link></div>;
+  return <HostLiveFor e={st.e!} expKey={id} practiceTo={`/workspace/edit/${id}`} />;
+}
+
+function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string; practiceTo?: string }) {
   const [c, setC] = useState<LiveHost | null>(null);
   const [read, setRead] = useState(e?.defaultTiming.readSec ?? 5);
   const [ans, setAns] = useState(e?.defaultTiming.answerSec ?? 5);
@@ -25,7 +53,6 @@ export function HostLive() {
   useController(c);
   useEffect(() => () => c?.stop(), [c]);
   useEffect(() => { if (c?.view?.ended) { setRecap(c.view); saveHost(null); } }, [c?.view?.ended]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!e) return <Navigate to="/host" replace />;
 
   const create = async () => {
     setBusy(true); setErr('');
@@ -33,8 +60,8 @@ export function HostLive() {
       const settings: Record<string, unknown> = { readSec: read, answerSec: ans };
       if (auto) settings.autoAdvanceSec = auto;
       if (board) settings.leaderboard = true;
-      const { data } = await rpc<{ code: string; hostToken: string }>('pp_create_session', { p_experience: e.id, p_settings: settings });
-      saveHost({ code: data.code, token: data.hostToken, experienceId: e.id, at: Date.now() });
+      const { data } = await rpc<{ code: string; hostToken: string }>('pp_create_session', { p_experience: expKey, p_settings: settings });
+      saveHost({ code: data.code, token: data.hostToken, experienceId: expKey, at: Date.now() });
       setC(new LiveHost(data.code, data.hostToken));
     } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
   };
@@ -89,7 +116,7 @@ export function HostLive() {
         <div className="rounded-2xl bg-violet-50 text-violet-700 p-4 text-sm"><b>🔒 Privacy</b> {e.privacy.individualResults ? 'Personal results stay on each phone; you only see attendance and counts.' : 'Only group totals are shown.'} Group results need {e.privacy.groupMinimum}+ players.{e.scoring.kind === 'behaviour' ? ' This reflection game never shows a leaderboard.' : ''}</div>
         {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
         <button className="btn-primary" onClick={create} disabled={busy} data-testid="create">{busy ? 'Creating…' : 'Create room'}</button>
-        <p className="text-sm text-ink-soft">Tip: practise first with simulated players — <Link className="underline" to={`/practice/${e.id}`}>open practice mode</Link>.</p>
+        <p className="text-sm text-ink-soft">Tip: practise first with simulated players — <Link className="underline" to={practiceTo ?? `/practice/${e.id}`}>{practiceTo ? 'preview it in the editor' : 'open practice mode'}</Link>.</p>
       </div>
     </div>
   );

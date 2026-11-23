@@ -123,6 +123,11 @@ do $$ declare A uuid := current_setting('t.orgA')::uuid; ok boolean; begin
   perform public.pp_remove_member(A, '00000000-0000-0000-0000-00000000000c');
   perform pg_temp.as_user('c');
   insert into t values ('roles: removed creator loses access to org drafts', public.pp_get_experience(current_setting('t.carolOrg')::uuid) is null, null);
+  insert into t values ('published: removed creator cannot read published content', public.pp_get_published(current_setting('t.carolOrg')::uuid) is null, null);
+  perform pg_temp.as_user('d');
+  insert into t values ('published: member reads the version a room will run', (public.pp_get_published(current_setting('t.carolOrg')::uuid)->>'version')::int = 1, null);
+  perform pg_temp.as_user('b');
+  insert into t values ('published: outsider cannot read org published content', public.pp_get_published(current_setting('t.carolOrg')::uuid) is null, null);
 end $$;
 
 reset role;

@@ -128,3 +128,12 @@ Challenged / simplified on purpose
 ## 9. Rollback
 - Frontend: Pages serves `main`. To roll back, revert the commit; the previous `index.html` is restored.
 - Ego Check backend removal (when migrated): `drop schema egocheck cascade` + drop 8 `public.egocheck_*` functions (statement at the end of the migration file). Run it only after the new backend has served a successful session.
+
+## 10. Phase 1b status (slice 2: accounts and organisations)
+- Creator sign-in: Supabase Auth email link or 6-digit code, no passwords, no extra JS dependency (`web/src/live/auth.ts`). Participants never sign in.
+- Organisations: owner / admin / creator / facilitator. Invites are accepted on first sign-in with the invited email. A creator can belong to many organisations and switch spaces.
+- Isolation: RLS on every `pp` table via `pp.has_role`; workspace API wrappers are SECURITY INVOKER so RLS applies; audit trail for org actions.
+- Drafts, template copies, libraries (personal and per organisation), immutable versions, session insights (anonymous totals).
+- Publishing goes only through the `publish` Edge Function: it re-validates with the same schema as the app (sync enforced by a unit test) and is the only holder of the service key. Public Discover listing needs a review step (not built).
+- Hosting an org/personal experience uses its latest published version (`pp_get_published`), never the draft.
+- Tests: SQL 40 engine + 46 isolation + 9 grants (also run on production inside a rolled-back transaction), 13 publish-function tests, browser 34 live + 19 app + 33 workspace (local emulator).

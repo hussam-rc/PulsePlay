@@ -13,6 +13,12 @@ import { Create } from './pages/Create';
 import { Workspace } from './pages/Workspace';
 import { HostLive } from './pages/HostLive';
 import { JoinLive } from './pages/JoinLive';
+import { Editor, Preview } from './pages/Editor';
+import { consumeRedirect } from './live/auth';
+
+// A returning sign-in link carries tokens in the URL fragment; turn them into a session before the router reads the hash.
+const signinError = consumeRedirect();
+if (signinError) try { sessionStorage.setItem('pp_signin_error', signinError); } catch { /* ignore */ }
 
 document.documentElement.dir = dir();
 
@@ -52,6 +58,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/practice/:id" element={<Practice />} />
         <Route path="/host/:id" element={<HostLive />} />
+        <Route path="/workspace/preview/:id" element={<Preview />} />
         <Route path="/j" element={<JoinLive />} />
         <Route path="/j/:code" element={<JoinLive />} />
         <Route path="*" element={<Shell><Routes>
@@ -63,6 +70,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/host" element={<Host />} />
           <Route path="/create" element={<Create />} />
           <Route path="/workspace" element={<Workspace />} />
+          <Route path="/workspace/edit/:id" element={<Editor />} />
           <Route path="*" element={<Navigate to="/discover" replace />} />
         </Routes></Shell>} />
       </Routes>
