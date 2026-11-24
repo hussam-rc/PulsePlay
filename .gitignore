@@ -3,3 +3,4 @@ web/dist/
 .netlify
 *.log
 *.tsbuildinfo
+supabase/functions/.local/

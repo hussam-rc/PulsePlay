@@ -2,6 +2,7 @@
 import { ReactNode, useMemo, useState } from 'react';
 import type { Activity, ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
+import { AiDraft } from './AiDraft';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, nextOptionId, splitBands } from './model';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
@@ -73,6 +74,7 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
             move={dir => setActs(xs => { const c = [...xs]; const j = i + dir; [c[i], c[j]] = [c[j], c[i]]; return c; })}
             dup={() => setActs(xs => { const c = [...xs]; c.splice(i + 1, 0, { ...structuredClone(a), id: newId() }); return c; })}
             del={() => { if (confirm(`Delete question ${i + 1}?`)) setActs(xs => xs.filter(y => y.id !== a.id)); }} />)}
+          {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => setActs(xs => [...xs.filter(x => x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))), ...add])} />}
           {!readOnly && <div className="flex flex-wrap gap-2">{KINDS[kind].activity.map(t =>
             <button type="button" key={t} className="btn-ghost" onClick={() => setActs(xs => [...xs, newActivity(t, kind)])} data-testid={`add-${t}`}>+ Add {ACTIVITY_LABEL[t].split(' (')[0].toLowerCase()}</button>)}</div>}
         </Section>

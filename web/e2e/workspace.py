@@ -118,6 +118,18 @@ with sync_playwright() as pw:
         bob.wait_for_selector('[data-testid=transition], [data-testid=distribution], [data-testid=suppressed]', timeout=20000); nx()
     pl.wait_for_selector('text=3/3', timeout=20000); ok(True, 'live: a phone plays the creator-built quiz to the end (3/3)')
     bob.click('[data-testid=end]'); bob.click('[data-testid=end-confirm]'); bob.wait_for_selector('[data-testid=recap]', timeout=10000)
+    # AI drafts (mock AI service locally): suggestions are reviewed before anything is added
+    bob.goto(BASE + '#/workspace'); bob.wait_for_selector('[data-testid=library]'); bob.click('[data-testid=new-quiz]'); bob.wait_for_selector('[data-testid=checker]')
+    bob.click('[data-testid=ai-open]'); bob.fill('[data-testid=ai-topic]', 'working across Egypt and Switzerland'); bob.click('[data-testid=ai-run]')
+    bob.wait_for_selector('[data-testid=ai-item]', timeout=15000)
+    ok(bob.locator('[data-testid=ai-item]').count() == 3 and '1 discarded' in bob.inner_text('[data-testid=ai-panel]'), 'ai: 3 valid suggestions shown, invalid one discarded by the checker')
+    ok(bob.locator('[data-testid=question]').count() == 3, 'ai: nothing is added before the creator confirms')
+    bob.locator('[data-testid=ai-item] input').nth(1).uncheck(); bob.click('[data-testid=ai-add]')
+    ok(bob.locator('[data-testid=question]').count() == 2 and bob.locator('[data-testid=q-prompt]').nth(0).input_value() == 'Which time zone is Cairo in?', 'ai: only ticked suggestions added; empty blanks replaced')
+    sent = json.load(urllib.request.urlopen('http://localhost:8099/last'))
+    body = json.dumps(sent['body'])
+    ok(sent['headers']['key'] == 'test-key' and 'bob@example.org' not in body and '<topic>working across Egypt and Switzerland</topic>' in body, 'ai: key stays server-side; only the topic is sent, no email')
+    ok(bob.evaluate("document.documentElement.innerHTML.includes('test-key')") is False, 'ai: the browser never sees the AI key')
     r = fetch(a, 'pp_create_session', {'p_experience': bob_id, 'p_settings': {}}); ok(r['status'] >= 400, f'iso: Alice cannot host Bob\'s private experience ({r["status"]})')
     # ---- role changes ----
     a.goto(BASE + '#/workspace'); space(a, 'Org A'); a.click('[role=tab]:has-text("Members")'); a.wait_for_selector('[data-testid=member] >> text=carol@example.org')
