@@ -1,6 +1,7 @@
 // Interface strings for players, the projector and the main navigation. Game content keeps its own language.
 // German follows Swiss spelling (ss). Arabic is Modern Standard Arabic and renders right-to-left.
 import { V2_EN, V2_DE, V2_FR, V2_AR } from './v2';
+import { V2B_EN, V2B_DE, V2B_FR, V2B_AR } from './v2b';
 
 const enBase = {
   'host.endInsights': 'End & see insights 📊',
@@ -124,7 +125,7 @@ const enBase = {
   'host.results': 'Show results 🪞', 'host.wrap': 'Wrap up ▶', 'host.group': 'Reveal group result 🏢', 'host.reflect': 'Reflection ▶', 'host.done': 'Finished 💜',
   'host.resume': '▶ Resume', 'host.pause': '⏸ Pause', 'host.fs': '⛶ Full screen', 'host.keys': 'Space/→ next · P pause · F full screen', 'host.retrying': 'Retrying…',
 };
-const en = { ...enBase, ...V2_EN };
+const en = { ...enBase, ...V2_EN, ...V2B_EN };
 export type Key = keyof typeof en;
 type Dict = Record<Key, string>;
 
@@ -482,9 +483,9 @@ const arBase = {
   'host.resume': '◀ استئناف', 'host.pause': '⏸ إيقاف مؤقت', 'host.fs': '⛶ ملء الشاشة', 'host.keys': 'مسافة/← التالي · P إيقاف · F ملء الشاشة', 'host.retrying': 'إعادة المحاولة…',
 };
 
-const de: Dict = { ...deBase, ...V2_DE };
-const fr: Dict = { ...frBase, ...V2_FR };
-const ar: Dict = { ...arBase, ...V2_AR };
+const de: Dict = { ...deBase, ...V2_DE, ...V2B_DE };
+const fr: Dict = { ...frBase, ...V2_FR, ...V2B_FR };
+const ar: Dict = { ...arBase, ...V2_AR, ...V2B_AR };
 
 export const LOCALES = {
   en: { dir: 'ltr' as const, label: 'English', strings: en as Dict },

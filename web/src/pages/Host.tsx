@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { EXPERIENCES } from '../experiences';
 import { t } from '../i18n';
+import { SectionHeader } from '../ui/SectionHeader';
 import { byId, localizedId } from '../experiences';
 
 export function Host() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 grid gap-6">
-      <header><h1 className="text-4xl font-extrabold">{t('hs.title')}</h1>
-        <p className="text-ink-soft text-lg mt-2">{t('hs.sub')}</p></header>
+      <SectionHeader icon="🎤" title={t('hs.title')} purpose={t('sec.host')} links={[{ lead: t('x.notSure'), label: '✨ ' + t('fx.open'), to: '/find' }, { lead: t('x.ownGame'), label: t('v2.create'), to: '/create' }]} />
+      <p className="text-ink-soft -mt-3">{t('hs.sub')}</p>
       <div className="grid gap-4">
         {EXPERIENCES.map(e => (
           <div key={e.id} className="card p-5 flex flex-wrap items-center gap-4">

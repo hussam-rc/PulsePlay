@@ -88,6 +88,7 @@ export function Discover() {
             <a href="#catalogue" className="btn-primary" onClick={ev => { ev.preventDefault(); document.getElementById('catalogue')?.scrollIntoView({ behavior: 'smooth' }); }}>{t('v2.explore')}</a>
             <Link to="/create" className="btn-ghost">🛠️ {t('v2.create')}</Link>
           </div>
+          <Link to="/find" className="justify-self-start inline-flex items-center gap-2 rounded-full bg-violet-50 text-violet-700 px-4 py-2 font-extrabold hover:bg-violet-100" data-testid="open-find">✨ {t('fx.open')} <span aria-hidden>→</span></Link>
         </div>
         <div className="card p-5"><JoinCode /></div>
       </section>

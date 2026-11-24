@@ -4,8 +4,11 @@ import type { View, MyState } from './view';
 import type { ResponseValue } from '../engine/scoring';
 import { personalResult } from '../engine/scoring';
 import { ActivityInput } from '../ui/Activity';
-import { Bar, Chip, Confetti, Gauge, ResultCard, resultText, useNow } from '../ui/bits';
+import { Bar, Chip, Confetti, Gauge, ResultCard, resultText, takeawayText, useNow } from '../ui/bits';
 import { QR } from '../ui/LazyQR';
+import { CountUp, Podium } from '../ui/reveal';
+import { recordMoment } from './highlights';
+import { HighlightsView } from './HighlightsView';
 import { t } from '../i18n';
 import { deleteResult, saveResult, savedResult } from './savedResults';
 import { LangSwitch } from '../ui/LangSwitch';
@@ -21,6 +24,7 @@ const TILE = ['#5A36F0', '#2F6FEB', '#14A38B', '#E59A1C'];
 /** Projector. `off` = server clock offset; all deadlines are server times. */
 export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off: number; joinUrl: string; practice?: boolean; onKick?: (seat: string, name: string) => void }) {
   const e = v.experience, n = v.joined, local = (t?: number) => (t ?? 0) - off;
+  useEffect(() => { recordMoment(v); }, [v.code, v.index, v.phase, v.reveal?.distribution?.n]); // eslint-disable-line react-hooks/exhaustive-deps
   if (v.stage === 'lobby') return (
     <div className={PAD}><div className="grid sm:grid-cols-[auto_1fr] gap-8 items-center">
       <QR text={joinUrl} label={practice ? 'Practice QR code (not a real join link)' : 'QR code to join this game'} />
@@ -75,10 +79,13 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
     );
   }
   if (v.stage === 'results') return (
-    <div className={`${PAD} items-center text-center`}><div className="text-[8rem] leading-none anim-pulse" aria-hidden>{e.privacy.individualResults ? '📱' : '🎉'}</div>
+    <div className={`${PAD} items-center text-center`} data-testid={`results-${e.scoringKind}`}>
+      <div className="text-[6rem] sm:text-[8rem] leading-none anim-rise" aria-hidden>{e.privacy.individualResults ? '📱' : '🎉'}</div>
       <h1 className="text-4xl sm:text-5xl font-extrabold">{e.privacy.individualResults ? t('stage.lookPhone') : t('stage.fun')}</h1>
       <p className="text-xl text-ink-soft">{e.privacy.individualResults ? t('stage.privateRes') : t('stage.played', { n })}</p>
-      {v.leaderboard && <Leaderboard rows={v.leaderboard} total={v.total} />}</div>
+      {e.scoringKind === 'aggregate' && <Confetti />}
+      <HighlightsView code={v.code} kind={e.scoringKind} />
+      {v.leaderboard && (v.leaderboard.length ? <Podium rows={v.leaderboard} total={v.total} title={t('stage.board')} note={t('stage.volunteers')} /> : <p className="text-ink-soft">{t('stage.nobodyBoard')}</p>)}</div>
   );
   if (v.stage === 'group' && v.group) {
     const g = v.group, band = g.average != null ? (e.results ?? []).find(b => g.average! >= b.min && g.average! <= b.max) : undefined;
@@ -98,7 +105,7 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
         </div>
         <div className="flex flex-wrap items-center justify-center gap-6">
           {e.scoringKind === 'behaviour' && <div className="w-72"><Gauge value={g.average!} /></div>}
-          <div className="text-7xl font-extrabold text-violet-600 leading-none tabular-nums anim-pop" data-testid="group-average">{g.average}<span className="text-3xl text-ink-soft">{e.scoringKind === 'correct' ? t('stage.pctCorrect') : ' / 100'}</span></div>
+          <div className="text-7xl font-extrabold text-violet-600 leading-none tabular-nums anim-pop" data-testid="group-average"><CountUp to={g.average!} /><span className="text-3xl text-ink-soft">{e.scoringKind === 'correct' ? t('stage.pctCorrect') : ' / 100'}</span></div>
         </div>
         <div className="flex gap-2 flex-wrap justify-center"><Chip tone="sky">{t('join.joined', { n: g.joined })}</Chip><Chip tone="teal">{t('stage.completed', { n: g.valid })}</Chip></div>
         {g.bands ? <div className="grid gap-2 w-full max-w-2xl text-start">{(e.results ?? []).map((b, i) => { const p = Math.round((100 * (g.bands![i] ?? 0)) / g.valid), mine = b === band;
@@ -119,11 +126,6 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
   );
 }
 
-function Leaderboard({ rows, total }: { rows: { name: string; correct: number }[]; total: number }) {
-  if (!rows.length) return <p className="text-ink-soft">{t('stage.nobodyBoard')}</p>;
-  return <div className="w-full max-w-md grid gap-2 text-start" data-testid="leaderboard"><h3 className="text-xl font-extrabold text-center">{t('stage.board')} <span className="text-sm text-ink-soft font-bold">{t('stage.volunteers')}</span></h3>
-    {rows.map((r, i) => <div key={i} className="flex items-center gap-3 rounded-xl bg-paper border border-paper-line px-4 py-2 font-bold"><span className="w-7 text-ink-soft">{i + 1}.</span><span className="flex-1 min-w-0 truncate">{r.name}</span><span className="tabular-nums">{r.correct}/{total}</span></div>)}</div>;
-}
 
 /** Phone, after joining. */
 export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
@@ -186,7 +188,7 @@ function MyResult({ v, my, seed, revealed, onReveal }: { v: View; my: MyState; s
   if (gone) return <p className="card p-6 text-center" role="status">{t('keep.deleted')}</p>;
   if (!revealed) return <button className="w-full grid gap-3 place-items-center py-12 text-center" onClick={onReveal} data-testid="reveal"><span className="text-7xl anim-pulse" aria-hidden>🪞</span><span className="text-2xl font-extrabold">{t('phone.ready')}</span><span className="text-ink-soft">{t('phone.tap')}</span></button>;
   return <div className="grid gap-3">
-    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
+    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
     {my.boardName && <p className="text-sm text-center text-ink-soft">{t('phone.onBoard', { name: my.boardName })}</p>}
     {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm">{e.closing.questions.map((q, i) => <p key={i} dir="auto">{i + 1}. {q}</p>)}</div>}
   </div>;

@@ -6,7 +6,8 @@ import { personalResult, Responses, ResponseValue } from '../engine/scoring';
 import { randomId } from '../engine/random';
 import { ActivityInput } from '../ui/Activity';
 import { publicActivity } from '../live/view';
-import { Bar, ResultCard, resultText } from '../ui/bits';
+import { Bar, ResultCard, resultText, takeawayText } from '../ui/bits';
+import { t } from '../i18n';
 
 /** Self-paced mode: one person, no timer, nothing sent anywhere. */
 export function Solo() {
@@ -29,10 +30,10 @@ export function Solo() {
       {i === -1 && (
         <div className="card p-6 grid gap-4 text-center">
           <div className="text-6xl" aria-hidden>{e.emoji}</div>
-          <h1 className="text-3xl font-extrabold">{e.title}</h1>
+          <h1 className="text-3xl font-extrabold" dir="auto">{e.title}</h1>
           <p className="text-ink-soft">{e.tagline}</p>
-          <p>{acts.length} questions, at your own pace. Nothing leaves this device.</p>
-          <button className="btn-primary" onClick={() => setI(0)}>Start</button>
+          <p>{t('solo.intro', { n: acts.length })}</p>
+          <button className="btn-primary" onClick={() => setI(0)} data-testid="solo-start">{t('host.start')}</button>
           <p className="text-xs text-ink-soft">{e.disclaimer}</p>
         </div>
       )}
@@ -46,11 +47,11 @@ export function Solo() {
             <div className="grid gap-3 anim-pop">
               {e.reveal === 'correct' && a.type === 'choice' && (
                 <div className={`rounded-2xl p-4 ${a.options.find(o => o.id === resp[a.id])?.correct ? 'bg-teal-50' : 'bg-sun-50'}`}>
-                  <b>{a.options.find(o => o.id === resp[a.id])?.correct ? '✅ Correct!' : '🤔 Not quite.'}</b> {a.explanation}
+                  <b>{a.options.find(o => o.id === resp[a.id])?.correct ? '✅ ' + t('solo.correct') : '🤔 ' + t('solo.notQuite')}</b> {a.explanation}
                 </div>
               )}
-              {e.reveal === 'distribution' && <p className="text-ink-soft">In a live session, the room would now see how everyone voted.</p>}
-              <button className="btn-primary" onClick={next}>{i < acts.length - 1 ? 'Next' : 'See my result'}</button>
+              {e.reveal === 'distribution' && <p className="text-ink-soft">{t('solo.liveNote')}</p>}
+              <button className="btn-primary" onClick={next}>{i < acts.length - 1 ? t('solo.next') : t('solo.see')}</button>
             </div>
           )}
         </div>
@@ -58,11 +59,16 @@ export function Solo() {
       {done && (
         <div className="grid gap-4">
           {e.privacy.individualResults
-            ? <ResultCard r={personalResult(e, resp, seed)} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, personalResult(e, resp, seed)))} />
-            : <div className="card p-6 grid gap-3"><div className="text-5xl text-center" aria-hidden>🎉</div><h2 className="text-2xl font-extrabold text-center">Your picks</h2>
-                <ul className="grid gap-2">{acts.map(x => x.type === 'poll' && <li key={x.id} className="rounded-xl bg-paper p-3">{x.options.find(o => o.id === resp[x.id])?.emoji} {x.options.find(o => o.id === resp[x.id])?.text ?? 'skipped'}</li>)}</ul></div>}
-          {e.closing && <div className="card p-5 grid gap-2"><h3 className="font-extrabold">Take these with you</h3>{e.closing.questions.map((q, k) => <p key={k}>{k + 1}. {q}</p>)}<p className="font-extrabold text-violet-600">{e.closing.message}</p></div>}
-          <div className="flex gap-2"><button className="btn-ghost flex-1" onClick={() => { setResp({}); setI(-1); }}>Play again</button><Link className="btn-primary flex-1" to="/discover">More games</Link></div>
+            ? <ResultCard r={personalResult(e, resp, seed)} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, personalResult(e, resp, seed)))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, personalResult(e, resp, seed)))} />
+            : <div className="card p-6 grid gap-3"><div className="text-5xl text-center" aria-hidden>🎉</div><h2 className="text-2xl font-extrabold text-center">{t('solo.picks')}</h2>
+                <ul className="grid gap-2">{acts.map(x => x.type === 'poll' && <li key={x.id} className="rounded-xl bg-paper p-3">{x.options.find(o => o.id === resp[x.id])?.emoji} {x.options.find(o => o.id === resp[x.id])?.text ?? t('solo.skipped')}</li>)}</ul></div>}
+          {e.closing && <div className="card p-5 grid gap-2"><h3 className="font-extrabold">{t('solo.take')}</h3>{e.closing.questions.map((q, k) => <p key={k}>{k + 1}. {q}</p>)}<p className="font-extrabold text-violet-600">{e.closing.message}</p></div>}
+          <section className="card p-5 grid gap-3" data-testid="next-steps"><h3 className="font-extrabold">{t('next.title')}</h3>
+            <div className="grid sm:grid-cols-3 gap-2">
+              {e.modes.includes('live') && <Link className="btn-primary" to={`/host/${e.id}`}>🎤 {t('next.hostThis')}</Link>}
+              <Link className="btn-ghost" to="/find">✨ {t('next.find')}</Link>
+              <button className="btn-ghost" onClick={() => { setResp({}); setI(-1); }}>↻ {t('next.again')}</button>
+            </div></section>
         </div>
       )}
     </div>
