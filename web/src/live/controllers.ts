@@ -52,28 +52,75 @@ abstract class Base implements Controller {
   abstract stop(): void;
 }
 
-/** Polls the server. Phases advance by the server clock on every poll, so screens never drive timing. */
+/** Optional push channel (Supabase Realtime broadcast). Carries no data: a "tick" only tells screens to fetch now.
+ *  If WebSockets are blocked or flaky, nothing breaks: polling continues on its own. */
+export class Nudge {
+  healthy = false; private ws: WebSocket | null = null; private hb: ReturnType<typeof setInterval> | null = null; private retry = 0; private closed = false; private ref = 0;
+  constructor(private code: string, private onTick: () => void) { this.open(); }
+  private open() {
+    if (this.closed || typeof WebSocket === 'undefined' || !/^https?:/.test(SUPABASE_URL)) return;
+    let ws: WebSocket;
+    try { ws = new WebSocket(`${SUPABASE_URL.replace(/^http/, 'ws')}/realtime/v1/websocket?apikey=${encodeURIComponent(SUPABASE_KEY)}&vsn=1.0.0`); } catch { return; }
+    this.ws = ws;
+    const send = (topic: string, event: string, payload: unknown) => { try { ws.send(JSON.stringify({ topic, event, payload, ref: String(++this.ref) })); } catch { /* reconnect handles it */ } };
+    ws.onopen = () => { send(`realtime:pp-room-${this.code}`, 'phx_join', { config: { broadcast: { self: false }, presence: { key: '' }, private: false } });
+      this.hb = setInterval(() => send('phoenix', 'heartbeat', {}), 25000); };
+    ws.onmessage = e => { try { const m = JSON.parse(e.data as string);
+      if (m.event === 'phx_reply' && m.payload?.status === 'ok' && m.topic !== 'phoenix') { this.healthy = true; this.retry = 0; }
+      if (m.event === 'broadcast') this.onTick(); } catch { /* ignore */ } };
+    ws.onclose = () => { this.healthy = false; if (this.hb) clearInterval(this.hb); if (!this.closed) setTimeout(() => this.open(), Math.min(30000, 1000 * 2 ** this.retry++)); };
+    ws.onerror = () => { try { ws.close(); } catch { /* ignore */ } };
+  }
+  close() { this.closed = true; this.healthy = false; if (this.hb) clearInterval(this.hb); try { this.ws?.close(); } catch { /* ignore */ } }
+}
+
+/** Polls the server. Phases advance by the server clock on every poll, so screens never drive timing.
+ *  With a healthy push channel it polls slowly and fetches immediately on each tick and at every phase boundary.
+ *  It pauses while a phone screen is off and catches up the moment it comes back or the network returns. */
 class Poller extends Base {
-  private timer: ReturnType<typeof setTimeout> | null = null; private stopped = false; private fails = 0;
-  constructor(private read: () => Promise<{ data: View; offset: number }>) { super(); this.loop(); }
+  private timer: ReturnType<typeof setTimeout> | null = null; private stopped = false; private fails = 0; private inflight = false; private again = false; private last = 0;
+  private nudge: Nudge | null = null;
+  private wake = () => { if (!document.hidden) this.refresh(); };
+  constructor(private read: () => Promise<{ data: View; offset: number }>, code?: string) {
+    super();
+    if (code && typeof window !== 'undefined') { this.nudge = new Nudge(code, () => this.refresh()); document.addEventListener('visibilitychange', this.wake); window.addEventListener('online', this.wake); }
+    this.loop();
+  }
   protected setView(v: View, off: number) {
     if (off) this.offset = off;
     if (v.ended) { if (!this.view?.ended) { this.view = this.view ? { ...this.view, ended: true } : null; this.error = this.view ? null : 'This game has ended.'; this.emit(); } this.stop(); return; }
     if (!this.view || v.seq !== this.view.seq || v.answered !== this.view.answered || v.joined !== this.view.joined || v.ended) { this.view = v; this.emit(); } }
+  private nextDelay() {
+    if (this.fails) return Math.min(8000, 1000 * 2 ** (this.fails - 1));
+    const v = this.view, push = this.nudge?.healthy;
+    let d = v?.stage === 'activity' ? (push ? 2500 : 600) : (push ? 4000 : 1200);
+    if (v && !v.paused && v.phase) {                       // be there exactly when the server clock moves the phase on
+      const at = v.phase === 'read' && v.timing ? v.phaseAt + v.timing.readSec * 1000 : v.phase === 'answer' ? v.deadline : undefined;
+      if (at) { const until = at - (Date.now() + this.offset) + 150; if (until > 0) d = Math.min(d, until); }
+    }
+    return d;
+  }
   private async loop() {
     if (this.stopped) return;
+    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+    if (typeof document !== 'undefined' && document.hidden && this.nudge) { this.timer = setTimeout(() => this.loop(), 5000); return; }
+    if (this.inflight) { this.again = true; return; }
+    this.inflight = true; this.last = Date.now();
     try { const { data, offset } = await this.read(); this.fails = 0; if (this.error) { this.error = null; this.emit(); } this.setView(data, offset); }
-    catch (e) { this.fails++; if (this.fails >= 3 && this.error !== (e as Error).message) { this.error = (e as Error).message; this.emit(); } }
-    const fast = this.view?.stage === 'activity';
-    this.timer = setTimeout(() => this.loop(), this.fails ? Math.min(5000, 800 * this.fails) : fast ? 500 : 1000);
+    catch (e) { this.fails++; const m = /connection/i.test((e as Error).message) ? 'Connection lost. Reconnecting…' : (e as Error).message; if (this.fails >= 2 && this.error !== m) { this.error = m; this.emit(); } }
+    finally { this.inflight = false; }
+    if (this.stopped) return;
+    if (this.again) { this.again = false; this.timer = setTimeout(() => this.loop(), Math.max(0, 300 - (Date.now() - this.last))); return; }
+    this.timer = setTimeout(() => this.loop(), this.nextDelay());
   }
-  refresh() { if (this.timer) clearTimeout(this.timer); this.loop(); }
+  /** Fetch now (coalesced: at most about 3 reads per second however many ticks arrive). */
+  refresh() { if (this.stopped) return; if (this.inflight) { this.again = true; return; } const wait = 300 - (Date.now() - this.last); if (this.timer) clearTimeout(this.timer); this.timer = setTimeout(() => this.loop(), Math.max(0, wait)); }
   async command(_: Cmd) {}
-  stop() { this.stopped = true; if (this.timer) clearTimeout(this.timer); }
+  stop() { this.stopped = true; if (this.timer) clearTimeout(this.timer); this.nudge?.close(); if (typeof window !== 'undefined') { document.removeEventListener('visibilitychange', this.wake); window.removeEventListener('online', this.wake); } }
 }
 
 export class LiveHost extends Poller {
-  constructor(public code: string, private token: string) { super(() => rpc<View>('pp_host_state', { p_code: code, p_token: token })); }
+  constructor(public code: string, private token: string) { super(() => rpc<View>('pp_host_state', { p_code: code, p_token: token }), code); }
   async command(cmd: Cmd) {
     try {
       const { data, offset } = await rpc<View & { ended?: boolean }>('pp_host_command', { p_code: this.code, p_token: this.token, p_cmd: cmd });
@@ -85,15 +132,27 @@ export class LiveHost extends Poller {
 
 export class LivePlayer extends Poller {
   my: MyState = { answers: {} };
-  constructor(public code: string, public token: string) { super(() => rpc<View>('pp_state', { p_code: code })); this.loadMine(); }
-  async loadMine() { try { const { data } = await rpc<MyState | null>('pp_my_state', { p_token: this.token }); if (data) { this.my = data; this.emit(); } else { this.error = 'Your place in this game has ended.'; this.emit(); } } catch { /* retried on next answer */ } }
-  async submit(activityId: string, value: ResponseValue): Promise<string> {
-    this.my = { ...this.my, answers: { ...this.my.answers, [activityId]: value } }; this.emit();
+  sending: Record<string, true> = {};
+  constructor(public code: string, public token: string) { super(() => rpc<View>('pp_state', { p_code: code }), code); this.loadMine(); }
+  async loadMine() { try { const { data } = await rpc<MyState | null>('pp_my_state', { p_token: this.token }); if (data) { this.my = { ...data, answers: { ...data.answers, ...this.pendingAnswers() } }; this.emit(); } else { this.error = 'Your place in this game has ended.'; this.emit(); } } catch { /* retried on next answer */ } }
+  private pendingAnswers() { return Object.fromEntries(Object.keys(this.sending).map(k => [k, this.my.answers[k]])); }
+  private drop(activityId: string, note?: string) { const a = { ...this.my.answers }; delete a[activityId]; delete this.sending[activityId]; this.my = { ...this.my, answers: a }; if (note) this.error = note; this.emit(); }
+  /** Optimistic answer. Network failures are retried until the server accepts or refuses it (e.g. too late); answers are never silently lost. */
+  async submit(activityId: string, value: ResponseValue, attempt = 0): Promise<string> {
+    if (attempt === 0) { this.my = { ...this.my, answers: { ...this.my.answers, [activityId]: value } }; this.sending = { ...this.sending, [activityId]: true }; this.emit(); }
     try {
       const { data } = await rpc<string>('pp_submit', { p_token: this.token, p_activity: activityId, p_value: value });
-      if (data !== 'ok' && data !== 'duplicate') { const a = { ...this.my.answers }; delete a[activityId]; this.my = { ...this.my, answers: a }; this.emit(); }
+      if (data === 'ok' || data === 'duplicate') { delete this.sending[activityId]; if (this.error) this.error = null; this.emit(); }
+      else this.drop(activityId, data === 'late' || data === 'not_open' ? 'Your answer arrived after the time was up.' : undefined);
       return data;
-    } catch (e) { const a = { ...this.my.answers }; delete a[activityId]; this.my = { ...this.my, answers: a }; this.error = (e as Error).message; this.emit(); return 'error'; }
+    } catch (e) {
+      if (/connection/i.test((e as Error).message) && attempt < 12 && !this.view?.ended) {
+        this.error = 'Connection lost. Sending your answer again…'; this.emit();
+        await new Promise(r => setTimeout(r, Math.min(4000, 700 * (attempt + 1))));
+        return this.submit(activityId, value, attempt + 1);
+      }
+      this.drop(activityId, (e as Error).message); return 'error';
+    }
   }
 }
 

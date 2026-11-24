@@ -9,7 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc -b",
     "publish:pages": "npm run build && rm -rf ../app && cp -r dist ../app",
-    "e2e": "python3 e2e/layout.py && python3 e2e/e2e.py && python3 e2e/live_multiplayer.py && python3 e2e/workspace.py"
+    "e2e": "python3 e2e/layout.py && python3 e2e/e2e.py && python3 e2e/live_multiplayer.py && python3 e2e/workspace.py && python3 e2e/resilience.py"
   },
   "dependencies": {
     "qrcode-generator": "^1.4.4",
