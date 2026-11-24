@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter, Routes, Route, NavLink, Link, Navigate } from 'react-router-dom';
 import './index.css';
-import { t, dir } from './i18n';
+import { t, dir, lang, onLang } from './i18n';
+import { LangSwitch } from './ui/LangSwitch';
 import { Discover } from './pages/Discover';
 import { Detail } from './pages/Detail';
 import { Play } from './pages/Play';
@@ -16,6 +17,7 @@ import { JoinLive } from './pages/JoinLive';
 import { Editor, Preview } from './pages/Editor';
 import { Guide } from './pages/Guide';
 import { consumeRedirect } from './live/auth';
+import { Report } from './pages/Report';
 
 // A returning sign-in link carries tokens in the URL fragment; turn them into a session before the router reads the hash.
 const signinError = consumeRedirect();
@@ -23,7 +25,7 @@ if (signinError) try { sessionStorage.setItem('pp_signin_error', signinError); }
 
 document.documentElement.dir = dir();
 
-const NAV: [string, string, string][] = [['/discover', '🔭', t('nav.discover')], ['/play', '📱', t('nav.play')], ['/create', '🛠️', t('nav.create')], ['/host', '🎤', t('nav.host')], ['/workspace', '🗂️', t('nav.workspace')]];
+const NAV = (): [string, string, string][] => [['/discover', '🔭', t('nav.discover')], ['/play', '📱', t('nav.play')], ['/create', '🛠️', t('nav.create')], ['/host', '🎤', t('nav.host')], ['/workspace', '🗂️', t('nav.workspace')]];
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -35,12 +37,13 @@ function Shell({ children }: { children: React.ReactNode }) {
             <span>Pulse<span className="text-violet-600">Play</span></span>
           </Link>
           <nav className="flex gap-1 overflow-x-auto ms-auto" aria-label="Main">
-            {NAV.map(([to, ic, label]) => (
+            {NAV().map(([to, ic, label]) => (
               <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
                 <span aria-hidden>{ic}</span><span className="hidden sm:inline">{label}</span><span className="sm:hidden sr-only">{label}</span>
               </NavLink>
             ))}
           </nav>
+          <LangSwitch className="shrink-0" />
         </div>
       </header>
       <main className="flex-1">{children}</main>
@@ -53,8 +56,11 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+/** Re-renders everything (without remounting, so live rooms keep running) when the interface language changes. */
+function App() {
+  const [, setL] = React.useState(lang());
+  React.useEffect(() => onLang(() => setL(lang())), []);
+  return (
     <HashRouter>
       <Routes>
         <Route path="/practice/:id" element={<Practice />} />
@@ -73,9 +79,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/create" element={<Create />} />
           <Route path="/workspace" element={<Workspace />} />
           <Route path="/workspace/edit/:id" element={<Editor />} />
+          <Route path="/workspace/report/:id" element={<Report />} />
           <Route path="*" element={<Navigate to="/discover" replace />} />
         </Routes></Shell>} />
       </Routes>
     </HashRouter>
-  </React.StrictMode>,
-);
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

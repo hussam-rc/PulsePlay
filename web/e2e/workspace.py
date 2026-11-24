@@ -36,6 +36,7 @@ with sync_playwright() as pw:
     mails = json.load(urllib.request.urlopen(f'{API}/__test/mail'))
     ok(sorted(m['to'] for m in mails if m['type'] == 'invite') == ['carol@example.org', 'dave@example.org'] and all(m['data'].get('invited_to') == 'Org A' for m in mails if m['type'] == 'invite'), 'invite: new people receive an invitation email naming the organisation')
     ok('emailed a sign-in link' in a.inner_text('[data-testid=members]'), 'invite: owner sees that the email went out')
+    a.check('[data-testid=brand-on]'); a.wait_for_selector('[data-testid=brand-card] >> text=Saved.')
     ok(a.locator('text=invited · creator').count() == 1 and a.locator('text=invited · facilitator').count() == 1, 'members: invites listed with roles')
     a.click('[role=tab]:has-text("Library")'); a.select_option('#tpl', 'myth-or-fact'); a.click('[data-testid=copy-template]')
     a.wait_for_selector('[data-testid=checker]'); exp_id = a.url.split('/edit/')[1]
@@ -70,11 +71,17 @@ with sync_playwright() as pw:
     phone.goto(BASE + f'#/j/{code}'); phone.wait_for_selector('[data-testid=nickname]'); phone.wait_for_timeout(300)
     phone.fill('[data-testid=nickname]', 'Guest'); phone.check('[data-testid=consent]'); phone.click('[data-testid=join]')
     phone.wait_for_selector("text=You're in, Guest!", timeout=10000); ok(True, 'play: anonymous phone joins without an account')
+    phone.wait_for_selector('[data-testid=brand]', timeout=5000)
+    ok(phone.locator('[data-testid=brand]').inner_text().strip().endswith('Org A') and d.locator('[data-testid=brand]').count() == 1, 'brand: org name shown on the phone and the projector when switched on')
     ok(phone.evaluate("localStorage.getItem('pp_auth')") is None, 'play: the participant browser holds no account token')
     d.wait_for_function("document.querySelector('[data-testid=joined]')?.innerText === '1'", timeout=10000)
     d.click('[data-testid=end]'); d.click('[data-testid=end-confirm]'); d.wait_for_selector('[data-testid=recap]', timeout=10000)
     a.goto(BASE + '#/workspace'); space(a, 'Org A'); a.click('[role=tab]:has-text("Sessions")'); a.wait_for_selector('[data-testid=sessions]', timeout=10000)
     ok('Copy of Myth or Fact' in a.inner_text('[data-testid=sessions]'), 'insights: owner sees the facilitator\'s session (anonymous totals)')
+    a.click('[data-testid=report-link]'); a.wait_for_selector('[data-testid=report]'); ok(a.locator('[data-testid=report-q]').count() == 10, 'report: owner opens the session report with all questions')
+    with a.expect_download() as dl: a.click('[data-testid=csv]')
+    csv = open(dl.value.path(), encoding='utf-8-sig').read(); ok('Question,Answer' in csv and 'Guest' not in csv, 'report: CSV downloads with totals and no nicknames')
+    rep_url = a.url
     # ---- Bob: outsider ----
     bob = sign_in(b, 'bob@example.org')
     ok('Org A' not in bob.inner_text('[data-testid=spaces]'), 'iso: Bob sees no Org A')
@@ -88,6 +95,7 @@ with sync_playwright() as pw:
     # facilitator guide
     d.goto(BASE + f'#/guide/{exp_id}'); d.wait_for_selector('[data-testid=guide]')
     ok('FACILITATOR GUIDE' in d.inner_text('[data-testid=guide]') and 'Debrief' in d.inner_text('[data-testid=guide]') and 'Answer:' in d.inner_text('[data-testid=guide]'), 'guide: member opens the generated guide with answers and debrief')
+    bob.goto(rep_url); bob.wait_for_selector('[role=alert]'); ok(bob.locator('[data-testid=report]').count() == 0, 'iso: outsider cannot open the org session report')
     bob.goto(BASE + f'#/guide/{exp_id}'); bob.wait_for_selector('[role=alert]'); ok(bob.locator('[data-testid=guide]').count() == 0, 'iso: outsider cannot open the org game guide')
     pg = b.new_page(); pg.goto(BASE + '#/x/ego-check'); pg.click('[data-testid=guide-link]'); pg.wait_for_selector('[data-testid=guide]')
     ok('Who is in Control?' in pg.inner_text('h1') and 'private' in pg.inner_text('[data-testid=guide]'), 'guide: built-in game guide opens without an account')

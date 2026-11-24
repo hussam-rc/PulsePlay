@@ -143,3 +143,11 @@ Challenged / simplified on purpose
 - Plain-language checker beside the form; each problem links to the field. Autosave; preview with simulated players; publish. The game file is hidden under "Advanced".
 - Switching game type keeps all question and answer texts.
 - Built-in "Ego Check" renamed "Who is in Control?" (new version 2; id `ego-check` and links unchanged).
+
+## 12. Improvements round (24 Nov)
+- **Who is in Control?** wording uses "autopilot / reflexes" instead of "ego" (v3; scoring unchanged).
+- **AI question drafts** (`draft-questions` Edge Function): Claude via server-side key `ANTHROPIC_API_KEY`, structured output re-checked with the engine schema, 15/hour and 60/day per creator (migration 0500), suggestions added only when ticked. Sends topic, audience, type and language only.
+- **Facilitator guide** `/guide/:id`, generated from the game, printable. **Invitation emails** (`invite-email` Edge Function, owner/admin, pending invites only, 30/org/day, migration 0510).
+- **Live rooms**: empty "tick" broadcasts on Supabase Realtime (migration 0600) + polling timed to phase boundaries, paused while the screen is off; phones retry answers through connection drops. Works without Realtime.
+- **Languages**: player, projector and navigation screens in English, German (Swiss spelling), French and Arabic (right-to-left); per device; game content keeps its own direction (`dir="auto"`). Builder and workspace remain English.
+- **Reports and branding** (migration 0700): anonymous session report (print/PDF, CSV with formula-injection protection); opt-in organisation name, colour and icon on the projector and phones.

@@ -2,6 +2,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import qrcode from 'qrcode-generator';
 import type { ResultBand } from '../engine/schema';
 import type { PersonalResult } from '../engine/scoring';
+import { t } from '../i18n';
 
 /** Re-render every `ms` (for countdowns). */
 export function useNow(ms = 200) {
@@ -51,9 +52,9 @@ export function ResultCard({ r, disclaimer, onCopy }: { r: PersonalResult; discl
   if (!r.valid || !r.band) {
     return <div className="card p-6 text-center grid gap-3">
       <div className="text-6xl">🅿️</div>
-      <h2 className="text-2xl font-extrabold">Parked before the finish line</h2>
-      <p>You answered <b>{r.answered} of {r.total}</b>. That's not enough for a fair score this time.</p>
-      <p className="text-ink-soft">Play again any time — speed isn't the point.</p>
+      <h2 className="text-2xl font-extrabold">{t('res.parked')}</h2>
+      <p>{t('res.notEnough', { a: r.answered, t: r.total })}</p>
+      <p className="text-ink-soft">{t('res.again')}</p>
     </div>;
   }
   const b: ResultBand = r.band;
@@ -61,18 +62,18 @@ export function ResultCard({ r, disclaimer, onCopy }: { r: PersonalResult; discl
     <div className="card p-6 text-center grid gap-3 relative overflow-hidden" data-testid="result-card">
       {(b.tone === 'great' || b.tone === 'good') && <Confetti />}
       <div className="text-7xl anim-rise">{b.emoji}</div>
-      <h2 className="text-2xl font-extrabold">{b.title}</h2>
+      <h2 className="text-2xl font-extrabold" dir="auto">{b.title}</h2>
       <div className="text-5xl font-extrabold text-violet-600 leading-none" data-testid="score">{r.correct != null ? `${r.correct}/${r.total}` : r.score}
-        <span className="text-lg text-ink-soft font-bold"> {r.correct != null ? 'correct' : '/ 100'}</span></div>
-      <p className="italic text-ink-soft">"{b.message}"</p>
-      <p>{b.explanation}</p>
+        <span className="text-lg text-ink-soft font-bold"> {r.correct != null ? t('res.correct') : '/ 100'}</span></div>
+      <p className="italic text-ink-soft" dir="auto">"{b.message}"</p>
+      <p dir="auto">{b.explanation}</p>
       {(r.observations.length > 0 || r.habit) && <ul className="grid gap-2 text-start">
-        {r.observations.map((o, i) => <li key={i} className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{o.kind === 'strength' ? 'Strength' : 'Worth noticing'}</b>{o.text}</li>)}
-        {r.habit && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">Habit to try</b>{r.habit}</li>}
-        {r.challenge && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">Tomorrow's challenge</b>{r.challenge}</li>}
+        {r.observations.map((o, i) => <li key={i} className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{o.kind === 'strength' ? t('res.strength') : t('res.notice')}</b>{o.text}</li>)}
+        {r.habit && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{t('res.habit')}</b>{r.habit}</li>}
+        {r.challenge && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{t('res.challenge')}</b>{r.challenge}</li>}
       </ul>}
       <p className="text-xs text-ink-soft">{disclaimer}</p>
-      {onCopy && <div><button className="btn-ghost" onClick={() => { try { onCopy(); setCopied('Copied. Nothing was shared automatically.'); } catch { setCopied('Copy blocked — take a screenshot instead.'); } }}>📋 Copy my result</button>
+      {onCopy && <div><button className="btn-ghost" onClick={() => { try { onCopy(); setCopied(t('res.copied')); } catch { setCopied(t('res.copyBlocked')); } }}>{t('res.copy')}</button>
         <p className="text-xs text-ink-soft mt-2" aria-live="polite">{copied}</p></div>}
     </div>
   );

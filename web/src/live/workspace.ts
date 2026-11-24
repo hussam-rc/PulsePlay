@@ -9,7 +9,10 @@ export interface Me { userId: string; email: string; displayName: string | null;
 export interface LibraryItem { id: string; title: string; status: string; visibility: string; orgId: string | null; mine: boolean; updatedAt: string; latestVersion: number | null }
 export interface ServerExperience { id: string; title: string; status: string; visibility: string; orgId: string | null; draft: unknown; canEdit: boolean; canPublish: boolean; versions: { version: number; publishedAt: string }[] }
 export interface Member { userId: string; role: Role; name: string | null; email: string | null }
-export interface SessionSummary { title: string; joined: number; completed: number; average: number | null; startedAt: string; endedAt: string }
+export interface Report { id: string; title: string; joined: number; completed: number; average: number | null; startedAt: string | null; endedAt: string; version: number | null;
+  scoring: string | null; groupMinimum: number | null; band: string | null;
+  questions: { id: string; prompt: string; type: string; options: { id: string; text: string; correct: boolean | null }[]; result: { n: number; counts: Record<string, number>; suppressed: boolean } | null }[] }
+export interface SessionSummary { id: string; title: string; joined: number; completed: number; average: number | null; startedAt: string; endedAt: string }
 
 const call = async <T,>(fn: string, args: Record<string, unknown> = {}) => (await rpc<T>(fn, args)).data;
 
@@ -27,6 +30,9 @@ export const api = {
   get: (id: string) => call<ServerExperience | null>('pp_get_experience', { p_id: id }),
   saveDraft: (id: string | null, org: string | null, title: string, draft: unknown) => call<{ id: string }>('pp_save_draft', { p_id: id, p_org: org, p_title: title, p_draft: draft }),
   sessions: (org: string | null) => call<SessionSummary[]>('pp_my_sessions', { p_org: org }),
+  report: (id: string) => call<Report | null>('pp_session_report', { p_id: id }),
+  orgBrand: (org: string) => call<{ on: boolean; color: string | null; emoji: string | null } | null>('pp_org_brand', { p_org: org }),
+  setBrand: (org: string, color: string, emoji: string, on: boolean) => call<void>('pp_set_brand', { p_org: org, p_color: color, p_emoji: emoji, p_on: on }),
   inviteEmail: (org: string, email: string) => callFunction<{ sent: 'invite' | 'signin' }>('invite-email', { orgId: org, email }),
   publish: (id: string, visibility: 'private' | 'org' | 'unlisted') => callFunction<{ ok: true; version: number; warnings: string[] }>('publish', { experienceId: id, visibility }),
 };

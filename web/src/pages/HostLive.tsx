@@ -9,6 +9,8 @@ import type { Experience } from '../engine/schema';
 import { api, isUuid, useAuth } from '../live/workspace';
 import { validateExperience } from '../engine/schema';
 import { SignIn } from './Workspace';
+import { BrandBar, useRoomBrand } from '../ui/Brand';
+function RoomBrandBar({ code }: { code: string }) { return <BrandBar brand={useRoomBrand(code)} />; }
 
 const READS = [3, 5, 8], ANSWERS = [3, 5, 8, 12, 20], AUTO = [0, 5, 8, 12];
 
@@ -90,6 +92,7 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
         🟢 LIVE · real participants · answers stay private on their phones
         <span className="ms-auto"><button className="btn-ghost !min-h-[38px] !px-3 text-sm" onClick={() => setConfirmEnd(true)} data-testid="end">End game</button></span>
       </div>
+      <RoomBrandBar code={c.code} />
       <Presenter c={c} joinUrl={joinUrlFor(c.code)} />
       {confirmEnd && <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="end-title">
         <div className="card p-6 max-w-md grid gap-3"><h2 id="end-title" className="text-xl font-extrabold">End the game and delete room data?</h2>

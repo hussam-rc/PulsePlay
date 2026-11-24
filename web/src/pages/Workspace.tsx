@@ -184,6 +184,7 @@ function Members({ org, me, reload }: { org: Me['orgs'][number]; me: Me; reload:
       </div>}
       {msg && <p className="text-teal-600 font-bold" role="status">{msg}</p>}
       {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
+      {manage && <BrandCard org={org} />}
       {data && <div className="card divide-y divide-paper-line">
         {data.members.map(m => {
           const self = m.userId === me.userId;
@@ -211,9 +212,28 @@ function Sessions({ org }: { org: string | null }) {
   if (!rows.length) return <p className="card p-6 text-ink-soft">No finished sessions yet. Sessions you host while signed in appear here with anonymous totals only.</p>;
   return (
     <section className="card overflow-x-auto" data-testid="sessions">
-      <table className="w-full text-left"><thead className="text-sm text-ink-soft"><tr><th className="p-3">Experience</th><th className="p-3">Date</th><th className="p-3">Joined</th><th className="p-3">Completed</th><th className="p-3">Group result</th></tr></thead>
-        <tbody>{rows.map((r, i) => <tr key={i} className="border-t border-paper-line"><td className="p-3 font-bold">{r.title}</td><td className="p-3">{new Date(r.endedAt).toLocaleString()}</td><td className="p-3">{r.joined}</td><td className="p-3">{r.completed}</td><td className="p-3">{r.average ?? '—'}</td></tr>)}</tbody></table>
+      <table className="w-full text-left"><thead className="text-sm text-ink-soft"><tr><th className="p-3">Experience</th><th className="p-3">Date</th><th className="p-3">Joined</th><th className="p-3">Completed</th><th className="p-3">Group result</th><th className="p-3"><span className="sr-only">Report</span></th></tr></thead>
+        <tbody>{rows.map(r => <tr key={r.id} className="border-t border-paper-line"><td className="p-3 font-bold">{r.title}</td><td className="p-3">{new Date(r.endedAt).toLocaleString()}</td><td className="p-3">{r.joined}</td><td className="p-3">{r.completed}</td><td className="p-3">{r.average ?? '—'}</td><td className="p-3"><Link className="font-bold text-violet-700 underline" to={`/workspace/report/${r.id}`} data-testid="report-link">Report</Link></td></tr>)}</tbody></table>
       <p className="p-3 text-sm text-ink-soft">Names, answers and personal results are deleted when a session ends. Only anonymous totals are kept.</p>
     </section>
   );
+}
+
+// ---------- branding ----------
+const COLORS = ['#5A36F0', '#2F6FEB', '#0E8370', '#E59A1C', '#E2553A', '#1F2937', '#9D174D', '#0F766E'];
+function BrandCard({ org }: { org: Me['orgs'][number] }) {
+  const [b, setB] = useState<{ on: boolean; color: string; emoji: string } | null>(null);
+  const [msg, setMsg] = useState('');
+  useEffect(() => { api.orgBrand(org.id).then(r => setB({ on: !!r?.on, color: r?.color ?? COLORS[0], emoji: r?.emoji ?? '🏢' })).catch(() => setB(null)); }, [org.id]);
+  if (!b) return null;
+  const save = async (n: typeof b) => { setB(n); setMsg(''); try { await api.setBrand(org.id, n.color, n.emoji, n.on); setMsg('Saved.'); } catch (e) { setMsg((e as Error).message); } };
+  return <div className="card p-4 grid gap-3" data-testid="brand-card">
+    <h2 className="font-extrabold text-lg">Branding in rooms</h2>
+    <label className="flex items-center gap-2 font-bold text-sm"><input type="checkbox" className="w-5 h-5 accent-violet-600" checked={b.on} onChange={e => save({ ...b, on: e.target.checked })} data-testid="brand-on" />Show {org.name} on the big screen and on players' phones</label>
+    <div className="flex flex-wrap items-center gap-2"><span className="text-sm font-bold">Colour</span>{COLORS.map(c => <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={b.color === c} onClick={() => save({ ...b, color: c })}
+      className={`w-8 h-8 rounded-full ${b.color === c ? 'ring-2 ring-offset-2 ring-ink' : ''}`} style={{ background: c }} />)}
+      <span className="text-sm font-bold ms-3">Icon</span>{['🏢', '🚀', '🌍', '💡', '🤝', '🌱'].map(x => <button key={x} type="button" aria-pressed={b.emoji === x} onClick={() => save({ ...b, emoji: x })} className={`w-9 h-9 rounded-lg text-xl ${b.emoji === x ? 'bg-violet-100 ring-2 ring-violet-500' : ''}`}>{x}</button>)}</div>
+    <div className="flex items-center gap-2 rounded-2xl px-4 py-2 font-extrabold text-white justify-self-start" style={{ background: b.color }}><span aria-hidden>{b.emoji}</span>{org.name}</div>
+    <p className="text-xs text-ink-soft">Players then see your organisation's name. It applies to games owned by {org.name}. {msg}</p>
+  </div>;
 }
