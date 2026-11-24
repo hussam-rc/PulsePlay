@@ -49,7 +49,7 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
         <div className="px-6 sm:px-12 pt-6"><Bar pct={(100 * (v.index + (v.phase === 'reveal' ? 1 : 0))) / v.total} tone="teal" /></div>
         <div className={PAD}>
           <div className="flex flex-wrap gap-2"><Chip>{t('stage.q', { i: v.index + 1, n: v.total })}</Chip>{a.theme && e.insights?.themes[a.theme] && <Chip tone="sun">{e.insights.themes[a.theme].label}</Chip>}{v.paused && <Chip tone="coral">{t('stage.paused')}</Chip>}</div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.1] max-w-[22ch]" dir="auto" data-testid="prompt">{a.prompt}</h2>
+          <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.1] max-w-[22ch]" dir="auto" data-testid="prompt" data-idx={v.index}>{a.prompt}</h2>
           {showOptions && <div className="grid sm:grid-cols-2 gap-3 max-w-3xl" data-testid="stage-options">
             {a.options!.map((o, k) => <div key={o.id} className="rounded-2xl border-2 border-paper-line px-5 py-4 text-xl sm:text-2xl font-extrabold flex items-center gap-3">
               <span className="w-10 h-10 shrink-0 rounded-xl grid place-items-center text-white text-base" style={{ background: TILE[k % 4] }}>{o.emoji ?? 'ABCD'[k]}</span><span dir="auto">{o.text}</span></div>)}

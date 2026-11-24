@@ -1,0 +1,6 @@
+{
+  "name": "pulseplay-test-env",
+  "private": true,
+  "type": "module",
+  "dependencies": { "pg": "^8.23.1" }
+}
