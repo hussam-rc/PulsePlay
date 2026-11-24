@@ -1,6 +1,7 @@
 // Generic session state machine. Practice mode runs it in memory with simulated players;
 // the live backend (Phase 1b) mirrors the same states server-side.
-import { Experience, Activity, flatActivities, timingOf } from './schema';
+import type { Experience, Activity } from './schema';
+import { flatActivities, timingOf } from './util';
 import { Responses, ResponseValue, personalResult, PersonalResult, groupSummary, distribution } from './scoring';
 import { randomId } from './random';
 

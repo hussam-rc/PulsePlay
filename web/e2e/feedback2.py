@@ -20,7 +20,7 @@ with sync_playwright() as pw:
     b = pw.chromium.launch()
     # 1. 375 px header: every nav item is tappable
     m = b.new_context(viewport={'width': 375, 'height': 812}, is_mobile=True, has_touch=True).new_page(); m.goto(BASE + '#/discover'); m.wait_for_timeout(300)
-    hits = m.evaluate("""[...document.querySelectorAll('nav[aria-label=Main] a')].map(a => { const r = a.getBoundingClientRect(); const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return a.contains(el) && r.right <= innerWidth; })""")
+    hits = m.evaluate("""[...document.querySelectorAll('nav[aria-label=Main] a')].filter(a => a.offsetParent).map(a => { const r = a.getBoundingClientRect(); const el = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return a.contains(el) && r.right <= innerWidth; })""")
     ok(len(hits) == 5 and all(hits), f'1. at 375 px all 5 menu items are visible and tappable {hits}')
     m.screenshot(path=f'{SHOTS}/header_375.png')
     # 9. wrong code is reported next to the code field before anything else

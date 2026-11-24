@@ -26,3 +26,10 @@ describe('Would You Rather reaction lines', () => {
     expect(reaction({ a: 10, b: 0 }, 10)).toContain('Who saw that coming'); // 100 / 0
   });
 });
+
+describe('copy polish', () => {
+  it('no doubled punctuation in any language', () => {
+    for (const [l, loc] of Object.entries(LOCALES))
+      for (const [k, v] of Object.entries(loc.strings)) expect(/(?<!\.)\.\.(?!\.)|\s[.,]/.test(v), `${l}.${k}: ${v}`).toBe(false);
+  });
+});

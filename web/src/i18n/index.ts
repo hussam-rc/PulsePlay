@@ -1,6 +1,8 @@
 // Interface strings for players, the projector and the main navigation. Game content keeps its own language.
 // German follows Swiss spelling (ss). Arabic is Modern Standard Arabic and renders right-to-left.
-const en = {
+import { V2_EN, V2_DE, V2_FR, V2_AR } from './v2';
+
+const enBase = {
   'host.endInsights': 'End & see insights 📊',
   'stage.kick': 'Remove',
   'stage.kickQ': 'Remove {name} from the game? Their name disappears from the screen.',
@@ -122,10 +124,11 @@ const en = {
   'host.results': 'Show results 🪞', 'host.wrap': 'Wrap up ▶', 'host.group': 'Reveal group result 🏢', 'host.reflect': 'Reflection ▶', 'host.done': 'Finished 💜',
   'host.resume': '▶ Resume', 'host.pause': '⏸ Pause', 'host.fs': '⛶ Full screen', 'host.keys': 'Space/→ next · P pause · F full screen', 'host.retrying': 'Retrying…',
 };
+const en = { ...enBase, ...V2_EN };
 export type Key = keyof typeof en;
 type Dict = Record<Key, string>;
 
-const de: Dict = {
+const deBase = {
   'host.endInsights': 'Beenden & Auswertung 📊',
   'stage.kick': 'Entfernen',
   'stage.kickQ': '{name} aus dem Spiel entfernen? Der Name verschwindet vom Bildschirm.',
@@ -243,7 +246,7 @@ const de: Dict = {
   'host.resume': '▶ Weiter', 'host.pause': '⏸ Pause', 'host.fs': '⛶ Vollbild', 'host.keys': 'Leertaste/→ weiter · P Pause · F Vollbild', 'host.retrying': 'Neuer Versuch…',
 };
 
-const fr: Dict = {
+const frBase = {
   'host.endInsights': 'Terminer et voir le bilan 📊',
   'stage.kick': 'Retirer',
   'stage.kickQ': 'Retirer {name} de la partie ? Son nom disparaît de l’écran.',
@@ -361,7 +364,7 @@ const fr: Dict = {
   'host.resume': '▶ Reprendre', 'host.pause': '⏸ Pause', 'host.fs': '⛶ Plein écran', 'host.keys': 'Espace/→ suivant · P pause · F plein écran', 'host.retrying': 'Nouvelle tentative…',
 };
 
-const ar: Dict = {
+const arBase = {
   'host.endInsights': 'إنهاء وعرض النتائج 📊',
   'stage.kick': 'إزالة',
   'stage.kickQ': 'إزالة {name} من اللعبة؟ سيختفي الاسم من الشاشة.',
@@ -478,6 +481,10 @@ const ar: Dict = {
   'host.results': 'اعرض النتائج 🪞', 'host.wrap': 'الختام ◀', 'host.group': 'اكشف نتيجة المجموعة 🏢', 'host.reflect': 'التأمل ◀', 'host.done': 'انتهت 💜',
   'host.resume': '◀ استئناف', 'host.pause': '⏸ إيقاف مؤقت', 'host.fs': '⛶ ملء الشاشة', 'host.keys': 'مسافة/← التالي · P إيقاف · F ملء الشاشة', 'host.retrying': 'إعادة المحاولة…',
 };
+
+const de: Dict = { ...deBase, ...V2_DE };
+const fr: Dict = { ...frBase, ...V2_FR };
+const ar: Dict = { ...arBase, ...V2_AR };
 
 export const LOCALES = {
   en: { dir: 'ltr' as const, label: 'English', strings: en as Dict },

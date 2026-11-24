@@ -176,3 +176,14 @@ describe('game language versions', () => {
     }
   });
 });
+
+describe('light engine helpers', () => {
+  it('match the schema versions', async () => {
+    const u = await import('../src/engine/util'), s = await import('../src/engine/schema');
+    const { ALL_EXPERIENCES } = await import('../src/experiences');
+    for (const e of ALL_EXPERIENCES) {
+      expect(u.flatActivities(e)).toEqual(s.flatActivities(e));
+      for (const a of s.flatActivities(e)) expect(u.timingOf(e, a)).toEqual(s.timingOf(e, a));
+    }
+  });
+});

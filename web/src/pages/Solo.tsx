@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { byId } from '../experiences';
-import { flatActivities } from '../engine/schema';
+import { flatActivities } from '../engine/util';
 import { personalResult, Responses, ResponseValue } from '../engine/scoring';
 import { randomId } from '../engine/random';
 import { ActivityInput } from '../ui/Activity';

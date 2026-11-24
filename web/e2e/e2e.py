@@ -4,7 +4,7 @@ def ok(c, m): print(('PASS ' if c else 'FAIL ')+m, flush=True)
 with sync_playwright() as p:
     b=p.chromium.launch(args=['--no-sandbox'])
     errs=[]; pg=b.new_page(viewport={'width':1440,'height':900}); pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto(U); pg.wait_for_selector('text=Games that help people connect'); pg.screenshot(path=out+'/01_discover.png', full_page=True)
+    pg.goto(U); pg.wait_for_selector('text=Less awkward meetings'); pg.screenshot(path=out+'/01_discover.png', full_page=True)
     ok(pg.locator('article').count()==3, 'discover shows 3 playable experiences')
     pg.fill('#search','myth'); ok(pg.locator('article').count()==1, 'search filters'); pg.fill('#search','')
     # practice: Ego Check
