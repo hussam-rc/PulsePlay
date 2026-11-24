@@ -221,12 +221,12 @@ const TH = {
  decision:{n:'Team decisions',s:'You commit once the team decides.',g:'Letting go after a decision takes real effort.',h:"Once a decision is made, write down one way you'll help it work.",c:"Help move forward one decision you didn't agree with."}
 };
 const CATS = [
- {max:25,e:'🧘',t:"You're in the driver's seat!",q:'Your ego knows when to take a back seat. Great job — keep it up!',x:'Your answers show curiosity, humility and openness — even in moments that sting.',team:'Our egos are happily riding in the back seat.',tone:'g'},
- {max:50,e:'😎',t:"You're mostly in control!",q:'Your ego sometimes reaches for the steering wheel, but you usually stay in charge.',x:'Most of your reactions are open and collaborative. A few situations pull you towards defending or proving yourself — which is very human.',team:"Looks like our egos usually know who's boss.",tone:'b'},
- {max:75,e:'🦙',t:'Your ego is grabbing the wheel!',q:'Your ego is strong in some situations. The good news? You can take back control.',x:'In several situations your first reflex protected your position or your credit. Noticing that is the hardest part — and you just did.',team:"Our egos grab the wheel now and then. Good thing we're noticing.",tone:'a'},
- {max:100,e:'👑',t:'Your ego is in control!',q:'Your ego may be driving more often than you realise. Time to take back the wheel!',x:'Today your quick reactions leaned towards defending, convincing or claiming credit. That says more about fast reflexes than about who you are — and reflexes can be retrained.',team:"Our egos have been doing a lot of the driving. Let's take back the wheel together.",tone:'a'}
+ {max:25,e:'🧘',t:"You're in the driver's seat!",q:'You stay calm and open, even when it stings. Keep it up!',x:'Your answers show curiosity, humility and openness — even in moments that sting.',team:'As a team we stay open, even in tricky moments.',tone:'g'},
+ {max:50,e:'😎',t:"You're mostly in control!",q:'Now and then your autopilot reaches for the wheel, but you usually stay in charge.',x:'Most of your reactions are open and collaborative. A few situations pull you towards defending or proving yourself — which is very human.',team:"Most of the time, we choose how we react.",tone:'b'},
+ {max:75,e:'🦙',t:'Your autopilot grabs the wheel sometimes',q:'In some situations your first reflex takes over. The good news? You can take back control.',x:'In several situations your first reflex protected your position or your credit. Noticing that is the hardest part — and you just did.',team:"Our reflexes take over now and then. Good thing we're noticing.",tone:'a'},
+ {max:100,e:'👑',t:'Your autopilot is driving today',q:'Your quick reflexes may be steering more often than you realise. Time to take back the wheel!',x:'Today your quick reactions leaned towards defending, convincing or claiming credit. That says more about fast reflexes than about who you are — and reflexes can be retrained.',team:"Our reflexes did a lot of the driving. Let's take back the wheel together.",tone:'a'}
 ];
-const TRANS = ['Interesting… some egos are getting nervous! 👀','The mirror saw that. 🪞','Hands on the wheel, everyone. 🚗','Hmm… was that you or your ego? 🤔','Green light — keep going! 🚦','Somebody check the rear-view mirror. 👀','The llama is watching. 🦙','Seatbelts on — next one is tricky. 🔒','Nobody saw your answer. Only you. 🤫','Finish line! 🏁'];
+const TRANS = ['Interesting… some reflexes are getting nervous! 👀','The mirror saw that. 🪞','Hands on the wheel, everyone. 🚗','Hmm… was that you or your autopilot? 🤔','Green light — keep going! 🚦','Somebody check the rear-view mirror. 👀','The llama is watching. 🦙','Seatbelts on — next one is tricky. 🔒','Nobody saw your answer. Only you. 🤫','Finish line! 🏁'];
 const READS = [[3,'3 s'],[5,'5 s'],[8,'8 s']];
 const ANSWERS = [[3,'3 s — Lightning ⚡'],[5,'5 s — Quick 🚀'],[8,'8 s — Balanced 😎'],[12,'12 s — Relaxed 🧘'],[20,'20 s — Reflective 🪞']];
 
@@ -251,7 +251,7 @@ function evaluate(ans, seed = '') {
   for (const t of growth) { if (obs.length >= 2) break; obs.push({ k: 'Worth noticing', t: TH[t].g, th: t }); }
   for (const t of strengths) { if (obs.length >= 2) break; if (!obs.some(o => o.th === t)) obs.push({ k: 'Strength', t: TH[t].s, th: t }); }
   const focus = growth[0];
-  const habit = focus ? TH[focus].h : 'Keep asking "what am I missing?" in meetings — it is why your ego stays in the back seat.';
+  const habit = focus ? TH[focus].h : 'Keep asking "what am I missing?" in meetings. It keeps you in the driver's seat.';
   const challenge = focus ? TH[focus].c : (strengths[0] ? TH[strengths[0]].c : 'Ask one colleague how you could support them better this week.');
   return { answered, pts, score, valid, cat, obs, habit, challenge };
 }
@@ -494,7 +494,7 @@ function homeView() {
     <div>
       <span class="chip">🚗 A Remotecoders team game</span>
       <h1 style="margin-top:14px">Who's driving today?</h1>
-      <p class="tag">Are <b>you</b> behind the wheel, or is your <b>ego</b> driving? 10 everyday work moments, a few seconds each, one private mirror at the end.</p>
+      <p class="tag">Are <b>you</b> behind the wheel, or are your <b>reflexes</b> driving? 10 everyday work moments, a few seconds each, one private mirror at the end.</p>
       <div class="acts">
         <button class="act" data-act="goHost"><span class="ic">🎤</span><span><strong>Host a Game</strong><span>Project it, share the QR code, run the show.</span></span><span class="arr">→</span></button>
         <button class="act b" data-act="goJoin"><span class="ic">📱</span><span><strong>Join a Game</strong><span>Enter a room code and a nickname. No account needed.</span></span><span class="arr">→</span></button>
@@ -508,7 +508,7 @@ function homeView() {
     <div class="card"><div class="n">🏢</div><h3>One team score</h3><p class="muted">At the end, the screen shows the anonymous average of everyone who finished — only if at least ${MIN_TEAM} people did.</p></div>
     <div class="card"><div class="n">🧘</div><h3>For laughs and reflection</h3><p class="muted">A light-hearted game, not a validated assessment or a performance tool. Feelings never count against you — only reactions do.</p></div>
   </section>
-  <div class="note"><b>How scoring works.</b> Each answer carries 0–3 points (0 = curious and collaborative, 3 = defending, controlling or claiming credit). Your Ego Driving Score = your points ÷ the maximum for the questions you answered × 100. Skipped questions don't count, and you need ${MIN_ANSWERED} of 10 answered for a score.</div>
+  <div class="note"><b>How scoring works.</b> Each answer carries 0–3 points (0 = curious and collaborative, 3 = defending, controlling or claiming credit). Your Autopilot Score = your points ÷ the maximum for the questions you answered × 100. Skipped questions don't count, and you need ${MIN_ANSWERED} of 10 answered for a score.</div>
   ${liveNote()}
   </div>`;
 }
@@ -553,7 +553,7 @@ function gauge(v) {
 }
 function stageBody(h) {
   const s = h.s, n = h.lobby.length;
-  if (s.stage === 'welcome') return `<div class="stg c"><div class="big">🚗🪞</div><h1>Who's driving today?</h1><p class="tag" style="font-size:clamp(18px,2vw,24px)" >Are <b>you</b> behind the wheel, or is your <b>ego</b> driving? 👑</p><p class="muted">10 everyday work moments · a few seconds each · a private result on your phone</p><span class="chip g">A light-hearted reflection game — not an assessment</span></div>`;
+  if (s.stage === 'welcome') return `<div class="stg c"><div class="big">🚗🪞</div><h1>Who's driving today?</h1><p class="tag" style="font-size:clamp(18px,2vw,24px)" >Are <b>you</b> behind the wheel, or are your <b>reflexes</b> driving? 👑</p><p class="muted">10 everyday work moments · a few seconds each · a private result on your phone</p><span class="chip g">A light-hearted reflection game — not an assessment</span></div>`;
   if (s.stage === 'join') return `<div class="stg"><div class="joingrid">
     <div class="qr" aria-label="QR code to join">${qrSVG(joinURL(h.code))}</div>
     <div style="display:grid;gap:14px">
@@ -584,14 +584,14 @@ function stageBody(h) {
     const t = h.hub.counts ? (h.hub.team ? { ...h.hub.team, cat: h.hub.team.avg == null ? null : catOf(h.hub.team.avg) } : { n: 0 }) : teamStats(h.scores);
     if (t.n < MIN_TEAM) return `<div class="stg c"><div class="big">🚗💨</div><h2>Not enough drivers for a team score… yet!</h2><p class="tag" style="font-size:20px">We need at least ${MIN_TEAM} completed games to show an anonymous average — today we have ${t.n}. That protects everyone's privacy.</p><p class="muted">Let's play again with a bigger crew. Your personal results are still on your phones.</p></div>`;
     const c = CATS[t.cat];
-    return `<div class="stg c" style="gap:12px"><span class="chip">🏢 REMOTECODERS EGO CHECK</span><h2>Our Team Ego Driving Score</h2>${gauge(t.avg)}
+    return `<div class="stg c" style="gap:12px"><span class="chip">🏢 REMOTECODERS · WHO IS IN CONTROL?</span><h2>Our Team Autopilot Score</h2>${gauge(t.avg)}
       <div style="font-size:clamp(56px,8vw,96px);font-weight:800;line-height:1;color:var(--vi)">${t.avg}<span style="font-size:.4em;color:var(--muted)"> / 100</span> ${c.e}</div>
-      <h2 style="font-size:clamp(22px,2.6vw,32px)">${esc(c.t.replace("You're", "We're").replace('Your ego is', 'Our egos are').replace('Your ego', 'Our ego'))}</h2><p class="tag" style="font-size:20px;margin:0">"${esc(c.team)}"</p>
+      <h2 style="font-size:clamp(22px,2.6vw,32px)">${esc(c.t.replace("You're", "We're").replace('Your autopilot is', 'Our autopilot is').replace('Your autopilot grabs', 'Our autopilot grabs'))}</h2><p class="tag" style="font-size:20px;margin:0">"${esc(c.team)}"</p>
       <div class="row" style="justify-content:center"><span class="chip b">${n} joined</span><span class="chip g">${t.n} valid completed games</span></div>
       ${t.n >= MIN_DIST && t.dist ? `<div class="dist">${CATS.map((cc, i) => { const p = Math.round(100 * t.dist[i] / t.n); return `<div class="r"><span>${cc.e}</span><div class="bar ${['g', 'b', '', ''][i]}"><i style="width:${p}%"></i></div><em>${p}%</em></div>`; }).join('')}</div>` : `<p class="small muted">Category breakdown appears from ${MIN_DIST} completed games, so small groups stay anonymous.</p>`}
       <p class="small muted">This is the average of today's participants — not the whole company — and a game, not a measurement.</p></div>`;
   }
-  if (s.stage === 'reflect') return `<div class="stg c"><h2>Before you drive off… 🚗</h2><div class="refl"><div>When does my ego take the wheel?</div><div>How can I notice it earlier?</div><div>What can I do differently tomorrow?</div></div><p class="final">"Your ego is part of you. Just don't let it drive every meeting." 🚗💜</p></div>`;
+  if (s.stage === 'reflect') return `<div class="stg c"><h2>Before you drive off… 🚗</h2><div class="refl"><div>When does my autopilot take the wheel?</div><div>How can I notice it earlier?</div><div>What can I do differently tomorrow?</div></div><p class="final">"Reflexes are human. Just don't let them drive every meeting." 🚗💜</p></div>`;
   if (s.stage === 'ended') return `<div class="stg c"><div class="big">🧹</div><h2>Session ended</h2><p class="muted">Room data has been deleted.</p></div>`;
   return '';
 }
@@ -644,14 +644,14 @@ function phoneBody(p) {
   }
   const ev = evaluate(p.answers, p.seed);
   if (!p.revealed) return `<div class="card"><button class="cover" data-act="reveal"><span class="m">🪞</span><h2 style="font-size:26px">Your mirror is ready</h2><span class="muted">Tap to see who's been driving. Only you will see this.</span></button></div>`;
-  return resultCard(p, ev) + (s.stage === 'reflect' ? `<div class="card pcard" style="display:grid;gap:10px"><h3>Take these with you</h3><p>1. When does my ego take the wheel?</p><p>2. How can I notice it earlier?</p><p>3. What can I do differently tomorrow?</p><p style="font-weight:800;color:var(--vi)">"Your ego is part of you. Just don't let it drive every meeting." 🚗💜</p></div>` : '');
+  return resultCard(p, ev) + (s.stage === 'reflect' ? `<div class="card pcard" style="display:grid;gap:10px"><h3>Take these with you</h3><p>1. When does my autopilot take the wheel?</p><p>2. How can I notice it earlier?</p><p>3. What can I do differently tomorrow?</p><p style="font-weight:800;color:var(--vi)">"Reflexes are human. Just don't let them drive every meeting." 🚗💜</p></div>` : '');
 }
 function resultCard(p, ev) {
   if (!ev.valid) return `<div class="card res"><div class="em">🅿️</div><h2 style="font-size:24px">Parked before the finish line</h2><p>You answered <b>${ev.answered} of 10</b>. We need ${MIN_ANSWERED} for a fair score, so we won't give you a number this time.</p>
     ${ev.obs.length ? `<ul>${ev.obs.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}</ul>` : ''}<p class="muted">Play again any time — speed isn't the point.</p>${resultBtns(p)}</div>`;
   const c = CATS[ev.cat], conf = ev.cat <= 1 && !p._conf && (p._conf = true) ? `<div class="conf">${Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${['var(--vi)', 'var(--bl)', 'var(--gr)', 'var(--am)'][i % 4]};animation-delay:${(i % 9) * .12}s"></i>`).join('')}</div>` : '';
   return `<div class="card res" id="resCard">${conf}<div class="em">${c.e}</div><h2 style="font-size:26px">${esc(c.t)}</h2>
-    <div class="sc">${ev.score}<small> / 100 Ego Driving Score</small></div><p class="q">"${esc(c.q)}"</p><p>${esc(c.x)}</p>
+    <div class="sc">${ev.score}<small> / 100 Autopilot Score</small></div><p class="q">"${esc(c.q)}"</p><p>${esc(c.x)}</p>
     <ul>${ev.obs.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}<li><b>Habit to try</b>${esc(ev.habit)}</li><li><b>Tomorrow's challenge</b>${esc(ev.challenge)}</li></ul>
     <p class="small muted">Based on ${ev.answered} of 10 answers. Low score = you're driving. A fun reflection, not a personality test.</p>${resultBtns(p)}</div>`;
 }
@@ -732,7 +732,7 @@ async function resume() {
 }
 function resultText(p) {
   const ev = evaluate(p.answers, p.seed); if (!ev.valid) return `Who is in Control? 🪞 — I answered ${ev.answered}/10, not enough for a score this time.`;
-  const c = CATS[ev.cat]; return `Who is in Control? 🪞\n${c.e} ${c.t} — ${ev.score}/100 Ego Driving Score\n${ev.obs.map(o => '• ' + o.t).join('\n')}\nHabit: ${ev.habit}\nTomorrow: ${ev.challenge}`;
+  const c = CATS[ev.cat]; return `Who is in Control? 🪞\n${c.e} ${c.t} — ${ev.score}/100 Autopilot Score\n${ev.obs.map(o => '• ' + o.t).join('\n')}\nHabit: ${ev.habit}\nTomorrow: ${ev.challenge}`;
 }
 async function fullscreen() { const el = $('#stageEl'); try { if (document.fullscreenElement) await document.exitFullscreen(); else { await (el?.requestFullscreen?.()); app.fs = true; paintStage(); } } catch (e) { app.fs = !app.fs; paintStage(); } }
 document.addEventListener('fullscreenchange', () => { app.fs = !!document.fullscreenElement; paintStage(); });
