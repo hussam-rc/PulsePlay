@@ -78,7 +78,7 @@ with sync_playwright() as pw:
     phones[0].screenshot(path=f'{SHOTS}/live_ego_result.png')
     ok('43' not in h.inner_text('[data-testid=stage]'), 'ego: no individual score on the projector')
     next_(h); h.wait_for_selector('[data-testid=group]')
-    avg = h.inner_text('[data-testid=group-average]'); ok(avg.startswith('37'), f'ego: team average 37 on projector (got {avg[:6]})')
+    avg = h.get_attribute('[data-testid=group-average] [data-value]', 'data-value'); ok(avg == '37', f'ego: team average 37 on projector (got {avg[:6]})')
     ok(not h.query_selector('[data-testid=leaderboard]'), 'ego: no leaderboard')
     h.screenshot(path=f'{SHOTS}/live_ego_group.png')
     h.click('[data-testid=end]'); h.click('[data-testid=end-confirm]'); h.wait_for_selector('[data-testid=recap]', timeout=10000)

@@ -12,7 +12,7 @@ export function CountUp({ to, ms = 900 }: { to: number; ms?: number }) {
     const tick = (now: number) => { const p = Math.min(1, (now - t0) / ms); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick); return () => cancelAnimationFrame(raf);
   }, [to, ms]);
-  return <span className="tabular-nums" aria-label={String(to)}>{v}</span>;
+  return <span className="tabular-nums" data-value={to}><span aria-hidden>{v}</span><span className="sr-only">{to}</span></span>;
 }
 
 /** Bar that grows from zero when it appears. */
@@ -41,16 +41,17 @@ export function SplitBar({ a, b, labelA, labelB }: { a: number; b: number; label
 /** Top three on a podium, others as a list. Only volunteers who chose a leaderboard name appear. */
 export function Podium({ rows, total, title, note }: { rows: { name: string; correct: number }[]; total: number; title: string; note: string }) {
   const [first, second, third] = rows, rest = rows.slice(3);
-  const step = (r: typeof first | undefined, medal: string, hgt: string, delay: number) => r && (
-    <div className="grid justify-items-center gap-1 anim-rise" style={{ animationDelay: `${delay}ms` }}>
+  // DOM order is 1st, 2nd, 3rd (what screen readers announce); CSS order places 2nd left and 3rd right.
+  const step = (r: typeof first | undefined, medal: string, hgt: string, delay: number, order: string) => r && (
+    <li className={`grid justify-items-center gap-1 anim-in ${order}`} style={{ animationDelay: `${delay}ms` }}>
       <span className="text-3xl" aria-hidden>{medal}</span><b className="max-w-[9rem] truncate" dir="auto">{r.name}</b>
       <span className="text-sm font-bold text-ink-soft tabular-nums">{r.correct}/{total}</span>
       <span className={`w-24 sm:w-28 ${hgt} rounded-t-2xl bg-gradient-to-b from-violet-500 to-violet-700`} aria-hidden />
-    </div>);
+    </li>);
   return (
     <section className="grid gap-3 w-full max-w-xl" data-testid="leaderboard" aria-label={title}>
       <h3 className="text-xl font-extrabold text-center">🏆 {title} <span className="text-sm text-ink-soft font-bold">{note}</span></h3>
-      <div className="flex items-end justify-center gap-2">{step(second, '🥈', 'h-16', 250)}{step(first, '🥇', 'h-24', 0)}{step(third, '🥉', 'h-10', 450)}</div>
+      <ol className="flex items-end justify-center gap-2">{step(first, '🥇', 'h-24', 0, 'order-2')}{step(second, '🥈', 'h-16', 250, 'order-1')}{step(third, '🥉', 'h-10', 450, 'order-3')}</ol>
       {rest.length > 0 && <ol start={4} className="grid gap-1.5">{rest.map((r, i) => <li key={i} className="flex items-center gap-3 rounded-xl bg-paper border border-paper-line px-4 py-2 font-bold"><span className="w-7 text-ink-soft">{i + 4}.</span><span className="flex-1 min-w-0 truncate" dir="auto">{r.name}</span><span className="tabular-nums">{r.correct}/{total}</span></li>)}</ol>}
     </section>
   );

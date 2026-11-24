@@ -74,14 +74,15 @@ with sync_playwright() as pw:
     d.click('[data-testid=phone] [data-testid=reveal]'); d.wait_for_selector('[data-testid=phone] [data-testid=copy-takeaway]')
     ok(True, 'Who is in Control?: phone offers a takeaway to copy without the score')
     d.click('[data-testid=next]'); d.wait_for_selector('[data-testid=group-average]'); d.wait_for_timeout(1300)
-    ok(d.inner_text('[data-testid=group-average]').split()[0].split('/')[0].strip().isdigit(), 'group average counts up to a number')
+    fin = d.get_attribute('[data-testid=group-average] [data-value]', 'data-value'); shown = d.inner_text('[data-testid=group-average] [data-value] [aria-hidden]')
+    ok(fin.isdigit() and shown == fin, f'group average counts up to its final value ({shown} = {fin})')
     stage = d.inner_text('[data-testid=group]'); ok('Hussam' not in stage, 'group result never shows names')
     d.screenshot(path=f'{SHOTS}/2b_ego_group.png')
 
     # --- Reduced motion: numbers appear immediately
     rm = b.new_context(viewport={'width': 1280, 'height': 800}, reduced_motion='reduce').new_page()
     practice_to_results(rm, 'ego-check', join='Ana'); rm.click('[data-testid=next]'); rm.wait_for_selector('[data-testid=group-average]')
-    lbl = rm.get_attribute('[data-testid=group-average] span[aria-label]', 'aria-label'); txt = rm.inner_text('[data-testid=group-average] span[aria-label]')
+    lbl = rm.get_attribute('[data-testid=group-average] [data-value]', 'data-value'); txt = rm.inner_text('[data-testid=group-average] [data-value] [aria-hidden]')
     ok(lbl == txt, f'reduced motion: group average shown at once ({txt} = {lbl})')
 
     # --- Solo: translated, with next steps
