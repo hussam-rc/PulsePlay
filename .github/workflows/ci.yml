@@ -2,7 +2,9 @@ name: CI
 on:
   push: { branches: [main] }
   pull_request:
-concurrency: { group: ci-${{ github.ref }}, cancel-in-progress: true }
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   web:
     runs-on: ubuntu-latest
@@ -78,4 +80,9 @@ jobs:
       - name: Screenshots and logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
-        with: { name: browser-failure, path: "/tmp/pp-shots\n/tmp/pp-*.log", retention-days: 7 }
+        with:
+          name: browser-failure
+          retention-days: 7
+          path: |
+            /tmp/pp-shots
+            /tmp/pp-*.log
