@@ -9,15 +9,21 @@ import { Detail } from './pages/Detail';
 import { Play } from './pages/Play';
 import { Solo } from './pages/Solo';
 import { Host } from './pages/Host';
-import { Practice } from './pages/Practice';
-import { Create } from './pages/Create';
-import { Workspace } from './pages/Workspace';
-import { HostLive } from './pages/HostLive';
 import { JoinLive } from './pages/JoinLive';
-import { Editor, Preview } from './pages/Editor';
-import { Guide } from './pages/Guide';
 import { consumeRedirect } from './live/auth';
-import { Report } from './pages/Report';
+
+// Hosting, creating and reports load on demand, so a player joining from a phone downloads only what they need.
+const lazyNamed = <K extends string>(load: () => Promise<Record<K, React.ComponentType>>, name: K) =>
+  React.lazy(() => load().then(m => ({ default: m[name] })));
+const Practice = lazyNamed(() => import('./pages/Practice'), 'Practice');
+const Create = lazyNamed(() => import('./pages/Create'), 'Create');
+const Workspace = lazyNamed(() => import('./pages/Workspace'), 'Workspace');
+const HostLive = lazyNamed(() => import('./pages/HostLive'), 'HostLive');
+const Editor = lazyNamed(() => import('./pages/Editor'), 'Editor');
+const Preview = lazyNamed(() => import('./pages/Editor'), 'Preview');
+const Guide = lazyNamed(() => import('./pages/Guide'), 'Guide');
+const Report = lazyNamed(() => import('./pages/Report'), 'Report');
+const Loading = () => <div className="min-h-[50vh] grid place-items-center text-ink-soft" role="status"><span className="anim-pulse text-3xl" aria-hidden>◉</span><span className="sr-only">Loading…</span></div>;
 
 // A returning sign-in link carries tokens in the URL fragment; turn them into a session before the router reads the hash.
 const signinError = consumeRedirect();
@@ -25,7 +31,7 @@ if (signinError) try { sessionStorage.setItem('pp_signin_error', signinError); }
 
 document.documentElement.dir = dir();
 
-const NAV = (): [string, string, string][] => [['/discover', '🔭', t('nav.discover')], ['/play', '📱', t('nav.play')], ['/create', '🛠️', t('nav.create')], ['/host', '🎤', t('nav.host')], ['/workspace', '🗂️', t('nav.workspace')]];
+const NAV = (): [string, string, string, string][] => [['/discover', '🔭', t('nav.discover'), t('nav.discover')], ['/play', '📱', t('nav.play'), t('nav.play')], ['/host', '🎤', t('nav.host'), t('nav.host')], ['/create', '🛠️', t('nav.create'), t('nav.create')], ['/workspace', '🗂️', t('nav.workspace'), t('nav.ws')]];
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -34,19 +40,27 @@ function Shell({ children }: { children: React.ReactNode }) {
         <div className="max-w-6xl mx-auto px-3 sm:px-4 flex items-center gap-2 sm:gap-4 h-16">
           <Link to="/discover" className="flex items-center gap-2 font-extrabold text-lg shrink-0" aria-label="PulsePlay home">
             <span className="w-9 h-9 rounded-xl grid place-items-center text-white bg-gradient-to-br from-violet-600 to-teal-500" aria-hidden>◉</span>
-            <span className="hidden sm:inline">Pulse<span className="text-violet-600">Play</span></span>
+            <span>Pulse<span className="text-violet-600">Play</span></span>
           </Link>
-          <nav className="flex gap-0.5 sm:gap-1 overflow-x-auto ms-auto min-w-0" aria-label="Main">
+          <nav className="hidden sm:flex gap-1 ms-auto min-w-0" aria-label="Main">
             {NAV().map(([to, ic, label]) => (
-              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
-                <span aria-hidden>{ic}</span><span className="hidden sm:inline">{label}</span><span className="sm:hidden sr-only">{label}</span>
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
+                <span aria-hidden>{ic}</span><span>{label}</span>
               </NavLink>
             ))}
           </nav>
+          <span className="sm:hidden ms-auto" />
           <LangSwitch className="shrink-0" compact />
         </div>
       </header>
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pb-20 sm:pb-0"><React.Suspense fallback={<Loading />}>{children}</React.Suspense></main>
+      <nav className="sm:hidden print:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-paper-line grid grid-cols-5 pb-[env(safe-area-inset-bottom)]" aria-label="Main" data-testid="tabbar">
+        {NAV().map(([to, ic, , short]) => (
+          <NavLink key={to} to={to} className={({ isActive }) => `flex flex-col items-center justify-center gap-0.5 min-h-[56px] text-[11px] font-bold ${isActive ? 'text-violet-700' : 'text-ink-soft'}`}>
+            <span className="text-xl leading-none" aria-hidden>{ic}</span><span className="truncate max-w-full px-1">{short}</span>
+          </NavLink>
+        ))}
+      </nav>
       <footer className="print:hidden border-t border-paper-line text-sm text-ink-soft">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-wrap gap-x-6 gap-y-2 justify-between">
           <span>PulsePlay · {t('tagline')}</span><span>{t('privacy.short')}</span>
@@ -63,9 +77,9 @@ function App() {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/practice/:id" element={<Practice />} />
-        <Route path="/host/:id" element={<HostLive />} />
-        <Route path="/workspace/preview/:id" element={<Preview />} />
+        <Route path="/practice/:id" element={<React.Suspense fallback={<Loading />}><Practice /></React.Suspense>} />
+        <Route path="/host/:id" element={<React.Suspense fallback={<Loading />}><HostLive /></React.Suspense>} />
+        <Route path="/workspace/preview/:id" element={<React.Suspense fallback={<Loading />}><Preview /></React.Suspense>} />
         <Route path="/j" element={<JoinLive />} />
         <Route path="/j/:code" element={<JoinLive />} />
         <Route path="*" element={<Shell><Routes>

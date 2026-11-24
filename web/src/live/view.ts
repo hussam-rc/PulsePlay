@@ -1,7 +1,7 @@
 // One state format for every game and every mode. The server (pp._state) produces it for live sessions;
 // sessionView() produces the identical shape from the in-memory practice engine. Screens render only this.
 import type { Experience, Activity } from '../engine/schema';
-import { timingOf } from '../engine/schema';
+import { timingOf } from '../engine/util';
 import { Session } from '../engine/session';
 import type { ResponseValue } from '../engine/scoring';
 

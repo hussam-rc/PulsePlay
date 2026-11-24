@@ -123,7 +123,7 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
         </div>
         {e.scoring.kind === 'correct' && <label className="flex gap-2 items-start font-bold"><input type="checkbox" className="w-5 h-5 accent-violet-600 mt-0.5" checked={board} onChange={x => setBoard(x.target.checked)} data-testid="leaderboard" />
           <span>{t('hl.board')}<span className="block text-sm font-normal text-ink-soft">{t('hl.boardSub')}</span></span></label>}
-        <div className="rounded-2xl bg-violet-50 text-violet-700 p-4 text-sm"><b>{t('hl.privacy')}</b> {e.privacy.individualResults ? t('hl.privInd') : t('stage.groupOnly')}. {t('hl.privMin', { n: e.privacy.groupMinimum })}{e.scoring.kind === 'behaviour' ? ` ${t('hl.noBoard')}` : ''}</div>
+        <div className="rounded-2xl bg-violet-50 text-violet-700 p-4 text-sm"><b>{t('hl.privacy')}</b> {e.privacy.individualResults ? t('hl.privInd') : t('stage.groupOnly') + '.'} {t('hl.privMin', { n: e.privacy.groupMinimum })}{e.scoring.kind === 'behaviour' ? ` ${t('hl.noBoard')}` : ''}</div>
         {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
         <button className="btn-primary" onClick={create} disabled={busy} data-testid="create">{busy ? t('hl.creating') : t('hl.create')}</button>
         <p className="text-sm text-ink-soft">{t('hl.tip')} <Link className="underline" to={practiceTo ?? `/practice/${e.id}`}>{practiceTo ? 'preview it in the editor' : t('hl.openPractice')}</Link>.</p>

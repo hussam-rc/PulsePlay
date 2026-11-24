@@ -1,5 +1,6 @@
 // Scoring + aggregation. Deterministic, transparent, no AI. Same code runs in tests and (later) server-side.
-import { Experience, Activity, ResultBand, flatActivities } from './schema';
+import type { Experience, Activity, ResultBand } from './schema';
+import { flatActivities } from './util';
 import { hash } from './random';
 
 /** A response is an option id (choice/poll), a number (scale), a string (reflection, never aggregated) or null (missed). */
