@@ -4,9 +4,9 @@ import { t } from '../i18n';
 const AVATARS = ['🦊', '🐼', '🐙', '🦉', '🐢', '🦁', '🐧', '🦄', '🐝', '🐳', '🦜', '🐨'];
 
 /** Join form used by practice and live. Collects only a nickname, an emoji, an optional leaderboard opt-in and consent. */
-export function JoinForm({ title, privacyIndividual, leaderboard, disabled, defaultName = '', code, onCode, onJoin }: {
+export function JoinForm({ title, privacyIndividual, leaderboard, disabled, defaultName = '', code, onCode, codeState, onJoin }: {
   title: string; privacyIndividual: boolean; leaderboard: boolean; disabled?: boolean; defaultName?: string;
-  code?: string; onCode?: (c: string) => void;
+  code?: string; onCode?: (c: string) => void; codeState?: { ok: boolean; msg: string } | null;
   onJoin: (x: { nickname: string; avatar: string; boardName: string | null }) => Promise<void>;
 }) {
   const [nick, setNick] = useState(defaultName);
@@ -26,7 +26,9 @@ export function JoinForm({ title, privacyIndividual, leaderboard, disabled, defa
   return (
     <form className="grid gap-3" onSubmit={submit} data-testid="join-form">
       <div className="text-center"><div className="text-4xl" aria-hidden>📱</div><h2 className="text-2xl font-extrabold">{t('join.title', { title })}</h2></div>
-      {onCode && <label className="grid gap-1 text-sm font-bold">{t('join.code')}<input className="field text-center !text-2xl tracking-[.3em] font-extrabold" inputMode="numeric" maxLength={6} value={code} onChange={ev => onCode(ev.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" data-testid="code" /></label>}
+      {onCode && <label className="grid gap-1 text-sm font-bold">{t('join.code')}<input className={`field text-center !text-2xl tracking-[.3em] font-extrabold ${codeState && !codeState.ok ? '!border-coral-500' : ''}`} inputMode="numeric" maxLength={6} value={code} onChange={ev => onCode(ev.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" aria-invalid={codeState ? !codeState.ok : undefined} aria-describedby="code-state" data-testid="code" autoFocus={!code} />
+        <span id="code-state" role="status" aria-live="polite" data-testid="code-state" className={`text-sm ${codeState?.ok ? 'text-teal-600' : 'text-coral-500'}`}>{codeState?.msg}</span></label>}
+      <fieldset disabled={!!onCode && !codeState?.ok} className="grid gap-3 disabled:opacity-40">
       <label className="grid gap-1 text-sm font-bold">{t('join.nickname')}<input className="field" value={nick} maxLength={20} onChange={ev => setNick(ev.target.value)} autoComplete="nickname" data-testid="nickname" /></label>
       <fieldset className="grid gap-1"><legend className="text-sm font-bold mb-1">{t('join.avatar')}</legend>
         <div className="flex flex-wrap gap-1.5">{AVATARS.map(a => <button type="button" key={a} onClick={() => setAvatar(a)} aria-pressed={avatar === a} aria-label={`Avatar ${a}`}
@@ -37,6 +39,7 @@ export function JoinForm({ title, privacyIndividual, leaderboard, disabled, defa
       <label className="flex gap-2 items-start text-sm font-bold"><input type="checkbox" className="w-5 h-5 accent-violet-600" checked={ok} onChange={ev => setOk(ev.target.checked)} data-testid="consent" /> {t('join.consent')}</label>
       {err && <p className="text-coral-500 text-sm font-bold" role="alert">{err}</p>}
       <button className="btn-primary" disabled={disabled || busy} data-testid="join">{disabled ? t('join.started') : busy ? t('join.joining') : t('join.go')}</button>
+      </fieldset>
     </form>
   );
 }

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who is in Control?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: warm, witty game-show host who never mocks anyone
+   IDEA: a car's rear-view mirror + dashboard: who is behind the wheel?
+   PICTURE: mirror with a crown in the reflection, car on a 10-stop road track
+   COLOUR and TYPE: warm paper ground, deep violet lead, blue support, green for "in control"; Plus Jakarta Sans
+   LAYOUT: projector stage + phone; huge type for questions, one column on phones */
+:root{color-scheme:light dark;
+--bg:light-dark(#FBF7F1,#14121C);--card:light-dark(#FFFFFF,#1E1B2A);--ink:light-dark(#1E1A2E,#F2EFF9);--muted:light-dark(#655F78,#ABA5BF);
+--line:light-dark(#ECE5DA,#312C42);--vi:light-dark(#5A3FD4,#A08CFF);--vi2:light-dark(#EEE9FE,#2B2448);--vi3:light-dark(#3D2A9E,#C9BDFF);
+--bl:light-dark(#2563EB,#76A6FF);--bl2:light-dark(#E6EEFE,#1D2A47);--gr:light-dark(#178A5E,#4FD39C);--gr2:light-dark(#E3F6EE,#173328);
+--am:light-dark(#B86E0B,#F2B654);--am2:light-dark(#FDF1DE,#3A2C14);--rd:light-dark(#C2410C,#FF9468);--rd2:light-dark(#FDE9E0,#3B2016);
+--sh:0 1px 2px rgba(30,20,60,.06),0 8px 28px rgba(30,20,60,.08)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,sans-serif;overflow-x:clip;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--bl);outline-offset:2px}
+.top{display:flex;align-items:center;gap:12px;padding:12px max(4vw,16px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;background:none;border:0;padding:6px 0}
+.brand b{color:var(--vi)}
+.top .sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--vi2);color:var(--vi3);white-space:nowrap}
+.pill.ok{background:var(--gr2);color:var(--gr)}.pill.warn{background:var(--am2);color:var(--am)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.ghost{background:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600;min-height:40px}
+.btn{border:0;border-radius:14px;padding:13px 22px;font-weight:700;font-size:16px;min-height:48px;background:var(--vi);color:#fff;box-shadow:0 6px 18px -6px var(--vi);transition:transform .12s}
+.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(1px)}
+.btn.sec{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.gr{background:var(--gr);box-shadow:0 6px 18px -6px var(--gr)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.wrap{max-width:1240px;margin:0 auto;padding:clamp(20px,4vw,48px) max(4vw,16px)}
+h1,h2,h3{line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(34px,5.4vw,58px);font-weight:800}
+h2{font-size:clamp(26px,3.4vw,38px);font-weight:800}
+h3{font-size:20px;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.tag{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:var(--sh)}
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,4vw,56px);align-items:center}
+.hero .tag{font-size:clamp(18px,2vw,22px);margin:14px 0 26px;color:var(--muted)}
+.acts{display:grid;gap:12px}
+.act{display:flex;align-items:center;gap:16px;text-align:left;padding:18px 20px;border-radius:18px;border:1px solid var(--line);background:var(--card);box-shadow:var(--sh);transition:transform .15s,border-color .15s;width:100%}
+.act:hover{transform:translateY(-2px);border-color:var(--vi)}
+.act .ic{font-size:30px;width:56px;height:56px;display:grid;place-items:center;border-radius:16px;background:var(--vi2);flex:none}
+.act.b .ic{background:var(--bl2)}.act.g .ic{background:var(--gr2)}
+.act strong{display:block;font-size:19px}.act span{color:var(--muted);font-size:14.5px}
+.act .arr{margin-left:auto;font-size:22px;color:var(--muted)}
+.mirror{width:100%;max-width:520px;margin:0 auto;display:block}
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:clamp(28px,4vw,52px)}
+.how .card{padding:20px}
+.how .n{font-size:28px}
+.how h3{margin:8px 0 6px}
+.note{margin-top:20px;padding:16px 18px;border-radius:16px;background:var(--vi2);color:var(--vi3);font-size:14.5px}
+/* stage */
+.stage{position:relative;border-radius:24px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh);overflow:hidden;min-height:520px;display:flex;flex-direction:column}
+.stage.fs{border-radius:0;min-height:100vh}
+.stg{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(22px,4vw,56px);gap:18px;position:relative}
+.stg.c{align-items:center;text-align:center}
+.big{font-size:clamp(70px,11vw,140px);line-height:1}
+.qtext{font-size:clamp(28px,4.2vw,56px);font-weight:800;line-height:1.12;letter-spacing:-.02em;text-wrap:balance;max-width:22ch}
+.fs .qtext{font-size:clamp(36px,5vw,72px)}
+.track{position:relative;height:34px;margin:0 clamp(22px,4vw,56px);margin-top:20px}
+.track .road{position:absolute;left:0;right:0;top:15px;height:4px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--line) 0 14px,transparent 14px 22px)}
+.track .stop{position:absolute;top:11px;width:12px;height:12px;border-radius:50%;background:var(--line);transform:translateX(-50%)}
+.track .stop.done{background:var(--vi)}
+.track .car{position:absolute;top:-2px;font-size:28px;transform:translateX(-50%) scaleX(-1);transition:left .8s cubic-bezier(.3,1.4,.5,1)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:14px;font-weight:700;background:var(--vi2);color:var(--vi3)}
+.chip.b{background:var(--bl2);color:var(--bl)}.chip.g{background:var(--gr2);color:var(--gr)}.chip.a{background:var(--am2);color:var(--am)}
+.cd{font-size:clamp(90px,13vw,170px);font-weight:800;line-height:1;color:var(--vi);font-variant-numeric:tabular-nums}
+.cd.pulse{animation:pulse 1s infinite}
+@keyframes pulse{0%{transform:scale(1)}15%{transform:scale(1.12)}100%{transform:scale(1)}}
+.bar{height:12px;border-radius:12px;background:var(--line);overflow:hidden;width:100%}
+.bar i{display:block;height:100%;width:0;background:var(--vi);border-radius:12px;transition:width .3s}
+.bar.b i{background:var(--bl)}.bar.g i{background:var(--gr)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px clamp(16px,3vw,28px);border-top:1px solid var(--line);background:var(--bg)}
+.ctrl .sp{flex:1}
+.kbd{font-size:12.5px;color:var(--muted)}
+kbd{font:600 12px/1 inherit;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:3px 6px;background:var(--card)}
+.joingrid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center}
+.qr{width:clamp(180px,24vw,300px);aspect-ratio:1;background:#fff;border-radius:18px;padding:12px;box-shadow:var(--sh);display:grid;place-items:center}
+.qr svg{width:100%;height:100%}
+.code{font-size:clamp(48px,7vw,92px);font-weight:800;letter-spacing:.06em;color:var(--vi);font-variant-numeric:tabular-nums;line-height:1}
+.url{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.count{font-size:clamp(40px,5vw,64px);font-weight:800;line-height:1}
+.names{display:flex;flex-wrap:wrap;gap:8px;max-height:150px;overflow:auto}
+.names span{padding:6px 12px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-weight:600;font-size:15px;animation:pop .35s}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.sel{display:grid;gap:6px;font-size:14px;font-weight:600}
+.sel select{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);padding:0 10px;font-size:16px}
+.trans{font-size:clamp(24px,3.2vw,40px);font-weight:800;text-wrap:balance;animation:pop .4s}
+/* gauge */
+.gauge{width:min(520px,90%)}
+.dist{display:grid;gap:10px;width:min(560px,100%);text-align:left}
+.dist .r{display:grid;grid-template-columns:34px minmax(0,1fr) 48px;gap:10px;align-items:center;font-weight:700}
+.dist .r .bar{height:16px}
+.dist .r em{font-style:normal;text-align:right;color:var(--muted)}
+.refl{display:grid;gap:14px;width:min(760px,100%);text-align:left;counter-reset:r}
+.refl div{padding:18px 22px;border-radius:18px;background:var(--bg);border:1px solid var(--line);font-size:clamp(19px,2.2vw,26px);font-weight:700;display:flex;gap:14px;align-items:center}
+.refl div::before{counter-increment:r;content:counter(r);flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--vi);color:#fff;font-size:17px}
+.final{font-size:clamp(22px,2.8vw,34px);font-weight:800;color:var(--vi);text-wrap:balance}
+/* demo */
+.demo{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-radius:14px;background:var(--am2);color:var(--am);font-weight:700;font-size:14.5px;margin-bottom:16px}
+.phone{border-radius:40px;border:10px solid var(--ink);background:var(--bg);min-height:680px;overflow:hidden;position:relative;box-shadow:var(--sh)}
+.phone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:22px;border-radius:12px;background:var(--ink);z-index:2}
+.phone .ph{padding:44px 18px 22px}
+.bots{margin-top:14px;padding:16px}
+.bots .row{margin-top:10px}
+/* participant */
+.pv{max-width:480px;margin:0 auto;display:grid;gap:16px}
+.pv.solo{padding:20px 16px 40px}
+.pcard{padding:20px}
+.pq{font-size:22px;font-weight:800;line-height:1.2;text-wrap:balance}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;min-height:58px;padding:12px 14px;border-radius:16px;border:2px solid var(--line);background:var(--card);font-weight:700;font-size:16.5px;transition:transform .1s,border-color .1s}
+.opt .l{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:15px}
+.opt:nth-child(1) .l{background:var(--vi)}.opt:nth-child(2) .l{background:var(--bl)}.opt:nth-child(3) .l{background:var(--gr)}.opt:nth-child(4) .l{background:var(--am)}
+.opt:not([disabled]):hover{border-color:var(--vi);transform:translateY(-1px)}
+.opt[disabled]{cursor:default;opacity:.55}
+.opt.picked{opacity:1;border-color:var(--vi);background:var(--vi2)}
+.pcd{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800}
+.pcd .n{font-size:40px;color:var(--vi);font-variant-numeric:tabular-nums;line-height:1}
+.field{display:grid;gap:6px;font-weight:700;font-size:14px}
+.field input[type=text]{min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);padding:0 14px;font-size:18px}
+.field input.codein{font-size:26px;letter-spacing:.2em;font-weight:800;text-align:center}
+.priv{font-size:14px;display:grid;gap:8px;padding:16px;border-radius:16px;background:var(--vi2);color:var(--vi3)}
+.priv ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:600}
+.check input{width:22px;height:22px;margin-top:1px;accent-color:var(--vi);flex:none}
+.err{color:var(--rd);font-weight:700;font-size:14px}
+.wait{text-align:center;display:grid;gap:12px;padding:28px 18px}
+.drive{font-size:56px;animation:drive 2.4s ease-in-out infinite}
+@keyframes drive{0%,100%{transform:translateX(-40px) scaleX(-1)}50%{transform:translateX(40px) scaleX(-1)}}
+.res{text-align:center;display:grid;gap:12px;padding:22px 18px;position:relative;overflow:hidden}
+.res .em{font-size:84px;line-height:1;animation:rise .7s cubic-bezier(.3,1.5,.5,1)}
+@keyframes rise{from{transform:translateY(30px) scale(.4);opacity:0}}
+.res .sc{font-size:46px;font-weight:800;color:var(--vi);line-height:1}
+.res .sc small{font-size:18px;color:var(--muted)}
+.res .q{font-style:italic;color:var(--muted)}
+.res ul{text-align:left;margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.res li{padding:10px 12px;border-radius:12px;background:var(--bg);font-size:15px}
+.res li b{display:block;font-size:12.5px;color:var(--muted);font-weight:700}
+.cover{display:grid;place-items:center;gap:14px;padding:40px 20px;text-align:center;cursor:pointer;border:0;background:none;width:100%}
+.cover .m{font-size:90px;animation:wob 2s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.conf{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.conf i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 2.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(720px) rotate(560deg);opacity:.2}}
+.modal{position:fixed;inset:0;background:rgba(15,10,30,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.modal .card{max-width:520px;padding:24px;display:grid;gap:14px}
+.small{font-size:13px}
+.rm *,.rm *::before{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+@media(max-width:980px){.demo{grid-template-columns:minmax(0,1fr)}.phone{max-width:400px;margin:0 auto;width:100%}}
+@media(max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}.hero .pic{order:-1}.mirror{max-width:340px}.how{grid-template-columns:minmax(0,1fr)}.joingrid{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}.stage{min-height:440px}.top .hide-s{display:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="brand" data-act="home" aria-label="Who is in Control? home"><span>🪞</span><span>Who is in <b>Control?</b></span></button>
+  <span class="sp"></span>
+  <span id="live" class="pill hide-s"><span class="dot"></span>Checking live mode…</span>
+  <button class="ghost" data-act="motion" id="motionBtn" aria-pressed="false">Motion: on</button>
+</header>
+<main id="app"></main>
+<div id="modal"></div>
+<script>var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});</script>
+<script>
+{
+/* ================= CONTENT ================= */
+const NET = true, SUPA = { url: 'https://uowmfxqrbwxfklvywcac.supabase.co', key: 'sb_publishable_TxLEFsUy69lZSRbaKGeE9g_0V_5CPQ6' };
+const ARTIFACT_URL = 'https://claude.ai/artifact/NUxj8Vegx1wzDvH8HUattf';
+const MIN_ANSWERED = 7, MIN_TEAM = 5, MIN_DIST = 10, CLOCK_TOL = 3000, GRACE = 700;
+// Points: 0 = reflective / collaborative, 3 = most defensive, controlling or credit-seeking.
+// Rule: feelings never score. Only the behaviour that follows a feeling scores.
+const QS = [
+ {th:'feedback', t:'Someone criticises your work in a meeting. What happens first?', o:[
+  ['I defend it straight away.',3],['I nod, but quietly decide they are wrong.',2],['It stings, but I hear them out.',0],['I ask what they would change.',0]]},
+ {th:'credit', t:'A colleague is praised for something you helped with.', o:[
+  ['It bothers me for the rest of the day.',2],['I jump in to mention my part.',3],["I'm genuinely happy for them.",0],['A bit disappointed, then I move on.',0]]},
+ {th:'mistake', t:'You realise you made a mistake.', o:[
+  ['I flag it and start fixing it.',0],['I first check who else was involved.',2],['I fix it quietly and hope nobody notices.',3],['I explain what happened and own it.',0]]},
+ {th:'disagree', t:'Someone disagrees with your idea.', o:[
+  ['I push harder to convince them.',2],["I ask what they see that I don't.",0],["I'm frustrated, but I stay open.",0],["I assume they haven't understood it.",3]]},
+ {th:'idea', t:'A colleague suggests a better approach than yours.', o:[
+  ['I switch to it happily.',0],['I need a moment, then I come around.',0],['I keep defending my original idea.',3],['I agree, but keep looking for its flaws.',2]]},
+ {th:'change', t:'Your manager asks you to change something you worked hard on.', o:[
+  ['I take it personally.',2],['I ask what outcome they need.',0],['I push back before I hear the reason.',3],["I'm disappointed, but I consider it.",0]]},
+ {th:'interrupt', t:'Someone interrupts you in a meeting.', o:[
+  ['I get irritated and it shows.',2],['I calmly ask to finish my point.',0],['I interrupt them back.',3],['I let them finish, then return to my point.',0]]},
+ {th:'teamwin', t:'Your team succeeds, but nobody mentions you.', o:[
+  ['It spoils the moment for me.',2],['The shared win is enough for me.',0],['I remind everyone what I did.',3],['I notice it, then let it go.',0]]},
+ {th:'unknown', t:"Someone asks you a question and you don't know the answer.", o:[
+  ["I say I don't know and offer to find out.",0],['I answer anyway and sound sure.',3],['I ask someone who knows more.',0],['I steer the conversation elsewhere.',2]]},
+ {th:'decision', t:"You're sure you're right, but the team chooses another direction.", o:[
+  ['I keep arguing my point.',3],['I share my concerns, then back the decision.',0],['I go along, but struggle to let it go.',1],['I stay curious and help it succeed.',0]]}
+];
+const TH = {
+ feedback:{n:'Feedback',s:'You stay open when your work is criticised.',g:'Criticism can put you on the defensive quickly.',h:'When feedback comes, ask one question before you answer.',c:"Ask one colleague: \"What's one thing I could do better?\" Just listen."},
+ credit:{n:'Recognition',s:"You can celebrate a colleague's win without keeping score.",g:'Credit for shared work matters a lot to you.',h:"Name one colleague's contribution out loud each week.",c:'Thank someone publicly for help they gave you this month.'},
+ mistake:{n:'Mistakes',s:'You own your mistakes openly.',g:'A mistake can make you look elsewhere first.',h:"Say \"that one's on me\" early, then share the fix.",c:'Share one small mistake with your team and what you learned.'},
+ disagree:{n:'Disagreement',s:'You get curious when people disagree with you.',g:'Disagreement can switch you into convincing mode.',h:'Before you reply, sum up their view in one sentence.',c:'In your next disagreement, ask "What am I missing?" first.'},
+ idea:{n:'Better ideas',s:'You let the best idea win, whoever had it.',g:'Letting go of your own idea is hard.',h:'Ask "which option is best for the client?" instead of "whose idea?"',c:"Build on someone else's idea in your next meeting."},
+ change:{n:'Change requests',s:'You focus on the outcome, not on your pride.',g:'Change requests can feel personal.',h:'Ask "what outcome do you need?" before defending the work.',c:'When asked for a change, ask about the goal before you react.'},
+ interrupt:{n:'Interruptions',s:'You hold your ground calmly when interrupted.',g:'Interruptions can trigger a counter-attack.',h:'Try "Let me finish this thought, then I\'m all ears."',c:'Notice one moment you want to interrupt — and wait three seconds.'},
+ teamwin:{n:'Team wins',s:'Shared wins are enough for you.',g:'Being left unmentioned can spoil a good moment.',h:'Celebrate the team result first; raise credit 1:1 later if it matters.',c:"Congratulate the team on a win and leave yourself out of it."},
+ unknown:{n:'Not knowing',s:'You are comfortable saying "I don\'t know".',g:'Not knowing can feel like losing face.',h:'Practise "I don\'t know yet — I\'ll find out."',c:'Say "I don\'t know" at least once tomorrow — and follow up.'},
+ decision:{n:'Team decisions',s:'You commit once the team decides.',g:'Letting go after a decision takes real effort.',h:"Once a decision is made, write down one way you'll help it work.",c:"Help move forward one decision you didn't agree with."}
+};
+const CATS = [
+ {max:25,e:'🧘',t:"You're in the driver's seat!",q:'You stay calm and open, even when it stings. Keep it up!',x:'Your answers show curiosity, humility and openness — even in moments that sting.',team:'As a team we stay open, even in tricky moments.',tone:'g'},
+ {max:50,e:'😎',t:"You're mostly in control!",q:'Now and then your autopilot reaches for the wheel, but you usually stay in charge.',x:'Most of your reactions are open and collaborative. A few situations pull you towards defending or proving yourself — which is very human.',team:"Most of the time, we choose how we react.",tone:'b'},
+ {max:75,e:'🦙',t:'Your autopilot grabs the wheel sometimes',q:'In some situations your first reflex takes over. The good news? You can take back control.',x:'In several situations your first reflex protected your position or your credit. Noticing that is the hardest part — and you just did.',team:"Our reflexes take over now and then. Good thing we're noticing.",tone:'a'},
+ {max:100,e:'👑',t:'Your autopilot is driving today',q:'Your quick reflexes may be steering more often than you realise. Time to take back the wheel!',x:'Today your quick reactions leaned towards defending, convincing or claiming credit. That says more about fast reflexes than about who you are — and reflexes can be retrained.',team:"Our reflexes did a lot of the driving. Let's take back the wheel together.",tone:'a'}
+];
+const TRANS = ['Interesting… some reflexes are getting nervous! 👀','The mirror saw that. 🪞','Hands on the wheel, everyone. 🚗','Hmm… was that you or your autopilot? 🤔','Green light — keep going! 🚦','Somebody check the rear-view mirror. 👀','The llama is watching. 🦙','Seatbelts on — next one is tricky. 🔒','Nobody saw your answer. Only you. 🤫','Finish line! 🏁'];
+const READS = [[3,'3 s'],[5,'5 s'],[8,'8 s']];
+const ANSWERS = [[3,'3 s — Lightning ⚡'],[5,'5 s — Quick 🚀'],[8,'8 s — Balanced 😎'],[12,'12 s — Relaxed 🧘'],[20,'20 s — Reflective 🪞']];
+
+/* ================= ENGINE ================= */
+const hash = s => { let h = 1779033703 ^ s.length; for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; } return h >>> 0; };
+const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const order = (seed, qi) => { const r = rng(hash(seed + ':' + qi)), a = [0,1,2,3]; for (let i = 3; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const rid = (n = 12) => { const c = 'abcdefghijkmnpqrstuvwxyz23456789'; let s = ''; const b = new Uint32Array(n); crypto.getRandomValues(b); for (const x of b) s += c[x % c.length]; return s; };
+const catOf = sc => CATS.findIndex(c => sc <= c.max);
+function evaluate(ans, seed = '') {
+  let answered = 0, pts = 0; const per = [];
+  ans.forEach((a, i) => { if (a == null) return; const p = QS[i].o[a][1]; answered++; pts += p; per.push({ i, p }); });
+  const score = answered ? Math.round(100 * pts / (3 * answered)) : null;
+  const valid = answered >= MIN_ANSWERED;
+  const cat = score == null ? null : catOf(score);
+  const rot = hash(seed) % 10;
+  const strengths = per.filter(x => x.p === 0).sort((a, b) => ((a.i - rot + 10) % 10) - ((b.i - rot + 10) % 10)).map(x => QS[x.i].th);
+  const growth = per.filter(x => x.p >= 2).sort((a, b) => b.p - a.p || a.i - b.i).map(x => QS[x.i].th);
+  const obs = [];
+  if (cat != null && cat <= 1) { strengths.slice(0, 2).forEach(t => obs.push({ k: 'Strength', t: TH[t].s, th: t })); }
+  else { if (strengths[0]) obs.push({ k: 'Strength', t: TH[strengths[0]].s, th: strengths[0] }); }
+  for (const t of growth) { if (obs.length >= 2) break; obs.push({ k: 'Worth noticing', t: TH[t].g, th: t }); }
+  for (const t of strengths) { if (obs.length >= 2) break; if (!obs.some(o => o.th === t)) obs.push({ k: 'Strength', t: TH[t].s, th: t }); }
+  const focus = growth[0];
+  const habit = focus ? TH[focus].h : 'Keep asking "what am I missing?" in meetings. It keeps you in the driver's seat.';
+  const challenge = focus ? TH[focus].c : (strengths[0] ? TH[strengths[0]].c : 'Ask one colleague how you could support them better this week.');
+  return { answered, pts, score, valid, cat, obs, habit, challenge };
+}
+function teamStats(scores) {
+  const valid = scores.filter(s => s.valid && typeof s.score === 'number' && s.score >= 0 && s.score <= 100);
+  const avg = valid.length ? Math.round(valid.reduce((a, s) => a + s.score, 0) / valid.length) : null;
+  const dist = [0,0,0,0]; valid.forEach(s => dist[catOf(s.score)]++);
+  return { n: valid.length, avg, cat: avg == null ? null : catOf(avg), dist };
+}
+window.__ego = { QS, evaluate, teamStats, order, catOf };
+
+/* ================= HUBS ================= */
+// Demo hub: everything in memory. Bots are clearly simulated.
+const BOTNAMES = ['Lina','Omar','Sara','Youssef','Mona','Karim','Nour','Hana','Tarek','Rania','Ziad','Layla','Fadi','Dina','Samir','Mariam','Adam','Salma'];
+class DemoHub {
+  constructor() { this.state = null; this.lobby = []; this.prog = {}; this.scores = {}; this.subs = { state: [], lobby: [], prog: [], scores: [] }; this.bots = []; this.auto = true; this.timers = []; }
+  emit(k, v) { this.subs[k].forEach(f => f(v)); }
+  on(k, f) { this.subs[k].push(f); f(k === 'state' ? this.state : k === 'lobby' ? this.lobby : k === 'prog' ? this.prog : Object.values(this.scores)); }
+  hostOpen(st) { this.state = { ...st }; this.emit('state', this.state); }
+  hostSet(st) { this.state = { ...st }; setTimeout(() => this.emit('state', this.state), 30 + Math.random() * 60); this.botsReact(); }
+  async exists() { return !!this.state; }
+  async pJoin(nick) { const lobbyId = rid(), anonId = rid(); this.lobby = [...this.lobby, { id: lobbyId, n: nick }]; this.emit('lobby', this.lobby); return { lobbyId, anonId }; }
+  pAnswer(anonId, arr) { this.prog = { ...this.prog, [anonId]: arr.slice() }; this.emit('prog', this.prog); }
+  pScore(anonId, s) { this.scores = { ...this.scores, [anonId]: s }; this.emit('scores', Object.values(this.scores)); }
+  addBots(k) {
+    for (let i = 0; i < k && this.bots.length < 18; i++) {
+      const n = BOTNAMES[this.bots.length % BOTNAMES.length];
+      const b = { nick: n, anonId: rid(), bias: Math.min(.95, Math.max(0, .12 + (Math.random() + Math.random() + Math.random()) / 3 * .55 - .1)), ans: Array(10).fill(null), sent: false, lazy: Math.random() < .08 };
+      this.bots.push(b); setTimeout(() => this.pJoin(n), 120 + i * 260);
+    }
+  }
+  botsReact() {
+    const s = this.state; if (!s || !this.auto) return;
+    if (s.stage === 'q' && s.phase === 'answer') {
+      const q = s.q, win = s.ansMs;
+      this.bots.forEach(b => {
+        const miss = b.lazy ? Math.random() < .35 : Math.random() < .04;
+        if (miss || b.ans[q] != null) return;
+        const t = 250 + Math.random() * (win - 200);
+        this.timers.push(setTimeout(() => {
+          if (!this.state || this.state.q !== q || this.state.phase !== 'answer') return;
+          const opts = QS[q].o.map((o, i) => ({ i, p: o[1] }));
+          const w = opts.map(o => o.p === 0 ? (1 - b.bias) * 2.2 : o.p * b.bias * 1.2 + .05);
+          let r = Math.random() * w.reduce((a, x) => a + x, 0), pick = 0; for (let i = 0; i < 4; i++) { r -= w[i]; if (r <= 0) { pick = i; break; } }
+          b.ans[q] = opts[pick].i; this.pAnswer(b.anonId, b.ans.map((a, i) => a == null ? null : i).filter(x => x != null));
+        }, t));
+      });
+    }
+    if (['results', 'company', 'reflect'].includes(s.stage)) {
+      this.bots.forEach((b, i) => { if (b.sent) return; b.sent = true; const ev = evaluate(b.ans, b.anonId); this.timers.push(setTimeout(() => this.pScore(b.anonId, { score: ev.score, answered: ev.answered, valid: ev.valid }), 200 + i * 120)); });
+    }
+  }
+  reset() { this.timers.forEach(clearTimeout); }
+}
+// Live hub: the artifact's own shared database. Names live in /lobby, answers stay in each person's private subtree,
+// only anonymous progress flags and final scores (random ids, no names) are shared.
+let DB = null, USER = null, UID = null, liveState = 'checking';
+class LiveHub {
+  constructor(code) { this.code = code; this.base = 'rooms/' + code; this.unsubs = []; this.q = Promise.resolve(); this.pending = null; }
+  async exists() { const d = await DB.doc(this.base).get(); return d.exists && d.data().stage !== 'ended' ? d.data() : null; }
+  hostOpen(st) { return DB.doc(this.base).set(st); }
+  hostSet(st) { // one write at a time; coalesce bursts
+    this.pending = st; this.q = this.q.then(async () => { if (!this.pending) return; const p = this.pending; this.pending = null; try { await DB.doc(this.base).set(p); } catch (e) { toast('Could not sync game state — retrying'); await sleep(600); try { await DB.doc(this.base).set(p); } catch (e2) {} } });
+    return this.q;
+  }
+  on(k, f) {
+    const err = e => console.warn('db', k, e && e.code);
+    if (k === 'state') this.unsubs.push(DB.doc(this.base).onSnapshot(d => f(d.exists ? d.data() : null), err));
+    if (k === 'lobby') this.unsubs.push(DB.collection(this.base + '/lobby').onSnapshot(s => f(s.docs.map(d => ({ id: d.id, n: String(d.data().n || '').slice(0, 20) }))), err));
+    if (k === 'prog') this.unsubs.push(DB.collection(this.base + '/prog').onSnapshot(s => { const o = {}; s.docs.forEach(d => { const a = d.data().a; if (Array.isArray(a)) o[d.id] = a; }); f(o); }, err));
+    if (k === 'scores') this.unsubs.push(DB.collection(this.base + '/scores').onSnapshot(s => f(s.docs.map(d => d.data())), err));
+  }
+  async pJoin(nick, ids) { const lobbyId = ids?.lobbyId || rid(), anonId = ids?.anonId || rid(); await DB.doc(`${this.base}/lobby/${lobbyId}`).set({ n: nick.slice(0, 20) }); return { lobbyId, anonId }; }
+  pAnswer(anonId, arr) { const p = DB.doc(`${this.base}/prog/${anonId}`).set({ a: arr }); p.catch(() => {}); return p; }
+  pScore(anonId, s) { return DB.doc(`${this.base}/scores/${anonId}`).set(s).catch(() => {}); }
+  stop() { this.unsubs.forEach(u => u()); this.unsubs = []; }
+  async purge() { for (const c of ['lobby', 'prog', 'scores']) { const s = await DB.collection(this.base + '/' + c).get(); for (const d of s.docs) await DB.doc(`${this.base}/${c}/${d.id}`).delete(); } await DB.doc(this.base).delete(); }
+}
+async function purgeExpired() {
+  try { const s = await DB.collection('rooms').where('expiresAt', '<', Date.now()).limit(20).get(); for (const d of s.docs) await new LiveHub(d.id).purge(); } catch (e) {}
+  try { if (UID) { const s = await DB.collection('data/users/' + UID).where('exp', '<', Date.now()).limit(20).get(); for (const d of s.docs) await DB.doc(`data/users/${UID}/${d.id}`).delete(); } } catch (e) {}
+}
+
+// Public hub: Supabase RPCs over plain fetch (works on any static host). Server clock decides deadlines.
+class RpcHub {
+  constructor(code) { this.code = code; this.off = 0; this.loops = {}; this.subs = { state: [], lobby: [], prog: [], scores: [] }; this.last = null; this.counts = null; this.finished = 0; this.team = null; }
+  async rpc(fn, args = {}) {
+    const h = { 'content-type': 'application/json', apikey: SUPA.key }; if (!SUPA.key.startsWith('sb_')) h.Authorization = 'Bearer ' + SUPA.key;
+    const t0 = Date.now(), r = await fetch(SUPA.url.replace(/\/$/, '') + '/rest/v1/rpc/egocheck_' + fn, { method: 'POST', headers: h, body: JSON.stringify(args) }), t1 = Date.now();
+    const j = await r.json().catch(() => null);
+    if (!r.ok) throw new Error((j && (j.message || j.error)) || ('HTTP ' + r.status));
+    if (j && typeof j === 'object' && j.now) this.off = j.now - (t0 + t1) / 2;
+    return j;
+  }
+  map(room) { return room ? { ...room, at: room.phaseAt - this.off, until: room.deadline ? room.deadline - this.off : null } : null; }
+  loop(name, ms, fn) { if (this.loops[name]) return; const run = async () => { if (!this.loops[name]) return; try { await fn(); } catch (e) {} this.loops[name] = setTimeout(run, typeof ms === 'function' ? ms() : ms); }; this.loops[name] = setTimeout(run, 10); }
+  stop() { Object.values(this.loops).forEach(clearTimeout); this.loops = {}; }
+  // host
+  async create(read, ans) { const j = await this.rpc('create_room_json', { p_read_s: read, p_ans_s: ans }); this.code = j.code; this.hostToken = j.hostToken; try { localStorage.setItem('ec_host', JSON.stringify({ code: j.code, hostToken: j.hostToken, exp: Date.now() + 24 * 3600e3 })); } catch (e) {} return j.code; }
+  async hostState() { return this.rpc('host_state', { p_code: this.code, p_token: this.hostToken }); }
+  hostOpen() { return Promise.resolve(); }
+  hostSet(st) {
+    this.want = st;
+    const go = async () => {
+      if (this.want !== st) return; const L = this.last || {};
+      let action = 'next';
+      if (st.stage === 'ended') action = 'end';
+      else if (L.stage === st.stage && L.q === st.q && (L.phase ?? null) === (st.phase ?? null)) action = 'set_timer';
+      try {
+        const j = await this.rpc('host_step', { p_code: this.code, p_token: this.hostToken, p_action: action, p_read_s: Math.round(st.readMs / 1000), p_ans_s: Math.round(st.ansMs / 1000) });
+        this.last = j.room;
+        if (j.room && action === 'next' && (j.room.stage !== st.stage || j.room.q !== st.q || (j.room.phase ?? null) !== (st.phase ?? null))) this.onResync?.(j.room);
+      } catch (e) { if (/window still open/.test(e.message)) setTimeout(go, 300); else if (!/not host/.test(e.message)) setTimeout(go, 800); }
+    };
+    this.q = (this.q || Promise.resolve()).then(go); return this.q;
+  }
+  // shared
+  async exists() { const j = await this.rpc('room_state', { p_code: this.code }); return j.room; }
+  on(k, f) {
+    this.subs[k].push(f);
+    if (k === 'state') this.loop('state', () => (this.lastState?.stage === 'q' ? 450 : 900), async () => { const j = await this.rpc('room_state', { p_code: this.code }); const m = this.map(j.room); this.lastState = m; this.subs.state.forEach(g => g(m)); });
+    else this.loop('host', 1000, async () => {
+      const j = await this.hostState(); this.last = this.last || j.room; this.counts = j.counts || Array(10).fill(0); this.finished = j.finished || 0; this.team = j.team;
+      this.subs.lobby.forEach(g => g(j.names || [])); this.subs.prog.forEach(g => g({})); this.subs.scores.forEach(g => g([]));
+    });
+  }
+  // participant
+  async pJoin(nick, resume) {
+    if (resume?.anonId) { const j = await this.rpc('me_json', { p_token: resume.anonId }); if (!j.answers) throw new Error('unknown player'); return { lobbyId: resume.lobbyId, anonId: resume.anonId, answers: j.answers.map(a => a < 0 ? null : a) }; }
+    const j = await this.rpc('join_json', { p_code: this.code, p_nickname: nick }); return { lobbyId: j.lobbyId, anonId: j.token };
+  }
+  async pAnswer(anonId, arr, q, o) { const st = await this.rpc('submit_answer', { p_token: anonId, p_q: q, p_option: o }); return { status: st }; }
+  pScore() {}
+  async forget(anonId) { try { await this.rpc('forget_me', { p_token: anonId }); } catch (e) {} }
+  async purge() { try { await this.rpc('host_step', { p_code: this.code, p_token: this.hostToken, p_action: 'end' }); } catch (e) {} try { localStorage.removeItem('ec_host'); } catch (e) {} }
+}
+
+/* ================= HOST CONTROLLER ================= */
+class Host {
+  constructor(hub, code, opts) {
+    this.hub = hub; this.code = code; this.demo = !!opts.demo;
+    this.s = { stage: 'welcome', q: 0, phase: null, readMs: opts.read * 1000, ansMs: opts.ans * 1000, seq: 1, at: Date.now(), createdAt: Date.now(), expiresAt: Date.now() + 24 * 3600e3, demo: this.demo };
+    this.lobby = []; this.prog = {}; this.scores = []; this.locked = {}; this.showNames = true; this.t = null; this.phaseStart = performance.now();
+  }
+  async open() { this.hub.onResync = room => { clearTimeout(this.t); Object.assign(this.s, { stage: room.stage, q: room.q, phase: room.phase, readMs: room.readMs, ansMs: room.ansMs, seq: room.seq }); this.phaseStart = performance.now(); this.schedule(); paint(); }; await this.hub.hostOpen(this.s); ['lobby', 'prog', 'scores'].forEach(k => this.hub.on(k, v => { this[k] = v || (k === 'prog' ? {} : []); if (k === 'prog' && this.s.stage === 'q' && this.s.phase === 'answer' && this.answeredNow() >= this.lobby.length && this.lobby.length) this.lockSoon(); paint(); })); }
+  set(p) { clearTimeout(this.t); Object.assign(this.s, p, { seq: this.s.seq + 1, at: Date.now() }); this.phaseStart = performance.now(); this.hub.hostSet({ ...this.s }); this.schedule(); paint(); }
+  schedule() {
+    const s = this.s;
+    if (s.stage === 'ready' && s.phase === 'count') this.t = setTimeout(() => this.set({ stage: 'q', q: 0, phase: 'read' }), 3200);
+    if (s.stage === 'q' && s.phase === 'read') this.t = setTimeout(() => this.set({ phase: 'answer' }), s.readMs);
+    if (s.stage === 'q' && s.phase === 'answer') this.t = setTimeout(() => this.lock(), s.ansMs + GRACE);
+  }
+  lockSoon() { if (this.ls) return; this.ls = setTimeout(() => { this.ls = null; if (this.s.phase === 'answer') this.lock(); }, GRACE + 300); }
+  lock() { clearTimeout(this.ls); this.ls = null; this.locked[this.s.q] = this.answeredNow(); this.set({ phase: 'locked' }); }
+  answeredNow() { const q = this.s.q; if (this.hub.counts) return this.hub.counts[q] || 0; return Object.values(this.prog).filter(a => a.includes(q)).length; }
+  canNext() { const s = this.s; return !(s.stage === 'q' && s.phase !== 'locked') && !(s.stage === 'ready' && s.phase === 'count') && s.stage !== 'ended'; }
+  next() {
+    if (!this.canNext()) return; const s = this.s;
+    const nx = { welcome: { stage: 'join' }, join: { stage: 'ready', phase: null }, ready: { phase: 'count' }, results: { stage: 'company' }, company: { stage: 'reflect' } }[s.stage];
+    if (s.stage === 'q') return this.set(s.q < 9 ? { q: s.q + 1, phase: 'read' } : { stage: 'results', phase: null });
+    if (nx) this.set(nx);
+  }
+  nextLabel() { const s = this.s; return { welcome: 'Open joining ▶', join: 'Everyone in? Continue ▶', ready: 'Start the game 🚦', results: 'Reveal team score 🏢', company: 'Reflection ▶', reflect: 'Finished 💜' }[s.stage] || (s.stage === 'q' ? (s.phase === 'locked' ? (s.q < 9 ? 'Next question ▶' : 'Show results 🪞') : 'Timer running…') : 'Next ▶'); }
+  setTimer(k, v) { if (this.s.stage === 'q') return; this.s[k] = v * 1000; this.hub.hostSet({ ...this.s }); paint(); }
+  destroy() { clearTimeout(this.t); clearTimeout(this.ls); }
+}
+
+/* ================= PARTICIPANT CONTROLLER ================= */
+class Player {
+  constructor(hub, code, demo) { this.hub = hub; this.code = code; this.demo = demo; this.st = null; this.seq = 0; this.joined = false; this.answers = Array(10).fill(null); this.until = 0; this.readUntil = 0; this.revealed = false; this.submitted = false; this.err = ''; }
+  async join(nick, resume) {
+    const ids = await this.hub.pJoin(nick, resume);
+    Object.assign(this, ids, { nick, joined: true, seed: ids.anonId });
+    const prev = ids.answers || resume?.answers; if (prev) this.answers = prev;
+    if (resume?.revealed) this.revealed = true;
+    this.save(); this.hub.on('state', s => this.onState(s));
+  }
+  onState(s) {
+    if (!s) { this.st = { stage: 'ended' }; return paint(); }
+    if (s.seq === this.seq) return; this.seq = s.seq; this.st = s; const now = Date.now();
+    if (s.stage === 'q' && s.phase === 'read') this.readUntil = NET ? s.at + s.readMs : Math.min(now + s.readMs, s.at + s.readMs + CLOCK_TOL);
+    if (s.stage === 'q' && s.phase === 'answer') this.until = NET && s.until ? s.until - 150 : Math.min(now + s.ansMs, s.at + s.ansMs + CLOCK_TOL);
+    if (['results', 'company', 'reflect'].includes(s.stage)) this.finish();
+    paint();
+  }
+  canPick() { const s = this.st; return s && s.stage === 'q' && s.phase === 'answer' && Date.now() <= this.until && this.answers[s.q] == null; }
+  pick(orig) {
+    if (!this.canPick()) return; const q = this.st.q; this.answers[q] = orig;
+    const r = this.hub.pAnswer(this.anonId, this.answers.map((a, i) => a == null ? null : i).filter(x => x != null), q, orig); this.save(); paint();
+    if (r && r.then) r.then(res => { if (res && res.status && !['ok', 'duplicate'].includes(res.status)) { this.answers[q] = null; this.save(); paint(); } }).catch(() => { this.answers[q] = null; this.save(); paint(); });
+  }
+  finish() { if (this.submitted) return; this.submitted = true; const ev = evaluate(this.answers, this.seed); this.hub.pScore(this.anonId, { score: ev.score, answered: ev.answered, valid: ev.valid }); this.save(); }
+  save() {
+    const rec = { code: this.code, lobbyId: this.lobbyId, anonId: this.anonId, nick: this.nick, answers: this.answers, revealed: this.revealed, exp: Date.now() + 24 * 3600e3 };
+    if (this.demo) return;
+    try { localStorage.setItem('ec_session', JSON.stringify(rec)); } catch (e) {}
+    if (DB && UID) { this.sq = (this.sq || Promise.resolve()).then(() => DB.collection('data/users/' + UID).doc('ec_' + this.code).set(rec)).catch(() => {}); }
+  }
+  async forget() { await this.hub.forget?.(this.anonId); try { localStorage.removeItem('ec_session'); } catch (e) {} if (DB && UID) try { await DB.doc(`data/users/${UID}/ec_${this.code}`).delete(); } catch (e) {} }
+}
+
+/* ================= APP STATE + RENDER ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const app = { view: 'home', host: null, player: null, demoHub: null, liveHub: null, fs: false, joinCode: '', motion: true, hostSetup: { read: 5, ans: 3 } };
+function toast(msg) { const m = $('#modal'); m.innerHTML = `<div class="modal" role="status"><div class="card"><p>${esc(msg)}</p><button class="btn" data-act="closeModal">OK</button></div></div>`; }
+
+function paint() {
+  const v = app.view, el = $('#app');
+  if (v === 'home') el.innerHTML = homeView();
+  if (v === 'demo') { if (!$('#demoRoot')) el.innerHTML = demoShell(); paintStage(); paintPhone(); paintBots(); }
+  if (v === 'host') { if (!app.host) el.innerHTML = hostSetupView(); else { if (!$('#stageRoot')) el.innerHTML = `<div class="wrap" style="padding-top:20px">${liveTag()}<div id="stageRoot"></div></div>`; paintStage(); } }
+  if (v === 'join') { if (!$('#phoneRoot')) el.innerHTML = `<div class="pv solo"><div id="phoneRoot"></div></div>`; paintPhone(); }
+  tick();
+}
+function liveTag() { return `<div class="row" style="margin-bottom:12px"><span class="pill ok"><span class="dot"></span>Live room · real participants</span><span class="small muted">Answers stay on each phone. This screen shows attendance and counts only.</span></div>`; }
+
+/* ---------- HOME ---------- */
+function mirrorSVG() {
+  return `<svg class="mirror" viewBox="0 0 520 400" role="img" aria-label="A rear-view mirror reflecting a crown and a llama in the back seat">
+  <defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF1FF"/><stop offset="1" stop-color="#D9CCFF"/></linearGradient>
+  <linearGradient id="fr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2F5C"/><stop offset="1" stop-color="#1E1A2E"/></linearGradient></defs>
+  <rect x="246" y="0" width="28" height="70" rx="8" fill="#2B2540"/>
+  <ellipse cx="260" cy="350" rx="190" ry="20" fill="#5A3FD4" opacity=".12"/>
+  <rect x="30" y="60" width="460" height="250" rx="70" fill="url(#fr)"/>
+  <rect x="50" y="78" width="420" height="214" rx="56" fill="url(#gl)"/>
+  <path d="M70 250 L180 150 L340 150 L450 250 Z" fill="#B9C6F0" opacity=".5"/>
+  <rect x="150" y="205" width="220" height="70" rx="20" fill="#8E7BE8" opacity=".55"/>
+  <text x="200" y="200" font-size="78" text-anchor="middle">🦙</text>
+  <text x="318" y="196" font-size="70" text-anchor="middle">👑</text>
+  <path d="M80 110 Q150 90 190 100" stroke="#fff" stroke-width="10" stroke-linecap="round" fill="none" opacity=".75"/>
+  <path d="M90 135 Q120 125 140 128" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".6"/>
+  <text x="260" y="378" font-size="17" font-weight="700" fill="currentColor" text-anchor="middle" opacity=".75">Objects in mirror may be bigger than they appear.</text>
+  </svg>`;
+}
+function homeView() {
+  return `<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="chip">🚗 A Remotecoders team game</span>
+      <h1 style="margin-top:14px">Who's driving today?</h1>
+      <p class="tag">Are <b>you</b> behind the wheel, or are your <b>reflexes</b> driving? 10 everyday work moments, a few seconds each, one private mirror at the end.</p>
+      <div class="acts">
+        <button class="act" data-act="goHost"><span class="ic">🎤</span><span><strong>Host a Game</strong><span>Project it, share the QR code, run the show.</span></span><span class="arr">→</span></button>
+        <button class="act b" data-act="goJoin"><span class="ic">📱</span><span><strong>Join a Game</strong><span>Enter a room code and a nickname. No account needed.</span></span><span class="arr">→</span></button>
+        <button class="act g" data-act="goDemo"><span class="ic">🧪</span><span><strong>Try Demo Mode</strong><span>Full game with simulated colleagues. Works right now.</span></span><span class="arr">→</span></button>
+      </div>
+    </div>
+    <div class="pic">${mirrorSVG()}</div>
+  </section>
+  <section class="how">
+    <div class="card"><div class="n">🪞</div><h3>Private by design</h3><p class="muted">Your answers and score stay on your phone. The host sees who joined and how many answered — never who answered what.</p></div>
+    <div class="card"><div class="n">🏢</div><h3>One team score</h3><p class="muted">At the end, the screen shows the anonymous average of everyone who finished — only if at least ${MIN_TEAM} people did.</p></div>
+    <div class="card"><div class="n">🧘</div><h3>For laughs and reflection</h3><p class="muted">A light-hearted game, not a validated assessment or a performance tool. Feelings never count against you — only reactions do.</p></div>
+  </section>
+  <div class="note"><b>How scoring works.</b> Each answer carries 0–3 points (0 = curious and collaborative, 3 = defending, controlling or claiming credit). Your Autopilot Score = your points ÷ the maximum for the questions you answered × 100. Skipped questions don't count, and you need ${MIN_ANSWERED} of 10 answered for a score.</div>
+  ${liveNote()}
+  </div>`;
+}
+function liveNote() {
+  if (liveState === 'ok') return '';
+  if (liveState === 'checking') return `<p class="small muted" style="margin-top:14px">Checking whether live multiplayer is available here…</p>`;
+  if (NET) return `<div class="note" style="background:var(--am2);color:var(--am)"><b>Can't reach the game server right now.</b> Check your internet connection and reload. Demo Mode works offline.</div>`;
+  return `<div class="note" style="background:var(--am2);color:var(--am)"><b>Live multiplayer isn't connected in this view.</b> Live rooms run on this page's built-in shared storage, which needs the page opened on claude.ai by people in your organisation with Contributor access. Demo Mode works fully without it.</div>`;
+}
+
+/* ---------- HOST SETUP ---------- */
+function selects(cur) {
+  return `<label class="sel">Reading time<select data-set="read">${READS.map(([v, l]) => `<option value="${v}" ${cur.read == v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+  <label class="sel">Answer time<select data-set="ans">${ANSWERS.map(([v, l]) => `<option value="${v}" ${cur.ans == v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
+}
+function hostSetupView() {
+  if (liveState !== 'ok') return `<div class="wrap"><div class="card" style="padding:28px;max-width:720px;display:grid;gap:14px">
+    <h2>🎤 Live hosting isn't available here</h2>
+    <p>${liveState === 'checking' ? 'Still checking for live storage — give it a few seconds.' : 'Live rooms use this page\'s built-in shared storage. It works when the page is opened on claude.ai and shared with your team as <b>Contributors</b> (organisation members). In this view it isn\'t connected.'}</p>
+    <p class="muted">For a public QR join without claude.ai accounts, use the Supabase backend package that comes with this game.</p>
+    <div class="row"><button class="btn" data-act="goDemo">🧪 Run Demo Mode instead</button><button class="btn sec" data-act="home">Back</button></div></div></div>`;
+  return `<div class="wrap"><div class="card" style="padding:28px;max-width:720px;display:grid;gap:18px">
+    <h2>🎤 Create a game room</h2>
+    <p class="muted">You'll get a 6-digit code and a QR code for the projector. Each room is fresh — no results carry over — and is deleted when you end it (or after 24 hours).</p>
+    <div class="row" style="align-items:end">${selects(app.hostSetup)}</div>
+    <p class="small muted">Tip: 3 s is great fun; 8–20 s gives more thoughtful answers.</p>
+    <div class="row"><button class="btn" data-act="createRoom">Create room</button>${app.savedHost ? `<button class="btn sec" data-act="resumeHost">Resume room ${esc(app.savedHost)}</button>` : ''}<button class="btn sec" data-act="home">Back</button></div>
+  </div></div>`;
+}
+
+/* ---------- STAGE (presenter) ---------- */
+function joinURL(code) { if (NET) return location.origin + location.pathname + '#join-' + code; return (ARTIFACT_URL.startsWith('http') ? ARTIFACT_URL : 'https://claude.ai/artifact/…') + '#join-' + code; }
+function qrSVG(text) { try { const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); } catch (e) { return '<p class="small muted">QR unavailable — use the code.</p>'; } }
+function track(q, done) { return `<div class="track" aria-hidden="true"><div class="road"></div>${QS.map((_, i) => `<span class="stop ${i < done ? 'done' : ''}" style="left:${i / 9 * 100}%"></span>`).join('')}<span class="car" style="left:${q / 9 * 100}%">🚗</span></div>`; }
+function gauge(v) {
+  const a = Math.PI * (1 - v / 100), cx = 200, cy = 200, r = 160, x = cx + r * Math.cos(a), y = cy - r * Math.sin(a);
+  const seg = (f, t, c) => { const a1 = Math.PI * (1 - f / 100), a2 = Math.PI * (1 - t / 100); return `<path d="M${cx + r * Math.cos(a1)} ${cy - r * Math.sin(a1)} A${r} ${r} 0 0 1 ${cx + r * Math.cos(a2)} ${cy - r * Math.sin(a2)}" stroke="${c}" stroke-width="30" fill="none"/>`; };
+  return `<svg class="gauge" viewBox="0 0 400 240" role="img" aria-label="Gauge at ${v} out of 100">${seg(0, 25, 'var(--gr)')}${seg(25.5, 50, 'var(--bl)')}${seg(50.5, 75, 'var(--am)')}${seg(75.5, 100, 'var(--rd)')}
+  <line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--ink)" stroke-width="8" stroke-linecap="round" style="transform-origin:200px 200px;animation:needle 1.6s cubic-bezier(.3,1.4,.5,1)"/>
+  <circle cx="${cx}" cy="${cy}" r="14" fill="var(--ink)"/><text x="40" y="232" font-size="15" fill="var(--muted)" text-anchor="middle">0</text><text x="360" y="232" font-size="15" fill="var(--muted)" text-anchor="middle">100</text></svg>
+  <style>@keyframes needle{from{transform:rotate(${-v * 1.8}deg)}}</style>`;
+}
+function stageBody(h) {
+  const s = h.s, n = h.lobby.length;
+  if (s.stage === 'welcome') return `<div class="stg c"><div class="big">🚗🪞</div><h1>Who's driving today?</h1><p class="tag" style="font-size:clamp(18px,2vw,24px)" >Are <b>you</b> behind the wheel, or are your <b>reflexes</b> driving? 👑</p><p class="muted">10 everyday work moments · a few seconds each · a private result on your phone</p><span class="chip g">A light-hearted reflection game — not an assessment</span></div>`;
+  if (s.stage === 'join') return `<div class="stg"><div class="joingrid">
+    <div class="qr" aria-label="QR code to join">${qrSVG(joinURL(h.code))}</div>
+    <div style="display:grid;gap:14px">
+      <p class="muted" style="font-weight:700">Scan, or go to the link and enter</p>
+      <div class="code">${h.code.slice(0, 3)} ${h.code.slice(3)}</div>
+      <div class="url">${h.demo ? '(demo — not a real link) ' : ''}${esc(joinURL(h.code))}</div>
+      <div class="row"><span class="count">${n}</span><span style="font-weight:700">joined 🚗</span>${n > 0 && n < MIN_TEAM ? `<span class="chip a">${MIN_TEAM - n} more needed for a team score</span>` : ''}</div>
+      ${h.showNames ? `<div class="names">${h.lobby.map(p => `<span>${esc(p.n)}</span>`).join('')}</div>` : `<p class="small muted">Names hidden</p>`}
+      <div class="row" style="align-items:end">${selects({ read: s.readMs / 1000, ans: s.ansMs / 1000 })}<button class="ghost" data-act="toggleNames">${h.showNames ? 'Hide names' : 'Show names'}</button></div>
+    </div></div></div>`;
+  if (s.stage === 'ready') return `<div class="stg c">${s.phase === 'count' ? `<div class="cd pulse" data-count="${h.phaseStart}">3</div><h2>Hands on the wheel…</h2>` : `<div class="big">🚦</div><h2>How it works</h2>
+    <div class="refl" style="counter-reset:r"><div>${s.readMs / 1000} seconds to read the question</div><div>${s.ansMs / 1000} seconds to pick your first instinct</div><div>Your answers stay on your phone. Nobody else sees them.</div></div>
+    <p class="muted">${n} player${n === 1 ? '' : 's'} ready · Missed a question? It's skipped, not counted against you.</p>`}</div>`;
+  if (s.stage === 'q') {
+    const qd = QS[s.q], ans = s.phase === 'locked' ? (h.locked[s.q] ?? h.answeredNow()) : h.answeredNow(), pct = n ? Math.round(100 * ans / n) : 0;
+    let mid = '';
+    if (s.phase === 'read') mid = `<div class="row"><span class="chip b">👀 Read the question</span><span class="muted" style="font-weight:700">Answers open in <span data-left="${h.phaseStart + s.readMs}">${s.readMs / 1000}</span> s</span></div><div class="bar b"><i data-fill="${h.phaseStart}|${s.readMs}"></i></div>`;
+    if (s.phase === 'answer') mid = `<div class="row" style="justify-content:space-between"><span class="chip">📱 Choose on your phone!</span><div class="cd pulse" style="font-size:clamp(70px,9vw,120px)" data-left="${h.phaseStart + s.ansMs}" data-alarm="1">${s.ansMs / 1000}</div></div>`;
+    if (s.phase === 'locked') mid = `<p class="trans">${TRANS[s.q % TRANS.length]}</p>`;
+    return `${track(s.q, s.q + (s.phase === 'locked' ? 1 : 0))}<div class="stg">
+      <div class="row"><span class="chip">Question ${s.q + 1} / 10</span><span class="chip a">${TH[qd.th].n}</span></div>
+      <div class="qtext">${esc(qd.t)}</div>${mid}
+      <div style="display:grid;gap:6px;max-width:560px"><div class="row" style="justify-content:space-between;font-weight:700"><span>${ans} of ${n} answered</span><span class="muted">${pct}%</span></div><div class="bar g"><i style="width:${pct}%"></i></div></div>
+      <p class="small muted">Answer options are shuffled on each phone, so they're not shown here.</p></div>`;
+  }
+  if (s.stage === 'results') { const k = h.hub.counts ? h.hub.finished : h.scores.length; return `<div class="stg c"><div class="big">🪞</div><h1>Look in the mirror</h1><p class="tag" style="font-size:22px">Your personal result is on <b>your phone</b> — private, for your eyes only.</p><p class="muted">${k} of ${n} results calculated · nobody's score appears on this screen</p></div>`; }
+  if (s.stage === 'company') {
+    const t = h.hub.counts ? (h.hub.team ? { ...h.hub.team, cat: h.hub.team.avg == null ? null : catOf(h.hub.team.avg) } : { n: 0 }) : teamStats(h.scores);
+    if (t.n < MIN_TEAM) return `<div class="stg c"><div class="big">🚗💨</div><h2>Not enough drivers for a team score… yet!</h2><p class="tag" style="font-size:20px">We need at least ${MIN_TEAM} completed games to show an anonymous average — today we have ${t.n}. That protects everyone's privacy.</p><p class="muted">Let's play again with a bigger crew. Your personal results are still on your phones.</p></div>`;
+    const c = CATS[t.cat];
+    return `<div class="stg c" style="gap:12px"><span class="chip">🏢 REMOTECODERS · WHO IS IN CONTROL?</span><h2>Our Team Autopilot Score</h2>${gauge(t.avg)}
+      <div style="font-size:clamp(56px,8vw,96px);font-weight:800;line-height:1;color:var(--vi)">${t.avg}<span style="font-size:.4em;color:var(--muted)"> / 100</span> ${c.e}</div>
+      <h2 style="font-size:clamp(22px,2.6vw,32px)">${esc(c.t.replace("You're", "We're").replace('Your autopilot is', 'Our autopilot is').replace('Your autopilot grabs', 'Our autopilot grabs'))}</h2><p class="tag" style="font-size:20px;margin:0">"${esc(c.team)}"</p>
+      <div class="row" style="justify-content:center"><span class="chip b">${n} joined</span><span class="chip g">${t.n} valid completed games</span></div>
+      ${t.n >= MIN_DIST && t.dist ? `<div class="dist">${CATS.map((cc, i) => { const p = Math.round(100 * t.dist[i] / t.n); return `<div class="r"><span>${cc.e}</span><div class="bar ${['g', 'b', '', ''][i]}"><i style="width:${p}%"></i></div><em>${p}%</em></div>`; }).join('')}</div>` : `<p class="small muted">Category breakdown appears from ${MIN_DIST} completed games, so small groups stay anonymous.</p>`}
+      <p class="small muted">This is the average of today's participants — not the whole company — and a game, not a measurement.</p></div>`;
+  }
+  if (s.stage === 'reflect') return `<div class="stg c"><h2>Before you drive off… 🚗</h2><div class="refl"><div>When does my autopilot take the wheel?</div><div>How can I notice it earlier?</div><div>What can I do differently tomorrow?</div></div><p class="final">"Reflexes are human. Just don't let them drive every meeting." 🚗💜</p></div>`;
+  if (s.stage === 'ended') return `<div class="stg c"><div class="big">🧹</div><h2>Session ended</h2><p class="muted">Room data has been deleted.</p></div>`;
+  return '';
+}
+function paintStage() {
+  const h = app.host, root = $('#stageRoot'); if (!h || !root) return;
+  const live = !h.demo;
+  root.innerHTML = `<div class="stage ${app.fs ? 'fs' : ''}" id="stageEl">${stageBody(h)}
+  <div class="ctrl"><button class="btn" data-act="next" ${h.canNext() && h.s.stage !== 'reflect' ? '' : 'disabled'}>${h.nextLabel()}</button>
+  <button class="ghost" data-act="fs">⛶ Full screen</button>
+  ${h.s.stage === 'reflect' || h.s.stage === 'company' ? `<button class="ghost" data-act="newGame">🔁 New game</button>` : ''}
+  ${live ? `<button class="ghost" data-act="endRoom">End &amp; delete data</button>` : ''}
+  <span class="sp"></span><span class="kbd"><kbd>Space</kbd>/<kbd>→</kbd> next · <kbd>F</kbd> full screen · room <b>${h.code}</b></span></div></div>`;
+}
+
+/* ---------- PHONE (participant) ---------- */
+function privacyBlock() {
+  return `<div class="priv"><b>🔒 Before you join</b><ul>
+  <li>Joining is voluntary. You can stop at any time.</li>
+  <li>Your <b>nickname</b> is shown on the big screen in the lobby. Use any name you like.</li>
+  <li>Your <b>answers and score stay private</b> on your phone. They are stored without your name, and the host never sees them.</li>
+  <li>The screen only shows an anonymous team average, and only if ${MIN_TEAM}+ people finish.</li>
+  <li>No email or account details are collected. Room data is deleted when the host ends the game, or after 24 hours.</li>
+  <li>This is a fun reflection game, not an assessment.</li></ul></div>`;
+}
+function phoneBody(p) {
+  if (!p || !p.joined) {
+    const code = p?.code || app.joinCode || '';
+    return `<div class="pcard card" style="display:grid;gap:14px">
+      <div style="text-align:center"><div style="font-size:46px">📱🚗</div><h2 style="font-size:26px">Join Who is in Control?</h2></div>
+      ${p?.demo ? `<p class="small muted" style="text-align:center">Demo room <b>${esc(code)}</b> — you're the only real player.</p>` : `<label class="field">Room code<input class="codein" type="text" inputmode="numeric" maxlength="6" id="codeIn" value="${esc(code)}" autocomplete="off" placeholder="000000"></label>`}
+      <label class="field">First name or nickname<input type="text" id="nickIn" maxlength="20" placeholder="e.g. Sam" autocomplete="nickname" value="${p?.demo ? 'You' : ''}"></label>
+      ${privacyBlock()}
+      <label class="check"><input type="checkbox" id="okIn"> I understand, and I'd like to play.</label>
+      ${p?.err || app.joinErr ? `<p class="err">${esc(p?.err || app.joinErr)}</p>` : ''}
+      <button class="btn" data-act="join">Join Game 🚗</button></div>`;
+  }
+  const s = p.st || { stage: 'welcome' };
+  if (s.stage === 'ended') return `<div class="card wait"><div style="font-size:56px">🧹</div><h3>This game has ended</h3><p class="muted">The room data was deleted. Thanks for playing!</p>${p.demo ? '' : `<button class="btn sec" data-act="forget">Clear this game from my device</button>`}</div>`;
+  if (['welcome', 'join', 'ready'].includes(s.stage)) return `<div class="card wait"><div class="drive">🚗</div><h3>You're in, ${esc(p.nick)}!</h3><p class="muted">${s.stage === 'ready' ? (s.phase === 'count' ? 'Starting… hands on the wheel!' : 'Get ready — first question coming up.') : 'Waiting for the host to start. Watch the big screen.'}</p><p class="small muted">Reminder: go with your first instinct. Nobody sees your answers.</p></div>`;
+  if (s.stage === 'q') {
+    const qd = QS[s.q], ord = order(p.seed, s.q), mine = p.answers[s.q], canPick = p.canPick(), L = 'ABCD';
+    let head = '';
+    if (s.phase === 'read') head = `<div class="pcd"><span>👀 Read…</span><span class="muted small">answers open in <b data-leftabs="${p.readUntil}">${Math.ceil((p.readUntil - Date.now()) / 1000)}</b> s</span></div>`;
+    else if (s.phase === 'answer' && mine == null && canPick) head = `<div class="pcd"><span>Choose now!</span><span class="n" data-leftabs="${p.until}" data-alarm="1">${Math.ceil((p.until - Date.now()) / 1000)}</span></div>`;
+    else if (mine != null) head = `<div class="pcd"><span style="color:var(--gr)">✅ Locked in</span><span class="small muted">only you can see this</span></div>`;
+    else head = `<div class="pcd"><span>⏰ Time's up</span><span class="small muted">skipped — not counted against you</span></div>`;
+    return `<div class="card pcard" style="display:grid;gap:14px"><div class="row" style="justify-content:space-between"><span class="chip">Q${s.q + 1} / 10</span><span class="small muted">${esc(p.nick)}</span></div>
+      <div class="pq">${esc(qd.t)}</div>${head}
+      <div class="opts">${ord.map((oi, k) => `<button class="opt ${mine === oi ? 'picked' : ''}" data-act="pick" data-o="${oi}" ${canPick && s.phase === 'answer' ? '' : 'disabled'}><span class="l">${L[k]}</span>${esc(qd.o[oi][0])}</button>`).join('')}</div></div>`;
+  }
+  const ev = evaluate(p.answers, p.seed);
+  if (!p.revealed) return `<div class="card"><button class="cover" data-act="reveal"><span class="m">🪞</span><h2 style="font-size:26px">Your mirror is ready</h2><span class="muted">Tap to see who's been driving. Only you will see this.</span></button></div>`;
+  return resultCard(p, ev) + (s.stage === 'reflect' ? `<div class="card pcard" style="display:grid;gap:10px"><h3>Take these with you</h3><p>1. When does my autopilot take the wheel?</p><p>2. How can I notice it earlier?</p><p>3. What can I do differently tomorrow?</p><p style="font-weight:800;color:var(--vi)">"Reflexes are human. Just don't let them drive every meeting." 🚗💜</p></div>` : '');
+}
+function resultCard(p, ev) {
+  if (!ev.valid) return `<div class="card res"><div class="em">🅿️</div><h2 style="font-size:24px">Parked before the finish line</h2><p>You answered <b>${ev.answered} of 10</b>. We need ${MIN_ANSWERED} for a fair score, so we won't give you a number this time.</p>
+    ${ev.obs.length ? `<ul>${ev.obs.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}</ul>` : ''}<p class="muted">Play again any time — speed isn't the point.</p>${resultBtns(p)}</div>`;
+  const c = CATS[ev.cat], conf = ev.cat <= 1 && !p._conf && (p._conf = true) ? `<div class="conf">${Array.from({ length: 36 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:${['var(--vi)', 'var(--bl)', 'var(--gr)', 'var(--am)'][i % 4]};animation-delay:${(i % 9) * .12}s"></i>`).join('')}</div>` : '';
+  return `<div class="card res" id="resCard">${conf}<div class="em">${c.e}</div><h2 style="font-size:26px">${esc(c.t)}</h2>
+    <div class="sc">${ev.score}<small> / 100 Autopilot Score</small></div><p class="q">"${esc(c.q)}"</p><p>${esc(c.x)}</p>
+    <ul>${ev.obs.map(o => `<li><b>${o.k}</b>${esc(o.t)}</li>`).join('')}<li><b>Habit to try</b>${esc(ev.habit)}</li><li><b>Tomorrow's challenge</b>${esc(ev.challenge)}</li></ul>
+    <p class="small muted">Based on ${ev.answered} of 10 answers. Low score = you're driving. A fun reflection, not a personality test.</p>${resultBtns(p)}</div>`;
+}
+function resultBtns(p) { return `<div class="row" style="justify-content:center"><button class="btn sec" data-act="copyRes">📋 Copy my result</button>${p.demo ? '' : `<button class="ghost" data-act="forget">Delete my data</button>`}</div><p class="small muted" id="copyMsg"></p>`; }
+function paintPhone() { const root = $('#phoneRoot'); if (!root) return; const focus = document.activeElement?.id; if (focus && ['nickIn', 'codeIn'].includes(focus) && app.player && !app.player.joined) return; root.innerHTML = phoneBody(app.player); }
+
+/* ---------- DEMO ---------- */
+function demoShell() {
+  return `<div class="wrap" id="demoRoot" style="padding-top:20px">
+  <div class="banner">🧪 DEMO MODE · All other players are simulated. No real employee data is created or stored.<span class="sp" style="flex:1"></span><button class="ghost" data-act="goDemo" style="color:inherit;border-color:currentColor">↺ Restart demo</button></div>
+  <div class="demo"><div><div id="stageRoot"></div><div class="card bots" id="botRoot"></div></div>
+  <div><div class="phone"><div class="ph" id="phoneRoot"></div></div><p class="small muted" style="text-align:center;margin-top:10px">This phone is you. Play along!</p></div></div></div>`;
+}
+function paintBots() {
+  const b = app.demoHub, root = $('#botRoot'); if (!b || !root) return; const st = app.host.s.stage;
+  root.innerHTML = `<div class="row" style="justify-content:space-between"><h3>🤖 Simulated colleagues: ${b.bots.length}</h3><label class="check" style="font-size:14px"><input type="checkbox" data-act="autoBots" ${b.auto ? 'checked' : ''}> Bots answer automatically</label></div>
+  <div class="row"><button class="ghost" data-act="bot1" ${b.bots.length >= 18 || !['welcome', 'join', 'ready'].includes(st) ? 'disabled' : ''}>+1 colleague</button><button class="ghost" data-act="bot5" ${b.bots.length >= 18 || !['welcome', 'join', 'ready'].includes(st) ? 'disabled' : ''}>+5 colleagues</button>
+  <span class="small muted">Add 4+ bots (plus you) to unlock the team score. Bots join only before the game starts.</span></div>`;
+}
+
+/* ---------- TICKER ---------- */
+function tick() {
+  const now = performance.now(), wall = Date.now();
+  document.querySelectorAll('[data-left]').forEach(e => { const l = Math.max(0, Math.ceil((+e.dataset.left - now) / 1000)); e.textContent = e.dataset.alarm && l === 0 ? '⏰' : l; });
+  document.querySelectorAll('[data-leftabs]').forEach(e => { const l = Math.max(0, Math.ceil((+e.dataset.leftabs - wall) / 1000)); e.textContent = e.dataset.alarm && l === 0 ? '⏰' : l; });
+  document.querySelectorAll('[data-count]').forEach(e => { const l = 3 - Math.floor((now - +e.dataset.count) / 1000); e.textContent = l > 0 ? l : '🚦'; });
+  document.querySelectorAll('[data-fill]').forEach(e => { const [st, d] = e.dataset.fill.split('|').map(Number); e.style.width = Math.min(100, 100 * (now - st) / d) + '%'; });
+  const p = app.player; if (p && p.joined && p.st?.stage === 'q' && p.st.phase === 'answer') { const open = p.canPick(); if (open !== p._open) { p._open = open; paintPhone(); } }
+}
+setInterval(tick, 200);
+
+/* ---------- ACTIONS ---------- */
+async function startDemo() {
+  app.demoHub?.reset(); app.host?.destroy();
+  const hub = new DemoHub(), code = String(100000 + Math.floor(Math.random() * 900000));
+  app.demoHub = hub; app.view = 'demo'; $('#app').innerHTML = '';
+  app.host = new Host(hub, code, { read: 5, ans: 5, demo: true }); await app.host.open();
+  app.player = new Player(hub, code, true); hub.addBots(6); paint();
+}
+async function createRoom() {
+  let code, hub;
+  if (NET) { hub = new RpcHub(); try { code = await hub.create(app.hostSetup.read, app.hostSetup.ans); } catch (e) { toast('Could not create the room: ' + e.message); return paint(); } }
+  else for (let i = 0; i < 6; i++) { code = String(100000 + Math.floor(Math.random() * 900000)); hub = new LiveHub(code); if (!(await hub.exists())) break; }
+  app.liveHub = hub; app.host = new Host(hub, code, { read: app.hostSetup.read, ans: app.hostSetup.ans }); $('#app').innerHTML = '';
+  try { await app.host.open(); } catch (e) { app.host = null; toast('Could not create the room. You may need Contributor or Editor access to this page.'); return paint(); }
+  paint();
+}
+async function resumeHost() {
+  let rec = null; try { rec = JSON.parse(localStorage.getItem('ec_host') || 'null'); } catch (e) {}
+  if (!rec) return; const hub = new RpcHub(rec.code); hub.hostToken = rec.hostToken;
+  let j; try { j = await hub.hostState(); } catch (e) { try { localStorage.removeItem('ec_host'); } catch (e2) {} toast('That room has ended.'); app.savedHost = null; return paint(); }
+  hub.last = j.room; app.liveHub = hub; const r = j.room;
+  const h = new Host(hub, rec.code, { read: r.readMs / 1000, ans: r.ansMs / 1000 }); Object.assign(h.s, { stage: r.stage, q: r.q, phase: r.phase, seq: r.seq });
+  if (r.stage === 'q' && r.phase === 'answer') h.s.phase = 'answer';
+  app.host = h; $('#app').innerHTML = ''; await h.open(); h.schedule(); paint();
+}
+async function doJoin() {
+  const p = app.player, nick = ($('#nickIn')?.value || '').trim(), ok = $('#okIn')?.checked;
+  const err = m => { if (p) p.err = m; else app.joinErr = m; paintPhone(); };
+  if (!nick) return err('Please enter a first name or nickname.'); if (!ok) return err('Please tick the box to confirm you want to play.');
+  if (p?.demo) { p.err = ''; await p.join(nick); return paint(); }
+  const code = ($('#codeIn')?.value || '').replace(/\D/g, '');
+  if (code.length !== 6) return err('Room codes have 6 digits.');
+  if (!DB && !NET) return err('Live games are not available in this view. Try Demo Mode.');
+  const hub = NET ? new RpcHub(code) : new LiveHub(code); let st; try { st = await hub.exists(); } catch (e) { return err('Could not reach the room. Check your connection.'); }
+  if (!st) return err('No active room with that code.');
+  app.joinErr = ''; const pl = new Player(hub, code, false); app.player = pl;
+  try { await pl.join(nick); } catch (e) { app.player = null; return err(NET ? 'Could not join: ' + e.message : 'Could not join. You may need access to this page (ask the host).'); }
+  paint();
+}
+async function resume() {
+  let rec = null; try { rec = JSON.parse(localStorage.getItem('ec_session') || 'null'); } catch (e) {}
+  if (DB && UID) { try { const s = await DB.collection('data/users/' + UID).orderBy('exp', 'desc').limit(1).get(); if (s.docs[0]) rec = s.docs[0].data(); } catch (e) {} }
+  if (!rec || rec.exp < Date.now()) return false;
+  const hub = NET ? new RpcHub(rec.code) : new LiveHub(rec.code); let st; try { st = await hub.exists(); } catch (e) { return false; } if (!st) return false;
+  const pl = new Player(hub, rec.code, false); app.player = pl; app.view = 'join'; $('#app').innerHTML = '';
+  pl.nick = rec.nick; try { await pl.join(rec.nick, rec); } catch (e) { app.player = null; try { localStorage.removeItem('ec_session'); } catch (e2) {} return false; } paint(); return true;
+}
+function resultText(p) {
+  const ev = evaluate(p.answers, p.seed); if (!ev.valid) return `Who is in Control? 🪞 — I answered ${ev.answered}/10, not enough for a score this time.`;
+  const c = CATS[ev.cat]; return `Who is in Control? 🪞\n${c.e} ${c.t} — ${ev.score}/100 Autopilot Score\n${ev.obs.map(o => '• ' + o.t).join('\n')}\nHabit: ${ev.habit}\nTomorrow: ${ev.challenge}`;
+}
+async function fullscreen() { const el = $('#stageEl'); try { if (document.fullscreenElement) await document.exitFullscreen(); else { await (el?.requestFullscreen?.()); app.fs = true; paintStage(); } } catch (e) { app.fs = !app.fs; paintStage(); } }
+document.addEventListener('fullscreenchange', () => { app.fs = !!document.fullscreenElement; paintStage(); });
+
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-act]'); if (!t) return; const a = t.dataset.act;
+  if (a === 'home') { app.host?.destroy(); app.liveHub?.stop?.(); app.demoHub?.reset(); Object.assign(app, { view: 'home', host: null, player: null }); $('#app').innerHTML = ''; paint(); }
+  if (a === 'goDemo') startDemo();
+  if (a === 'goHost') { try { const h = JSON.parse(localStorage.getItem('ec_host') || 'null'); app.savedHost = h && h.exp > Date.now() ? h.code : null; } catch (e) {} app.view = 'host'; app.host = null; $('#app').innerHTML = ''; paint(); }
+  if (a === 'goJoin') { app.view = 'join'; app.player = null; $('#app').innerHTML = ''; paint(); }
+  if (a === 'createRoom') { t.disabled = true; createRoom(); }
+  if (a === 'resumeHost') { t.disabled = true; resumeHost(); }
+  if (a === 'next') app.host?.next();
+  if (a === 'fs') fullscreen();
+  if (a === 'toggleNames') { app.host.showNames = !app.host.showNames; paint(); }
+  if (a === 'newGame') { if (app.view === 'demo') return startDemo(); const old = app.liveHub; app.host.destroy(); old?.stop(); old?.purge().catch(() => {}); app.host = null; $('#app').innerHTML = ''; paint(); }
+  if (a === 'endRoom') { $('#modal').innerHTML = `<div class="modal"><div class="card"><h3>End the game and delete room data?</h3><p class="muted">Lobby names, progress flags and anonymous scores for room ${app.host.code} will be deleted. Players keep their personal result on their own device.</p><div class="row"><button class="btn" data-act="endYes">End &amp; delete</button><button class="btn sec" data-act="closeModal">Cancel</button></div></div></div>`; }
+  if (a === 'endYes') { $('#modal').innerHTML = ''; const h = app.host; h.set({ stage: 'ended' }); await sleep(800); try { await app.liveHub.purge(); } catch (e) {} app.liveHub.stop(); h.destroy(); app.host = null; $('#app').innerHTML = ''; toast('Room ended and its data deleted.'); paint(); }
+  if (a === 'closeModal') $('#modal').innerHTML = '';
+  if (a === 'join') { t.disabled = true; await doJoin(); }
+  if (a === 'pick') app.player?.pick(+t.dataset.o);
+  if (a === 'reveal') { app.player.revealed = true; app.player.save(); paintPhone(); }
+  if (a === 'copyRes') { const m = $('#copyMsg'); try { await navigator.clipboard.writeText(resultText(app.player)); m.textContent = 'Copied — paste it wherever you like. Nothing was shared automatically.'; } catch (er) { m.textContent = 'Copy blocked by the browser — take a screenshot instead.'; } }
+  if (a === 'forget') { await app.player.forget(); app.player = null; app.view = 'home'; $('#app').innerHTML = ''; toast('Your saved answers and result were deleted from this device and your private storage.'); paint(); }
+  if (a === 'bot1') { app.demoHub.addBots(1); paintBots(); }
+  if (a === 'bot5') { app.demoHub.addBots(5); setTimeout(paintBots, 1500); paintBots(); }
+  if (a === 'autoBots') { app.demoHub.auto = t.checked; }
+  if (a === 'motion') { app.motion = !app.motion; document.documentElement.classList.toggle('rm', !app.motion); t.textContent = 'Motion: ' + (app.motion ? 'on' : 'off'); t.setAttribute('aria-pressed', String(!app.motion)); }
+});
+document.addEventListener('change', e => {
+  const k = e.target.dataset.set; if (!k) return; const v = +e.target.value;
+  if (app.host) app.host.setTimer(k === 'read' ? 'readMs' : 'ansMs', v); else app.hostSetup[k] = v;
+});
+document.addEventListener('keydown', e => {
+  if (!app.host || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement?.tagName) && (e.key === ' ' || e.key === 'Enter' || document.activeElement.tagName !== 'BUTTON')) return;
+  if (app.view === 'demo' && document.activeElement?.closest?.('.phone')) return;
+  if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); app.host.next(); }
+  if (e.key === 'f' || e.key === 'F') fullscreen();
+});
+document.addEventListener('input', e => { if (e.target.id === 'codeIn') e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+
+/* ---------- BOOT ---------- */
+function setLive(st) {
+  liveState = st; const el = $('#live');
+  el.className = 'pill hide-s ' + (st === 'ok' ? 'ok' : st === 'off' ? 'warn' : '');
+  el.innerHTML = `<span class="dot"></span>${st === 'ok' ? 'Live mode ready' : st === 'off' ? 'Live mode offline · Demo ready' : 'Checking live mode…'}`;
+  if (['home', 'host'].includes(app.view) && !app.host) paint();
+}
+const m = (location.hash || '').match(/^#join-(\d{6})$/); if (m) { app.view = 'join'; app.joinCode = m[1]; }
+paint();
+if (NET) (async () => {
+  try { await new RpcHub('000000').rpc('room_state', { p_code: '000000' }); setLive('ok'); } catch (e) { setLive('off'); }
+  if (liveState === 'ok' && ['home', 'join'].includes(app.view)) { const r = await resume(); if (!r && app.view === 'join') paint(); }
+})();
+else (async () => {
+  const timeout = new Promise(r => setTimeout(() => r(null), 10000));
+  try {
+    const c = window.claude; if (!c || !c.use) throw 0;
+    DB = await Promise.race([c.use('db'), timeout]); USER = await Promise.race([c.use('user'), timeout]);
+    if (USER) { try { UID = await USER.id(); } catch (e) {} }
+    setLive(DB ? 'ok' : 'off');
+    if (DB) { purgeExpired(); if (['home', 'join'].includes(app.view) && !app.host && (!app.player || !app.player.joined)) { const r = await resume(); if (!r && app.view === 'join') paint(); } }
+  } catch (e) { setLive('off'); }
+})();
+}
+</script>
+</body>
+</html>

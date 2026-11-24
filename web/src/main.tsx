@@ -31,19 +31,19 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="print:hidden sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-paper-line">
-        <div className="max-w-6xl mx-auto px-4 flex items-center gap-4 h-16">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 flex items-center gap-2 sm:gap-4 h-16">
           <Link to="/discover" className="flex items-center gap-2 font-extrabold text-lg shrink-0" aria-label="PulsePlay home">
             <span className="w-9 h-9 rounded-xl grid place-items-center text-white bg-gradient-to-br from-violet-600 to-teal-500" aria-hidden>◉</span>
-            <span>Pulse<span className="text-violet-600">Play</span></span>
+            <span className="hidden sm:inline">Pulse<span className="text-violet-600">Play</span></span>
           </Link>
-          <nav className="flex gap-1 overflow-x-auto ms-auto" aria-label="Main">
+          <nav className="flex gap-0.5 sm:gap-1 overflow-x-auto ms-auto min-w-0" aria-label="Main">
             {NAV().map(([to, ic, label]) => (
-              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
+              <NavLink key={to} to={to} className={({ isActive }) => `flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 sm:px-3 py-2 text-sm font-bold ${isActive ? 'bg-violet-50 text-violet-700' : 'text-ink-soft hover:text-ink'}`}>
                 <span aria-hidden>{ic}</span><span className="hidden sm:inline">{label}</span><span className="sm:hidden sr-only">{label}</span>
               </NavLink>
             ))}
           </nav>
-          <LangSwitch className="shrink-0" />
+          <LangSwitch className="shrink-0" compact />
         </div>
       </header>
       <main className="flex-1">{children}</main>

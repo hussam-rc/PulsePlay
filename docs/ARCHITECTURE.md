@@ -151,3 +151,9 @@ Challenged / simplified on purpose
 - **Live rooms**: empty "tick" broadcasts on Supabase Realtime (migration 0600) + polling timed to phase boundaries, paused while the screen is off; phones retry answers through connection drops. Works without Realtime.
 - **Languages**: player, projector and navigation screens in English, German (Swiss spelling), French and Arabic (right-to-left); per device; game content keeps its own direction (`dir="auto"`). Builder and workspace remain English.
 - **Reports and branding** (migration 0700): anonymous session report (print/PDF, CSV with formula-injection protection); opt-in organisation name, colour and icon on the projector and phones.
+
+## 13. Colleague feedback round (24 Nov)
+- Server (`20261124_0900_pp_host_fixes`): pause/resume allowed while players read (keeps remaining read time); host-only `kick` command removes a lobby name and publishes only the opaque seat id in `kicked`; the removed phone deletes its own answers via `pp_forget_me`. `pp_join` returns the seat. Players still cannot kick (tested).
+- Content (`20261124_0910_pp_seed_languages`): "Who is in Control?" default timing 4s read / 15s answer; DE, FR and AR versions (`ego-check-de|fr|ar`) with identical ids, points and bands, so scoring is unchanged across languages. Would You Rather and Myth or Fact remain English-only.
+- Frontend: one join page (code checked first, inline error), root `index.html` redirects to the app, old page kept as `classic.html` but no longer linked; compact language switch; host polling 700 ms; "End & see insights"; WYR reaction thresholds fixed; RTL via `dir="auto"` on content.
+- Rollback: the migration only adds a nullable-default column and replaces functions; revert by re-applying the previous function definitions from `20261123_*` migrations. Language variants can be hidden by setting `status='draft'` on their `pp.experiences` rows; no data deletion needed.

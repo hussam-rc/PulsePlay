@@ -58,7 +58,7 @@ def play_game(b, game, n, picker, settings=None, boards=(), reload_player_at=Non
             ok('Locked in' in p.inner_text('body'), f'{game}: phone refresh rejoins and keeps its answer')
         if q == 2 and reload_host_at:
             h.reload(); h.wait_for_selector('[data-testid=resume]'); h.click('[data-testid=resume]'); h.wait_for_selector('[data-testid=prompt]', timeout=10000)
-            ok(h.inner_text('[data-testid=prompt]') == prompt, f'{game}: presenter refresh resumes the same room at the same question')
+            ok(h.inner_text('[data-testid=prompt]') == prompt, f'{game}: presenter refresh resumes the same room at the same question ({h.inner_text("[data-testid=prompt]")!r} vs {prompt!r})')
         if q == 0 and game == 'would-you-rather': h.screenshot(path=f'{SHOTS}/live_poll.png')
         if q == 0 and game == 'myth-or-fact': h.screenshot(path=f'{SHOTS}/live_trivia.png'); phones[0].screenshot(path=f'{SHOTS}/live_trivia_phone.png')
         next_(h)

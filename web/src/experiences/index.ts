@@ -2,9 +2,19 @@ import { egoCheck } from './egoCheck';
 import { wouldYouRather } from './wouldYouRather';
 import { mythOrFact } from './mythOrFact';
 import type { Experience } from '../engine/schema';
+import { EGO_CHECK_VARIANTS } from './egoCheck.i18n';
+import { lang } from '../i18n';
 
 export const EXPERIENCES: Experience[] = [egoCheck, wouldYouRather, mythOrFact];
-export const byId = (id: string) => EXPERIENCES.find(e => e.id === id);
+/** Same game in other languages (hidden from Discover; chosen as "game language" when hosting or playing). */
+export const VARIANTS: Experience[] = [...EGO_CHECK_VARIANTS];
+export const ALL_EXPERIENCES: Experience[] = [...EXPERIENCES, ...VARIANTS];
+export const byId = (id: string) => ALL_EXPERIENCES.find(e => e.id === id);
+/** The base game and its language versions: [{ lang, id }], base first. */
+export const languagesOf = (id: string): { lang: Experience['languages'][number]; id: string }[] => {
+  const base = id.replace(/-(de|fr|ar)$/, '');
+  return ALL_EXPERIENCES.filter(e => e.id === base || e.id.startsWith(base + '-') && /-(de|fr|ar)$/.test(e.id)).map(e => ({ lang: e.languages[0], id: e.id }));
+};
 
 export const CATEGORY_LABEL: Record<Experience['category'], string> = {
   icebreaker: 'Icebreakers', 'team-building': 'Team building', reflection: 'Personal reflection', 'workplace-culture': 'Workplace culture',
@@ -25,3 +35,6 @@ export const PLANNED: { emoji: string; title: string; tagline: string; phase: st
   { emoji: '🎤', title: 'Community Voices', tagline: 'Polls, rankings and word clouds.', phase: 'Phase 3' },
   { emoji: '⚡', title: 'The Creative Storm', tagline: 'Generate, group and prioritise ideas.', phase: 'Phase 3' },
 ];
+
+/** The version of a game in the current interface language, if one exists (otherwise the original). */
+export const localizedId = (id: string) => languagesOf(id).find(x => x.lang === lang())?.id ?? id;

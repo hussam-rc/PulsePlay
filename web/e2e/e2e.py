@@ -21,7 +21,7 @@ with sync_playwright() as p:
         if q==0: pg.screenshot(path=out+'/03_answer.png')
         opt = 'a' if q%2 else 'c'
         pg.click(f'[data-testid=phone] button[data-option="{opt}"]'); picks.append(opt)
-        pg.wait_for_selector('[data-testid=next]:not([disabled]):has-text("Next question"), [data-testid=next]:not([disabled]):has-text("Show results")', timeout=12000)
+        pg.wait_for_selector('[data-testid=next]:not([disabled]):has-text("Next question"), [data-testid=next]:not([disabled]):has-text("Show results")', timeout=30000)
         if q==0: ok('locked in' in pg.inner_text('[data-testid=phone]').lower(), 'phone shows locked in'); pg.screenshot(path=out+'/04_reveal.png')
         pg.click('[data-testid=next]')
     pg.wait_for_selector('[data-testid=reveal]'); pg.click('[data-testid=reveal]')

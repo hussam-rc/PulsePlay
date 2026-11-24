@@ -18,7 +18,7 @@ const PAD = 'flex-1 flex flex-col justify-center gap-5 p-6 sm:p-12';
 const TILE = ['#5A36F0', '#2F6FEB', '#14A38B', '#E59A1C'];
 
 /** Projector. `off` = server clock offset; all deadlines are server times. */
-export function StageView({ v, off, joinUrl, practice }: { v: View; off: number; joinUrl: string; practice?: boolean }) {
+export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off: number; joinUrl: string; practice?: boolean; onKick?: (seat: string, name: string) => void }) {
   const e = v.experience, n = v.joined, local = (t?: number) => (t ?? 0) - off;
   if (v.stage === 'lobby') return (
     <div className={PAD}><div className="grid sm:grid-cols-[auto_1fr] gap-8 items-center">
@@ -29,12 +29,12 @@ export function StageView({ v, off, joinUrl, practice }: { v: View; off: number;
         {!practice && <p className="text-sm text-ink-soft break-all" data-testid="join-url">{joinUrl}</p>}
         <div className="flex items-baseline gap-3 flex-wrap"><span className="text-5xl font-extrabold" data-testid="joined">{n}</span><span className="font-bold">{t('stage.joined')}</span>
           {n < e.privacy.groupMinimum && <Chip tone="sun">{t('stage.more', { n: e.privacy.groupMinimum - n })}</Chip>}</div>
-        <div className="flex flex-wrap gap-2 max-h-40 overflow-auto">{(v.names ?? []).map((p, i) => <span key={i} className="chip bg-paper border border-paper-line anim-pop">{p.a} {p.n}</span>)}</div>
+        <div className="flex flex-wrap gap-2 max-h-40 overflow-auto">{(v.names ?? []).map((p, i) => <span key={p.i ?? i} className="chip bg-paper border border-paper-line anim-pop" data-testid="lobby-name"><span dir="auto">{p.a} {p.n}</span>{onKick && p.i && <button className="ms-1 w-6 h-6 rounded-full hover:bg-coral-50 text-ink-soft hover:text-coral-500" aria-label={`${t('stage.kick')} ${p.n}`} title={t('stage.kick')} onClick={() => onKick(p.i!, p.n)} data-testid="kick">✕</button>}</span>)}</div>
       </div></div></div>
   );
   if (v.stage === 'intro') { const tm = { ...e.defaultTiming, ...(v.timing ?? {}) }; return (
-    <div className={`${PAD} items-center text-center`}><div className="text-7xl" aria-hidden>{e.emoji}</div><h1 className="text-4xl sm:text-5xl font-extrabold">{e.title}</h1>
-      <p className="text-xl text-ink-soft max-w-2xl">{e.tagline}</p>
+    <div className={`${PAD} items-center text-center`}><div className="text-7xl" aria-hidden>{e.emoji}</div><h1 className="text-4xl sm:text-5xl font-extrabold" dir="auto">{e.title}</h1>
+      <p className="text-xl text-ink-soft max-w-2xl" dir="auto">{e.tagline}</p>
       <div className="grid gap-2 text-lg font-bold text-start"><p>👀 {t('stage.readS', { n: tm.readSec })}</p><p>📱 {t('stage.answerS', { n: tm.answerSec })}</p>
         <p>🔒 {e.privacy.individualResults ? t('stage.privateOn') : t('stage.groupOnly')}</p>
         {v.settings.leaderboard && <p>🏆 {t('stage.boardNote')}</p>}</div>
@@ -51,19 +51,19 @@ export function StageView({ v, off, joinUrl, practice }: { v: View; off: number;
           <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.1] max-w-[22ch]" dir="auto" data-testid="prompt">{a.prompt}</h2>
           {showOptions && <div className="grid sm:grid-cols-2 gap-3 max-w-3xl" data-testid="stage-options">
             {a.options!.map((o, k) => <div key={o.id} className="rounded-2xl border-2 border-paper-line px-5 py-4 text-xl sm:text-2xl font-extrabold flex items-center gap-3">
-              <span className="w-10 h-10 shrink-0 rounded-xl grid place-items-center text-white text-base" style={{ background: TILE[k % 4] }}>{o.emoji ?? 'ABCD'[k]}</span>{o.text}</div>)}
+              <span className="w-10 h-10 shrink-0 rounded-xl grid place-items-center text-white text-base" style={{ background: TILE[k % 4] }}>{o.emoji ?? 'ABCD'[k]}</span><span dir="auto">{o.text}</span></div>)}
           </div>}
           {v.phase === 'read' && <p className="text-xl font-bold text-ink-soft">{t('stage.readOpen')} <Countdown until={local(v.phaseAt) + (v.timing?.readSec ?? 5) * 1000} /> {t('stage.s')}</p>}
           {v.phase === 'answer' && <div className="flex items-center justify-between gap-4"><Chip tone="sky">{t('stage.answerNow')}</Chip>
             <span className="text-7xl sm:text-8xl font-extrabold text-violet-600 tabular-nums anim-pulse" data-testid="countdown">{v.paused ? '⏸' : <Countdown until={local(v.deadline)} alarm />}</span></div>}
-          {v.phase === 'reveal' && e.reveal === 'none' && <p className="text-3xl font-extrabold anim-pop" data-testid="transition">{e.transitions?.[v.index % (e.transitions.length || 1)] ?? t('stage.locked')}</p>}
+          {v.phase === 'reveal' && e.reveal === 'none' && <p className="text-3xl font-extrabold anim-pop" dir="auto" data-testid="transition">{e.transitions?.[v.index % (e.transitions.length || 1)] ?? t('stage.locked')}</p>}
           {v.phase === 'reveal' && d && a.options && (d.suppressed
             ? <p className="text-xl text-ink-soft" data-testid="suppressed">{t('stage.suppressed', { n: e.privacy.groupMinimum })}</p>
             : <div className="grid gap-3 max-w-2xl anim-pop" data-testid="distribution">
-                {e.transitions && e.reveal === 'distribution' && <p className="text-2xl font-extrabold">{e.transitions[v.index % e.transitions.length]}</p>}
+                {e.reveal === 'distribution' && !d.suppressed && d.n > 0 && <p className="text-2xl font-extrabold" data-testid="reaction">{reaction(d.counts, d.n)}</p>}
                 {a.options.map(o => { const p = d.n ? Math.round((100 * (d.counts[o.id] ?? 0)) / d.n) : 0; const ok = v.reveal?.correct === o.id;
                   return <div key={o.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 items-center">
-                    <span className={`text-xl sm:text-2xl font-extrabold ${v.reveal?.correct && !ok ? 'text-ink-soft' : ''}`}>{o.emoji} {o.text} {ok && '✅'}</span><span className="text-xl sm:text-2xl font-extrabold tabular-nums">{p}%</span>
+                    <span className={`text-xl sm:text-2xl font-extrabold ${v.reveal?.correct && !ok ? 'text-ink-soft' : ''}`}><span dir="auto">{o.emoji} {o.text}</span> {ok && '✅'}</span><span className="text-xl sm:text-2xl font-extrabold tabular-nums">{p}%</span>
                     <div className="col-span-2"><Bar pct={p} tone={ok ? 'teal' : 'violet'} /></div></div>; })}
                 {v.reveal?.explanation && <p className="text-lg" data-testid="explanation">{v.reveal.explanation}</p>}
               </div>)}
@@ -113,8 +113,8 @@ export function StageView({ v, off, joinUrl, practice }: { v: View; off: number;
   }
   return (
     <div className={`${PAD} items-center text-center`}><h2 className="text-4xl font-extrabold">{t('stage.beforeGo')}</h2>
-      <div className="grid gap-3 w-full max-w-2xl text-start">{e.closing?.questions.map((q, i) => <div key={i} className="rounded-2xl bg-paper border border-paper-line p-4 text-xl font-bold flex gap-3 items-center"><span className="w-9 h-9 shrink-0 rounded-full bg-violet-600 text-white grid place-items-center">{i + 1}</span>{q}</div>)}</div>
-      <p className="text-2xl font-extrabold text-violet-600">{e.closing?.message}</p></div>
+      <div className="grid gap-3 w-full max-w-2xl text-start">{e.closing?.questions.map((q, i) => <div key={i} dir="auto" className="rounded-2xl bg-paper border border-paper-line p-4 text-xl font-bold flex gap-3 items-center"><span className="w-9 h-9 shrink-0 rounded-full bg-violet-600 text-white grid place-items-center">{i + 1}</span>{q}</div>)}</div>
+      <p className="text-2xl font-extrabold text-violet-600" dir="auto">{e.closing?.message}</p></div>
   );
 }
 
@@ -153,20 +153,21 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
     );
   }
   if (!e.privacy.individualResults || !v.snapshot) return <div className="text-center grid gap-3 py-10"><div className="text-6xl" aria-hidden>🎉</div><h3 className="text-xl font-extrabold">{t('phone.thanks')}</h3><p className="text-ink-soft">{t('phone.lookScreen')}</p>
-    {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm text-start">{e.closing.questions.map((q, i) => <p key={i}>{i + 1}. {q}</p>)}</div>}</div>;
+    {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm text-start">{e.closing.questions.map((q, i) => <p key={i} dir="auto">{i + 1}. {q}</p>)}</div>}</div>;
   return <MyResult v={v} my={my} seed={seed} revealed={revealed} onReveal={() => setRevealed(true)} />;
 }
 
 /** Host controls shared by practice and live. */
-export function HostBar({ v, busy, onCmd, onFs, extra }: { v: View; busy?: boolean; onCmd: (c: 'next' | 'pause' | 'resume') => void; onFs: () => void; extra?: React.ReactNode }) {
+export function HostBar({ v, busy, onCmd, onFs, extra, onEnd }: { v: View; busy?: boolean; onCmd: (c: 'next' | 'pause' | 'resume') => void; onFs: () => void; extra?: React.ReactNode; onEnd?: () => void }) {
   const label = v.stage === 'lobby' ? t('host.start') : v.stage === 'intro' ? t('host.first') : v.stage === 'activity'
     ? (v.phase === 'read' ? t('host.open') : v.phase === 'answer' ? t('host.waiting') : v.index < v.total - 1 ? t('host.next') : t('host.results'))
     : v.stage === 'results' ? (v.experience.scoringKind === 'aggregate' || v.experience.scoringKind === 'none' ? t('host.wrap') : t('host.group')) : v.stage === 'group' ? t('host.reflect') : t('host.done');
   const waiting = v.stage === 'activity' && v.phase === 'answer' && (v.answered ?? 0) < v.joined;
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-paper-line bg-paper px-4 py-3">
-      <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{label}</button>
-      {v.stage === 'activity' && v.phase === 'answer' && <button className="btn-ghost" onClick={() => onCmd(v.paused ? 'resume' : 'pause')} data-testid="pause">{v.paused ? t('host.resume') : t('host.pause')}</button>}
+      {v.stage === 'closing' && onEnd ? <button className="btn-primary" onClick={onEnd} data-testid="end-insights">{t('host.endInsights')}</button>
+        : <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{label}</button>}
+      {v.stage === 'activity' && (v.phase === 'answer' || v.phase === 'read') && <button className="btn-ghost" onClick={() => onCmd(v.paused ? 'resume' : 'pause')} data-testid="pause">{v.paused ? t('host.resume') : t('host.pause')}</button>}
       <button className="btn-ghost" onClick={onFs}>{t('host.fs')}</button>
       <LangSwitch />
       {extra}
@@ -198,4 +199,10 @@ export function SavedResultView({ code }: { code: string }) {
     <p className="text-center text-ink-soft">{t('keep.ended')}</p>
     <ResultCard r={x.r} disclaimer={x.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(x.title, x.r))} onDelete={() => { deleteResult(code); setX(null); }} />
   </div>;
+}
+
+/** A reaction line that matches the actual vote: split, leaning, clear or near-unanimous. */
+export function reaction(counts: Record<string, number>, n: number) {
+  const top = Math.max(0, ...Object.values(counts)) / n;
+  return t(top >= 0.9 ? 'react.unanimous' : top >= 0.75 ? 'react.clear' : top >= 0.65 ? 'react.lean' : 'react.split');
 }

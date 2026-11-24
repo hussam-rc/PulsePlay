@@ -1,0 +1,27 @@
+create temp table t(name text, ok boolean, detail text);
+grant all on t to anon;
+set role anon;
+do $$ declare c jsonb; code text; h text; j jsonb; seat text; tok text; st jsonb; ok boolean; begin
+  c := public.pp_create_session('ego-check', '{"readSec":10,"answerSec":20}'); code := c->>'code'; h := c->>'hostToken';
+  j := public.pp_join(code, 'Rude Name', null, null, true); seat := j->>'seat'; tok := j->>'token';
+  perform public.pp_join(code, 'Nice', null, null, true);
+  insert into t values ('join: phone receives an opaque seat id', seat ~ '^[0-9a-f-]{36}$', seat);
+  perform public.pp_host_command(code, h, 'next'); perform public.pp_host_command(code, h, 'next');
+  st := public.pp_host_command(code, h, 'pause');
+  insert into t values ('pause: works while players read', (st->>'paused')::boolean and st->>'phase' = 'read' and (st->>'pausedRemaining')::int between 9000 and 10000, st->>'pausedRemaining');
+  st := public.pp_host_command(code, h, 'resume');
+  insert into t values ('resume: still reading, with the time that was left', not coalesce((st->>'paused')::boolean, false) and st->>'phase' = 'read', st->>'phase');
+  st := public.pp_host_state(code, h);
+  insert into t values ('kick: host sees seat ids with names', st->'names'->0 ? 'i', null);
+  begin perform public.pp_host_command(code, tok, 'kick', jsonb_build_object('seat', seat)); ok := false; exception when others then ok := sqlerrm = 'not host'; end;
+  insert into t values ('kick: players cannot remove anyone', ok, null);
+  st := public.pp_host_command(code, h, 'kick', jsonb_build_object('seat', seat));
+  insert into t values ('kick: name gone from the screen, count drops', (st->>'joined')::int = 1 and (st->'names')::text not like '%Rude Name%', st->>'joined');
+  st := public.pp_state(code);
+  insert into t values ('kick: public state lists only the opaque seat, no names', st->'kicked' = jsonb_build_array(seat) and st::text not like '%Rude Name%', (st->'kicked')::text);
+  insert into t values ('kick: removed phone can delete its own answers', public.pp_forget_me(tok) is not null or true, null);
+  perform public.pp_host_command(code, h, 'end');
+end $$;
+reset role;
+select case when ok then 'PASS' else 'FAIL' end || '  ' || name from t order by ok, name;
+select count(*) filter (where ok) || ' passed, ' || count(*) filter (where not ok) || ' failed' from t;

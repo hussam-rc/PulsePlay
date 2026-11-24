@@ -5,7 +5,7 @@ import { SUPABASE_URL, SUPABASE_KEY } from './config';
 import { accessToken } from './auth';
 import { sessionView, View, MyState } from './view';
 
-export type Cmd = 'next' | 'pause' | 'resume' | 'end';
+export type Cmd = 'next' | 'pause' | 'resume' | 'end' | 'kick';
 export interface Controller {
   view: View | null;
   offset: number;                          // server clock - local clock (ms)
@@ -80,20 +80,23 @@ export class Nudge {
 class Poller extends Base {
   private timer: ReturnType<typeof setTimeout> | null = null; private stopped = false; private fails = 0; private inflight = false; private again = false; private last = 0;
   private nudge: Nudge | null = null;
+  protected hostFast = false;   // the presenter polls fast regardless of push, so Start/Pause/answer counts never lag
   private wake = () => { if (!document.hidden) this.refresh(); };
   constructor(private read: () => Promise<{ data: View; offset: number }>, code?: string) {
     super();
     if (code && typeof window !== 'undefined') { this.nudge = new Nudge(code, () => this.refresh()); document.addEventListener('visibilitychange', this.wake); window.addEventListener('online', this.wake); }
     this.loop();
   }
+  protected onView(_v: View) { /* hook */ }
   protected setView(v: View, off: number) {
+    this.onView(v);
     if (off) this.offset = off;
     if (v.ended) { if (!this.view?.ended) { this.view = this.view ? { ...this.view, ended: true } : null; this.error = this.view ? null : 'This game has ended.'; this.emit(); } this.stop(); return; }
     if (!this.view || v.seq !== this.view.seq || v.answered !== this.view.answered || v.joined !== this.view.joined || v.ended) { this.view = v; this.emit(); } }
   private nextDelay() {
     if (this.fails) return Math.min(8000, 1000 * 2 ** (this.fails - 1));
     const v = this.view, push = this.nudge?.healthy;
-    let d = v?.stage === 'activity' ? (push ? 2500 : 600) : (push ? 4000 : 1200);
+    let d = this.hostFast ? 700 : v?.stage === 'activity' ? (push ? 2500 : 600) : (push ? 4000 : 1200);
     if (v && !v.paused && v.phase) {                       // be there exactly when the server clock moves the phase on
       const at = v.phase === 'read' && v.timing ? v.phaseAt + v.timing.readSec * 1000 : v.phase === 'answer' ? v.deadline : undefined;
       if (at) { const until = at - (Date.now() + this.offset) + 150; if (until > 0) d = Math.min(d, until); }
@@ -120,20 +123,29 @@ class Poller extends Base {
 }
 
 export class LiveHost extends Poller {
-  constructor(public code: string, private token: string) { super(() => rpc<View>('pp_host_state', { p_code: code, p_token: token }), code); }
-  async command(cmd: Cmd) {
+  constructor(public code: string, private token: string) { super(() => rpc<View>('pp_host_state', { p_code: code, p_token: token }), code); this.hostFast = true; }
+  async command(cmd: Cmd, args?: Record<string, unknown>) {
     try {
-      const { data, offset } = await rpc<View & { ended?: boolean }>('pp_host_command', { p_code: this.code, p_token: this.token, p_cmd: cmd });
+      const { data, offset } = await rpc<View & { ended?: boolean }>('pp_host_command', { p_code: this.code, p_token: this.token, p_cmd: cmd, ...(args ? { p_args: args } : {}) });
       if (cmd === 'end') { this.view = { ...(this.view as View), ended: true }; this.emit(); this.stop(); return; }
-      this.setView(data, offset);
+      this.view = null; this.setView(data, offset);
     } catch (e) { const m = (e as Error).message; if (!/answer window still open/.test(m)) { this.error = m; this.emit(); } }
   }
+  /** Removes a nickname from the room (e.g. an inappropriate one). */
+  kick(seat: string) { return this.command('kick' as Cmd, { seat }); }
 }
 
 export class LivePlayer extends Poller {
   my: MyState = { answers: {} };
   sending: Record<string, true> = {};
+  kicked = false;
+  seat?: string;
   constructor(public code: string, public token: string) { super(() => rpc<View>('pp_state', { p_code: code }), code); this.loadMine(); }
+  protected onView(v: View) {
+    if (!this.kicked && this.seat && v.kicked?.includes(this.seat)) {
+      this.kicked = true; rpc('pp_forget_me', { p_token: this.token }).catch(() => {}); savePlayer(null); this.emit(); this.stop();
+    }
+  }
   async loadMine() { try { const { data } = await rpc<MyState | null>('pp_my_state', { p_token: this.token }); if (data) { this.my = { ...data, answers: { ...data.answers, ...this.pendingAnswers() } }; this.emit(); } else { this.error = 'Your place in this game has ended.'; this.emit(); } } catch { /* retried on next answer */ } }
   private pendingAnswers() { return Object.fromEntries(Object.keys(this.sending).map(k => [k, this.my.answers[k]])); }
   private drop(activityId: string, note?: string) { const a = { ...this.my.answers }; delete a[activityId]; delete this.sending[activityId]; this.my = { ...this.my, answers: a }; if (note) this.error = note; this.emit(); }
@@ -168,7 +180,7 @@ export class PracticeHost extends Base {
 const get = (k: string) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const set = (k: string, v: unknown) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
 export interface SavedHost { code: string; token: string; experienceId: string; at: number }
-export interface SavedPlayer { code: string; token: string; nickname: string; avatar: string; at: number }
+export interface SavedPlayer { code: string; token: string; nickname: string; avatar: string; at: number; seat?: string }
 export const savedHost = (): SavedHost | null => { const h = get('pp_host'); return h && Date.now() - h.at < 24 * 3600e3 ? h : null; };
 export const saveHost = (h: SavedHost | null) => set('pp_host', h);
 export const savedPlayer = (code?: string): SavedPlayer | null => { const p = get('pp_player'); return p && Date.now() - p.at < 24 * 3600e3 && (!code || p.code === code) ? p : null; };

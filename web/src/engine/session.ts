@@ -52,7 +52,7 @@ export class Session {
     const s = this.state, a = this.activity;
     if (!a || s.paused) return;
     const t = timingOf(this.experience, a);
-    if (s.phase === 'read') this.timer = this.clock.setTimeout(() => this.set({ phase: 'answer', deadline: this.clock.now() + t.answerSec * 1000 }), t.readSec * 1000);
+    if (s.phase === 'read') this.timer = this.clock.setTimeout(() => this.set({ phase: 'answer', deadline: this.clock.now() + t.answerSec * 1000 }), Math.max(0, s.phaseStartedAt + t.readSec * 1000 - this.clock.now()));
     if (s.phase === 'answer' && s.deadline) this.timer = this.clock.setTimeout(() => this.lock(), Math.max(0, s.deadline - this.clock.now()));
   }
 
@@ -94,13 +94,16 @@ export class Session {
   private lock() { if (this.state.phase === 'answer') this.set({ phase: 'reveal' }); }
 
   pause() {
-    const s = this.state; if (s.paused || s.stage !== 'activity' || s.phase !== 'answer' || !s.deadline) return;
+    const s = this.state; if (s.paused || s.stage !== 'activity' || (s.phase !== 'answer' && s.phase !== 'read')) return;
     this.clock.clearTimeout(this.timer);
-    this.state = { ...s, paused: true, pausedRemaining: Math.max(0, s.deadline - this.clock.now()), seq: s.seq + 1 }; this.emit();
+    const end = s.phase === 'answer' ? s.deadline! : s.phaseStartedAt + timingOf(this.experience, this.activity!).readSec * 1000;
+    this.state = { ...s, paused: true, pausedRemaining: Math.max(0, end - this.clock.now()), seq: s.seq + 1 }; this.emit();
   }
   resume() {
     const s = this.state; if (!s.paused) return;
-    this.state = { ...s, paused: false, deadline: this.clock.now() + (s.pausedRemaining ?? 0), pausedRemaining: null, seq: s.seq + 1 };
+    this.state = s.phase === 'read'
+      ? { ...s, paused: false, phaseStartedAt: this.clock.now() + (s.pausedRemaining ?? 0) - timingOf(this.experience, this.activity!).readSec * 1000, pausedRemaining: null, seq: s.seq + 1 }
+      : { ...s, paused: false, deadline: this.clock.now() + (s.pausedRemaining ?? 0), pausedRemaining: null, seq: s.seq + 1 };
     this.schedule(); this.emit();
   }
   end() { this.clock.clearTimeout(this.timer); this.simTimers.forEach(t => this.clock.clearTimeout(t)); this.state = { ...this.state, stage: 'ended', seq: this.state.seq + 1 }; this.emit(); }

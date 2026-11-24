@@ -20,7 +20,8 @@ export interface View {
   group?: GroupView;
   leaderboard?: { name: string; correct: number }[];
   snapshot?: Experience;
-  names?: { n: string; a: string }[];
+  names?: { n: string; a: string; i?: string }[];
+  kicked?: string[];
   ended?: boolean;
 }
 export interface MyState { answers: Record<string, ResponseValue>; boardName?: string | null }

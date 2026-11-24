@@ -11,7 +11,8 @@ Architecture, decisions and the phased backlog: [`docs/ARCHITECTURE.md`](docs/AR
 
 ## Repository layout
 ```
-index.html, game-src.html, build.py   Who is in Control? classic (single-file app, live on Supabase)
+index.html                             Redirects the site root (and old #join-NNNNNN links) to the app
+classic.html, game-src.html, build.py  Archived single-file version (not linked)
 app/                                  Built PulsePlay app, served by GitHub Pages (generated; do not edit)
 web/                                  PulsePlay source: React + TypeScript + Vite + Tailwind
   src/engine/                         Pure-TS engine: schema v1, validation, scoring, session state machine

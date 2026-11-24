@@ -15,3 +15,14 @@ describe('interface translations', () => {
   it('Arabic renders right-to-left', () => { expect(LOCALES.ar.dir).toBe('rtl'); });
   it('German uses Swiss spelling (no ß)', () => { expect(Object.values(LOCALES.de.strings).join(' ')).not.toContain('ß'); });
 });
+
+describe('Would You Rather reaction lines', () => {
+  it('match the actual split', async () => {
+    const { reaction } = await import('../src/live/screens');
+    expect(reaction({ a: 1, b: 5 }, 6)).toContain('Strong opinions');     // 17 / 83
+    expect(reaction({ a: 3, b: 3 }, 6)).toContain('split');               // 50 / 50
+    expect(reaction({ a: 3, b: 2 }, 5)).toContain('split');               // 60 / 40
+    expect(reaction({ a: 7, b: 3 }, 10)).toContain('Interesting');        // 70 / 30
+    expect(reaction({ a: 10, b: 0 }, 10)).toContain('Who saw that coming'); // 100 / 0
+  });
+});

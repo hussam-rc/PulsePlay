@@ -112,9 +112,11 @@ describe('trivia scoring', () => {
   });
 });
 
+// Engine tests use fixed 5 s timing, independent of each game's default.
+const ego5 = { ...egoCheck, defaultTiming: { readSec: 5, answerSec: 5 } };
 describe('session engine (practice mode)', () => {
   it('runs a full game: timing, duplicate and late rejection, pause/resume, results', () => {
-    const clock = new FakeClock(); const s = new Session(egoCheck, clock, seeded()); s.autoSim = false;
+    const clock = new FakeClock(); const s = new Session(ego5, clock, seeded()); s.autoSim = false;
     const me = s.join('Me'); s.addSimulated(5);
     expect(s.players.length).toBe(6);
     s.next(); s.next(); // intro, first question
@@ -142,7 +144,7 @@ describe('session engine (practice mode)', () => {
     expect(s.answer(me.id, 'm1', 'myth')).toBe('late');
   });
   it('simulated players produce a group result without touching anything outside memory', () => {
-    const clock = new FakeClock(); const s = new Session(egoCheck, clock, seeded(7)); s.addSimulated(8);
+    const clock = new FakeClock(); const s = new Session(ego5, clock, seeded(7)); s.addSimulated(8);
     s.next(); s.next();
     for (let i = 0; i < 10; i++) { clock.advance(5000); clock.advance(6000); if (i < 9) s.next(); }
     s.next(); s.next();
@@ -158,5 +160,19 @@ describe('answer shuffling', () => {
   it('is stable per player and question, and a real permutation', () => {
     expect(order('p1', 'q1', 4)).toEqual(order('p1', 'q1', 4));
     expect([...order('p1', 'q1', 4)].sort()).toEqual([0, 1, 2, 3]);
+  });
+});
+
+describe('game language versions', () => {
+  it('every language version is valid and scores exactly like the original', async () => {
+    const { VARIANTS } = await import('../src/experiences');
+    const { validateExperience } = await import('../src/engine/schema');
+    const pts = (e: typeof egoCheck) => e.rounds.flatMap(r => r.activities).map(a => a.type === 'choice' ? a.options.map(o => `${a.id}${o.id}${o.points}`).join() : '');
+    for (const v of VARIANTS) {
+      expect(validateExperience(v).errors, v.id).toEqual([]);
+      expect(pts(v)).toEqual(pts(egoCheck));
+      expect(v.results!.map(b => [b.min, b.max, b.tone, b.emoji])).toEqual(egoCheck.results!.map(b => [b.min, b.max, b.tone, b.emoji]));
+      expect(JSON.stringify(v)).not.toContain('autopilot');
+    }
   });
 });

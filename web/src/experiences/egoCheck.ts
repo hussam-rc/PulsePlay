@@ -21,7 +21,7 @@ export const egoCheck: Experience = {
   ageRating: '16+',
   facilitator: 'optional',
   modes: ['live', 'self', 'practice'],
-  defaultTiming: { readSec: 5, answerSec: 5 },
+  defaultTiming: { readSec: 4, answerSec: 15 },
   reveal: 'none',
   privacy: { individualResults: true, groupMinimum: 5, retainResponses: false },
   scoring: { kind: 'behaviour', minAnsweredRatio: 0.7 },
