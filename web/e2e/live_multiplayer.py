@@ -81,7 +81,7 @@ with sync_playwright() as pw:
     ok(not h.query_selector('[data-testid=leaderboard]'), 'ego: no leaderboard')
     h.screenshot(path=f'{SHOTS}/live_ego_group.png')
     h.click('[data-testid=end]'); h.click('[data-testid=end-confirm]'); h.wait_for_selector('[data-testid=recap]', timeout=10000)
-    phones[2].wait_for_selector('text=This game has ended', timeout=10000); ok(True, 'ego: phones see the game end')
+    phones[2].wait_for_selector('[data-testid=saved-result]', timeout=10000); ok('ended' in phones[2].inner_text('body'), 'ego: phones see the game end and keep their result')
     # ---- Would You Rather: 4 players, P1-P3 pick a, P4 picks b ----
     h, phones, code = play_game(b, 'would-you-rather', 4, lambda i, q: 'a' if i < 3 else 'b', settings={'read': 3, 'answer': 5})
     h.wait_for_selector('text=That was fun', timeout=10000); ok(True, 'wyr: completes all 10 questions')

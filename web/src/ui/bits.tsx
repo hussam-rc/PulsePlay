@@ -47,34 +47,63 @@ export function Confetti() {
   </div>;
 }
 
-export function ResultCard({ r, disclaimer, onCopy }: { r: PersonalResult; disclaimer: string; onCopy?: () => void }) {
+const TONE: Record<ResultBand['tone'], { bg: string; ink: string; bar: string }> = {
+  great: { bg: 'from-teal-500 to-[#0E8370]', ink: 'text-teal-600', bar: '#14A38B' },
+  good: { bg: 'from-violet-600 to-sky-500', ink: 'text-violet-700', bar: '#2F6FEB' },
+  watch: { bg: 'from-sun-500 to-[#E2553A]', ink: 'text-[#9A6510]', bar: '#E59A1C' },
+  grow: { bg: 'from-coral-500 to-violet-600', ink: 'text-coral-500', bar: '#E2553A' },
+};
+
+/** "You drive ↔ autopilot drives": a road with a car at the player's score. */
+export function Meter({ value }: { value: number }) {
+  return <div className="grid gap-1" dir="ltr" role="img" aria-label={`${t('res.score')}: ${value} / 100`}>
+    <div className="relative h-4 rounded-full" style={{ background: 'linear-gradient(90deg,#14A38B,#2F6FEB,#E59A1C,#E2553A)' }}>
+      <span className="absolute -top-5 text-3xl transition-all duration-1000 ease-out" style={{ insetInlineStart: `calc(${value}% - 1rem)` }} aria-hidden>🚗</span>
+    </div>
+    <div className="flex justify-between text-xs font-bold text-ink-soft"><span>{t('res.meterLow')}</span><span>{t('res.meterHigh')}</span></div>
+  </div>;
+}
+
+export function ResultCard({ r, disclaimer, onCopy, onDelete }: { r: PersonalResult; disclaimer: string; onCopy?: () => void; onDelete?: () => void }) {
   const [copied, setCopied] = useState('');
+  const footer = (onCopy || onDelete) && <div className="grid gap-2 justify-items-center">
+    <div className="flex flex-wrap gap-2 justify-center">
+      {onCopy && <button className="btn-ghost" onClick={() => { try { onCopy(); setCopied(t('res.copied')); } catch { setCopied(t('res.copyBlocked')); } }}>{t('res.copy')}</button>}
+      {onDelete && <button className="btn-ghost" onClick={() => { if (confirm(t('keep.confirm'))) onDelete(); }} data-testid="delete-result">{t('keep.delete')}</button>}
+    </div>
+    {onDelete && <p className="text-xs text-ink-soft">{t('keep.saved')}</p>}
+    <p className="text-xs text-ink-soft" aria-live="polite">{copied}</p></div>;
   if (!r.valid || !r.band) {
-    return <div className="card p-6 text-center grid gap-3">
-      <div className="text-6xl">🅿️</div>
+    return <div className="card p-6 text-center grid gap-3" data-testid="result-card">
+      <div className="text-7xl anim-rise">🅿️</div>
       <h2 className="text-2xl font-extrabold">{t('res.parked')}</h2>
       <p>{t('res.notEnough', { a: r.answered, t: r.total })}</p>
-      <p className="text-ink-soft">{t('res.again')}</p>
+      <p className="text-ink-soft">{t('res.again')}</p>{footer}
     </div>;
   }
-  const b: ResultBand = r.band;
+  const b: ResultBand = r.band, tone = TONE[b.tone];
+  const tip = (icon: string, label: string, text: string, bg: string) => <li className={`rounded-2xl p-3 flex gap-3 items-start ${bg}`}><span className="text-2xl" aria-hidden>{icon}</span><span><b className="block text-xs uppercase tracking-wide text-ink-soft">{label}</b><span dir="auto">{text}</span></span></li>;
   return (
-    <div className="card p-6 text-center grid gap-3 relative overflow-hidden" data-testid="result-card">
-      {(b.tone === 'great' || b.tone === 'good') && <Confetti />}
-      <div className="text-7xl anim-rise">{b.emoji}</div>
-      <h2 className="text-2xl font-extrabold" dir="auto">{b.title}</h2>
-      <div className="text-5xl font-extrabold text-violet-600 leading-none" data-testid="score">{r.correct != null ? `${r.correct}/${r.total}` : r.score}
-        <span className="text-lg text-ink-soft font-bold"> {r.correct != null ? t('res.correct') : '/ 100'}</span></div>
-      <p className="italic text-ink-soft" dir="auto">"{b.message}"</p>
-      <p dir="auto">{b.explanation}</p>
-      {(r.observations.length > 0 || r.habit) && <ul className="grid gap-2 text-start">
-        {r.observations.map((o, i) => <li key={i} className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{o.kind === 'strength' ? t('res.strength') : t('res.notice')}</b>{o.text}</li>)}
-        {r.habit && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{t('res.habit')}</b>{r.habit}</li>}
-        {r.challenge && <li className="rounded-xl bg-paper p-3"><b className="block text-xs text-ink-soft">{t('res.challenge')}</b>{r.challenge}</li>}
-      </ul>}
-      <p className="text-xs text-ink-soft">{disclaimer}</p>
-      {onCopy && <div><button className="btn-ghost" onClick={() => { try { onCopy(); setCopied(t('res.copied')); } catch { setCopied(t('res.copyBlocked')); } }}>{t('res.copy')}</button>
-        <p className="text-xs text-ink-soft mt-2" aria-live="polite">{copied}</p></div>}
+    <div className="card overflow-hidden grid text-center relative" data-testid="result-card">
+      <div className={`bg-gradient-to-br ${tone.bg} text-white px-6 pt-8 pb-6 grid gap-2 relative overflow-hidden`}>
+        {(b.tone === 'great' || b.tone === 'good') && <Confetti />}
+        <div className="text-8xl anim-rise drop-shadow-lg" aria-hidden>{b.emoji}</div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight" dir="auto">{b.title}</h2>
+      </div>
+      <div className="p-6 grid gap-4">
+        {r.correct != null
+          ? <div className={`text-6xl font-extrabold leading-none anim-pop ${tone.ink}`} data-testid="score">{r.correct}/{r.total}<span className="text-lg text-ink-soft font-bold"> {t('res.correct')}</span></div>
+          : <div className="grid gap-3"><div className={`text-5xl font-extrabold leading-none anim-pop ${tone.ink}`} data-testid="score">{r.score}<span className="text-lg text-ink-soft font-bold"> / 100</span></div><Meter value={r.score ?? 0} /></div>}
+        <p className="text-lg font-bold" dir="auto">{b.message}</p>
+        <p className="text-ink-soft" dir="auto">{b.explanation}</p>
+        {(r.observations.length > 0 || r.habit) && <ul className="grid gap-2 text-start">
+          {r.observations.map((o, i) => <span key={i}>{tip(o.kind === 'strength' ? '💪' : '👀', o.kind === 'strength' ? t('res.strength') : t('res.notice'), o.text, o.kind === 'strength' ? 'bg-teal-50' : 'bg-sun-50')}</span>)}
+          {r.habit && tip('🔁', t('res.habit'), r.habit, 'bg-violet-50')}
+          {r.challenge && tip('🎯', t('res.challenge'), r.challenge, 'bg-sky-50')}
+        </ul>}
+        <p className="text-xs text-ink-soft">{disclaimer}</p>
+        {footer}
+      </div>
     </div>
   );
 }

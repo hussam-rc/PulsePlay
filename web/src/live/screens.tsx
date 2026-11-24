@@ -1,11 +1,12 @@
 // The projector and phone screens. They render a View, whether it came from the server or from practice mode.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { View, MyState } from './view';
 import type { ResponseValue } from '../engine/scoring';
 import { personalResult } from '../engine/scoring';
 import { ActivityInput } from '../ui/Activity';
-import { Bar, Chip, Gauge, QR, ResultCard, resultText, useNow } from '../ui/bits';
+import { Bar, Chip, Confetti, Gauge, QR, ResultCard, resultText, useNow } from '../ui/bits';
 import { t } from '../i18n';
+import { deleteResult, saveResult, savedResult } from './savedResults';
 import { LangSwitch } from '../ui/LangSwitch';
 
 export function Countdown({ until, alarm }: { until: number; alarm?: boolean }) {
@@ -73,7 +74,7 @@ export function StageView({ v, off, joinUrl, practice }: { v: View; off: number;
     );
   }
   if (v.stage === 'results') return (
-    <div className={`${PAD} items-center text-center`}><div className="text-7xl" aria-hidden>{e.privacy.individualResults ? '🪞' : '🎉'}</div>
+    <div className={`${PAD} items-center text-center`}><div className="text-[8rem] leading-none anim-pulse" aria-hidden>{e.privacy.individualResults ? '📱' : '🎉'}</div>
       <h1 className="text-4xl sm:text-5xl font-extrabold">{e.privacy.individualResults ? t('stage.lookPhone') : t('stage.fun')}</h1>
       <p className="text-xl text-ink-soft">{e.privacy.individualResults ? t('stage.privateRes') : t('stage.played', { n })}</p>
       {v.leaderboard && <Leaderboard rows={v.leaderboard} total={v.total} />}</div>
@@ -82,15 +83,29 @@ export function StageView({ v, off, joinUrl, practice }: { v: View; off: number;
     const g = v.group, band = g.average != null ? (e.results ?? []).find(b => g.average! >= b.min && g.average! <= b.max) : undefined;
     if (g.suppressed) return <div className={`${PAD} items-center text-center`}><div className="text-6xl" aria-hidden>🚗💨</div><h2 className="text-3xl font-extrabold">{t('stage.noGroup')}</h2>
       <p className="text-lg text-ink-soft max-w-xl">{t('stage.noGroupWhy', { min: e.privacy.groupMinimum, n: g.valid })}</p></div>;
+    const tone = band?.tone ?? 'good';
+    const grad = { great: 'from-teal-500 to-[#0E8370]', good: 'from-violet-600 to-sky-500', watch: 'from-sun-500 to-[#E2553A]', grow: 'from-coral-500 to-violet-600' }[tone];
+    const barC = { great: '#14A38B', good: '#2F6FEB', watch: '#E59A1C', grow: '#E2553A' } as const;
     return (
-      <div className={`${PAD} items-center text-center !gap-3`} data-testid="group">
-        <Chip>{t('stage.groupResult')}</Chip>
-        {e.scoringKind === 'behaviour' && <Gauge value={g.average!} />}
-        <div className="text-7xl font-extrabold text-violet-600 leading-none tabular-nums" data-testid="group-average">{g.average}<span className="text-3xl text-ink-soft">{e.scoringKind === 'correct' ? t('stage.pctCorrect') : ' / 100'}</span> {band?.emoji}</div>
-        <h2 className="text-3xl font-extrabold">{band?.groupTitle ?? band?.title}</h2>
-        {band?.groupMessage && <p className="text-xl text-ink-soft">"{band.groupMessage}"</p>}
+      <div className={`${PAD} items-center text-center !gap-4`} data-testid="group">
+        <div className={`relative overflow-hidden w-full max-w-3xl rounded-[2rem] bg-gradient-to-br ${grad} text-white px-6 py-8 grid gap-2 place-items-center shadow-soft`}>
+          {(tone === 'great' || tone === 'good') && <Confetti />}
+          <Chip>{t('stage.groupResult')}</Chip>
+          <div className="text-[7rem] leading-none anim-rise drop-shadow-lg" aria-hidden>{band?.emoji}</div>
+          <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight" dir="auto">{band?.groupTitle ?? band?.title}</h2>
+          {band?.groupMessage && <p className="text-2xl font-bold opacity-95" dir="auto">{band.groupMessage}</p>}
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-6">
+          {e.scoringKind === 'behaviour' && <div className="w-72"><Gauge value={g.average!} /></div>}
+          <div className="text-7xl font-extrabold text-violet-600 leading-none tabular-nums anim-pop" data-testid="group-average">{g.average}<span className="text-3xl text-ink-soft">{e.scoringKind === 'correct' ? t('stage.pctCorrect') : ' / 100'}</span></div>
+        </div>
         <div className="flex gap-2 flex-wrap justify-center"><Chip tone="sky">{t('join.joined', { n: g.joined })}</Chip><Chip tone="teal">{t('stage.completed', { n: g.valid })}</Chip></div>
-        {g.bands ? <div className="grid gap-2 w-full max-w-lg text-start">{(e.results ?? []).map((b, i) => { const p = Math.round((100 * (g.bands![i] ?? 0)) / g.valid); return <div key={b.title} className="grid grid-cols-[2rem_minmax(0,1fr)_3rem] gap-2 items-center font-bold"><span>{b.emoji}</span><Bar pct={p} /><span className="text-end text-ink-soft">{p}%</span></div>; })}</div>
+        {g.bands ? <div className="grid gap-2 w-full max-w-2xl text-start">{(e.results ?? []).map((b, i) => { const p = Math.round((100 * (g.bands![i] ?? 0)) / g.valid), mine = b === band;
+          return <div key={b.title} className={`grid grid-cols-[3rem_minmax(0,1fr)_4rem] gap-3 items-center rounded-2xl px-3 py-2 ${mine ? 'bg-violet-50 ring-2 ring-violet-500' : ''}`}>
+            <span className="text-4xl" aria-hidden>{b.emoji}</span>
+            <span className="grid gap-1"><span className="font-bold text-sm truncate" dir="auto">{b.groupTitle ?? b.title}</span>
+              <span className="h-4 rounded-full bg-paper-line overflow-hidden"><span className="block h-full rounded-full transition-all duration-1000" style={{ width: `${p}%`, background: barC[b.tone] }} /></span></span>
+            <span className="text-end text-2xl font-extrabold tabular-nums">{p}%</span></div>; })}</div>
           : <p className="text-sm text-ink-soft">{t('stage.breakdownLater', { n: 2 * e.privacy.groupMinimum })}</p>}
         <p className="text-sm text-ink-soft">{t('stage.notMeasure')}</p>
       </div>
@@ -116,7 +131,7 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
   const now = useNow(250);
   const [revealed, setRevealed] = useState(false);
   const e = v.experience;
-  if (v.ended) return <div className="text-center grid gap-3 py-10"><div className="text-6xl" aria-hidden>🧹</div><h3 className="text-xl font-extrabold">{t('phone.ended')}</h3><p className="text-ink-soft">{t('phone.thanks')}</p></div>;
+  if (v.ended) return <SavedResultView code={v.code} />;
   if (v.stage === 'lobby' || v.stage === 'intro') return <div className="text-center grid gap-3 py-10"><div className="text-6xl anim-pop" aria-hidden>{avatar}</div><h3 className="text-xl font-extrabold">{t('phone.in', { name: nickname })}</h3><p className="text-ink-soft">{v.stage === 'intro' ? t('phone.getReady') : t('phone.watch')}</p></div>;
   if (v.stage === 'activity' && v.activity) {
     const a = v.activity, mine = my.answers[a.id], deadline = (v.deadline ?? 0) - off - 150;
@@ -139,13 +154,7 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
   }
   if (!e.privacy.individualResults || !v.snapshot) return <div className="text-center grid gap-3 py-10"><div className="text-6xl" aria-hidden>🎉</div><h3 className="text-xl font-extrabold">{t('phone.thanks')}</h3><p className="text-ink-soft">{t('phone.lookScreen')}</p>
     {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm text-start">{e.closing.questions.map((q, i) => <p key={i}>{i + 1}. {q}</p>)}</div>}</div>;
-  const r = personalResult(v.snapshot, my.answers, seed);
-  if (!revealed) return <button className="w-full grid gap-3 place-items-center py-12 text-center" onClick={() => setRevealed(true)} data-testid="reveal"><span className="text-7xl" aria-hidden>🪞</span><span className="text-2xl font-extrabold">{t('phone.ready')}</span><span className="text-ink-soft">{t('phone.tap')}</span></button>;
-  return <div className="grid gap-3">
-    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} />
-    {my.boardName && <p className="text-sm text-center text-ink-soft">{t('phone.onBoard', { name: my.boardName })}</p>}
-    {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm">{e.closing.questions.map((q, i) => <p key={i}>{i + 1}. {q}</p>)}</div>}
-  </div>;
+  return <MyResult v={v} my={my} seed={seed} revealed={revealed} onReveal={() => setRevealed(true)} />;
 }
 
 /** Host controls shared by practice and live. */
@@ -164,4 +173,29 @@ export function HostBar({ v, busy, onCmd, onFs, extra }: { v: View; busy?: boole
       <span className="ms-auto text-xs text-ink-soft hidden md:inline">{t('host.keys')}</span>
     </div>
   );
+}
+
+/** The player's private result. Saved on this phone only (so a refresh or the end of the game never loses it), deletable at any time. */
+function MyResult({ v, my, seed, revealed, onReveal }: { v: View; my: MyState; seed: string; revealed: boolean; onReveal: () => void }) {
+  const e = v.experience;
+  const r = personalResult(v.snapshot!, my.answers, seed);
+  const [gone, setGone] = useState(false);
+  useEffect(() => { if (!gone && Object.keys(my.answers).length) saveResult({ code: v.code, title: e.title, emoji: e.emoji, disclaimer: e.disclaimer, r }); }, [v.code, JSON.stringify(r), gone]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (gone) return <p className="card p-6 text-center" role="status">{t('keep.deleted')}</p>;
+  if (!revealed) return <button className="w-full grid gap-3 place-items-center py-12 text-center" onClick={onReveal} data-testid="reveal"><span className="text-7xl anim-pulse" aria-hidden>🪞</span><span className="text-2xl font-extrabold">{t('phone.ready')}</span><span className="text-ink-soft">{t('phone.tap')}</span></button>;
+  return <div className="grid gap-3">
+    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
+    {my.boardName && <p className="text-sm text-center text-ink-soft">{t('phone.onBoard', { name: my.boardName })}</p>}
+    {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm">{e.closing.questions.map((q, i) => <p key={i} dir="auto">{i + 1}. {q}</p>)}</div>}
+  </div>;
+}
+
+/** After the host ends the game (or after a refresh once it has ended): the result saved on this phone, if the player kept one. */
+export function SavedResultView({ code }: { code: string }) {
+  const [x, setX] = useState(() => savedResult(code));
+  if (!x) return <div className="text-center grid gap-3 py-10"><div className="text-6xl" aria-hidden>👋</div><h3 className="text-xl font-extrabold">{t('phone.ended')}</h3><p className="text-ink-soft">{t('phone.thanks')}</p></div>;
+  return <div className="grid gap-3" data-testid="saved-result">
+    <p className="text-center text-ink-soft">{t('keep.ended')}</p>
+    <ResultCard r={x.r} disclaimer={x.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(x.title, x.r))} onDelete={() => { deleteResult(code); setX(null); }} />
+  </div>;
 }

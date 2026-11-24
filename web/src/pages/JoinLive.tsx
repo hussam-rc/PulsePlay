@@ -6,6 +6,8 @@ import { PhoneView } from '../live/screens';
 import { JoinForm } from '../live/JoinForm';
 import type { View } from '../live/view';
 import { t } from '../i18n';
+import { savedResult } from '../live/savedResults';
+import { SavedResultView } from '../live/screens';
 import { LangSwitch } from '../ui/LangSwitch';
 import { BrandBar, useRoomBrand } from '../ui/Brand';
 
@@ -15,6 +17,7 @@ export function JoinLive() {
   const [code, setCode] = useState(params.code ?? '');
   const [preview, setPreview] = useState<View | null>(null);
   const [c, setC] = useState<LivePlayer | null>(null);
+  const [endedCode, setEndedCode] = useState<string | null>(null);
   const [me, setMe] = useState<{ nickname: string; avatar: string } | null>(null);
   const [msg, setMsg] = useState('');
   useController(c);
@@ -26,7 +29,7 @@ export function JoinLive() {
     const p = savedPlayer(params.code);
     if (!p) return;
     rpc('pp_my_state', { p_token: p.token }).then(({ data }) => {
-      if (!data) { savePlayer(null); return; }
+      if (!data) { savePlayer(null); if (savedResult(p.code)) setEndedCode(p.code); return; }
       setMe({ nickname: p.nickname, avatar: p.avatar }); setC(new LivePlayer(p.code, p.token));
     }).catch(() => { /* offline: the form stays; poller retries once joined */ });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -38,6 +41,12 @@ export function JoinLive() {
     rpc<View>('pp_state', { p_code: code }).then(({ data }) => data.ended ? setMsg(t('join.noRoom')) : setPreview(data)).catch(x => setMsg((x as Error).message));
   }, [code]);
 
+  if (endedCode && !c) return (
+    <div className="min-h-screen bg-paper"><div className="max-w-md mx-auto px-4 py-6 grid gap-3">
+      <div className="justify-self-end"><LangSwitch /></div>
+      <SavedResultView code={endedCode} />
+      <button className="btn-ghost" onClick={() => { setEndedCode(null); setCode(''); nav('/j'); }}>{t('nav.play')} →</button>
+    </div></div>);
   if (c && me) {
     const v = c.view;
     return (

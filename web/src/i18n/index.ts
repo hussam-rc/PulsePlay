@@ -1,6 +1,8 @@
 // Interface strings for players, the projector and the main navigation. Game content keeps its own language.
 // German follows Swiss spelling (ss). Arabic is Modern Standard Arabic and renders right-to-left.
 const en = {
+  'keep.saved': '💾 Saved on this phone only. Nobody else can see it.', 'keep.delete': '🗑 Delete my result', 'keep.confirm': 'Delete your result from this phone? This cannot be undone.', 'keep.deleted': 'Deleted. Nothing about you is left on this phone.', 'keep.title': 'Your result', 'keep.ended': 'The game has ended. Your result is still here for you.',
+  'res.meterLow': 'You drive', 'res.meterHigh': 'Autopilot drives', 'res.score': 'Your score',
   'nav.discover': 'Discover', 'nav.play': 'Play', 'nav.create': 'Create', 'nav.host': 'Host', 'nav.workspace': 'My Workspace',
   'tagline': 'Bring people together. One game at a time.',
   'privacy.short': 'Answers stay private. The room only sees anonymous group results.',
@@ -46,6 +48,8 @@ export type Key = keyof typeof en;
 type Dict = Record<Key, string>;
 
 const de: Dict = {
+  'keep.saved': '💾 Nur auf diesem Handy gespeichert. Niemand sonst sieht es.', 'keep.delete': '🗑 Mein Ergebnis löschen', 'keep.confirm': 'Ergebnis von diesem Handy löschen? Das kann nicht rückgängig gemacht werden.', 'keep.deleted': 'Gelöscht. Auf diesem Handy ist nichts mehr von dir gespeichert.', 'keep.title': 'Dein Ergebnis', 'keep.ended': 'Das Spiel ist beendet. Dein Ergebnis bleibt für dich hier.',
+  'res.meterLow': 'Du fährst', 'res.meterHigh': 'Autopilot fährt', 'res.score': 'Dein Wert',
   'nav.discover': 'Entdecken', 'nav.play': 'Mitspielen', 'nav.create': 'Erstellen', 'nav.host': 'Leiten', 'nav.workspace': 'Mein Arbeitsbereich',
   'tagline': 'Menschen zusammenbringen. Ein Spiel nach dem anderen.',
   'privacy.short': 'Antworten bleiben privat. Der Raum sieht nur anonyme Gruppenergebnisse.',
@@ -84,6 +88,8 @@ const de: Dict = {
 };
 
 const fr: Dict = {
+  'keep.saved': '💾 Enregistré sur ce téléphone uniquement. Personne d’autre ne le voit.', 'keep.delete': '🗑 Supprimer mon résultat', 'keep.confirm': 'Supprimer ton résultat de ce téléphone ? C’est définitif.', 'keep.deleted': 'Supprimé. Plus rien de toi n’est enregistré sur ce téléphone.', 'keep.title': 'Ton résultat', 'keep.ended': 'La partie est terminée. Ton résultat reste ici pour toi.',
+  'res.meterLow': 'Tu conduis', 'res.meterHigh': 'Le pilote auto conduit', 'res.score': 'Ton score',
   'nav.discover': 'Découvrir', 'nav.play': 'Jouer', 'nav.create': 'Créer', 'nav.host': 'Animer', 'nav.workspace': 'Mon espace',
   'tagline': 'Rassembler les gens, un jeu à la fois.',
   'privacy.short': 'Les réponses restent privées. La salle ne voit que des résultats de groupe anonymes.',
@@ -122,6 +128,8 @@ const fr: Dict = {
 };
 
 const ar: Dict = {
+  'keep.saved': '💾 محفوظة على هذا الهاتف فقط. لا يراها أحد غيرك.', 'keep.delete': '🗑 احذف نتيجتي', 'keep.confirm': 'هل تريد حذف نتيجتك من هذا الهاتف؟ لا يمكن التراجع عن ذلك.', 'keep.deleted': 'تم الحذف. لم يعد هناك أي شيء عنك على هذا الهاتف.', 'keep.title': 'نتيجتك', 'keep.ended': 'انتهت اللعبة. نتيجتك باقية هنا من أجلك.',
+  'res.meterLow': 'أنت تقود', 'res.meterHigh': 'الطيار الآلي يقود', 'res.score': 'نتيجتك',
   'nav.discover': 'استكشف', 'nav.play': 'العب', 'nav.create': 'أنشئ', 'nav.host': 'أدِر', 'nav.workspace': 'مساحة عملي',
   'tagline': 'نجمع الناس معًا، لعبةً تلو الأخرى.',
   'privacy.short': 'تبقى الإجابات خاصة. لا تعرض القاعة إلا نتائج جماعية مجهولة الهوية.',

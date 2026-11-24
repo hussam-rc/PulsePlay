@@ -58,10 +58,10 @@ describe('Ego Check scoring (must match the live backend rubric)', () => {
     const resp = (n: number) => { let left = n; return Object.fromEntries(acts.map(a => { if (a.type !== 'choice') return [a.id, null];
       for (const v of [3, 2, 1, 0]) { const o = a.options.find(x => x.points === v); if (o && v <= left) { left -= v; return [a.id, o.id]; } } return [a.id, null]; })); };
     const r = (n: number) => personalResult(egoCheck, resp(n));
-    expect([r(7).score, r(7).band!.emoji]).toEqual([23, '🧘']);
+    expect([r(7).score, r(7).band!.emoji]).toEqual([23, '🥳']);
     expect([r(8).score, r(8).band!.emoji]).toEqual([27, '😎']);
     expect([r(16).score, r(16).band!.emoji]).toEqual([53, '🦙']);
-    expect([r(23).score, r(23).band!.emoji]).toEqual([77, '👑']);
+    expect([r(23).score, r(23).band!.emoji]).toEqual([77, '🏎️']);
   });
   it('matches the live server for the pattern used in the backend test (options (i+q)%4) → team average 37', () => {
     const scores = [1, 2, 3, 4, 5, 6].map(i => personalResult(egoCheck, Object.fromEntries(acts.map((a, q) => [a.id, 'abcd'[(i + q) % 4]]))));
