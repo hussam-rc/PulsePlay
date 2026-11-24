@@ -21,6 +21,7 @@ export function Detail() {
         <h1 className="text-4xl font-extrabold">{e.title}</h1>
         <p className="text-xl text-ink-soft">{e.tagline}</p>
       </header>
+      <Link className="text-sm font-bold text-violet-700 underline justify-self-start" to={`/guide/${e.id}`} data-testid="guide-link">📋 Facilitator guide (printable)</Link>
       <div className="grid gap-3 sm:grid-cols-3">
         {e.modes.includes('live') && <Link className="btn-primary" to={`/host/${e.id}`}>🎤 Host live</Link>}
         {e.modes.includes('practice') && <Link className="btn-ghost" to={`/practice/${e.id}`}>🧪 Practice with simulated players</Link>}

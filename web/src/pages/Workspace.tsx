@@ -174,9 +174,13 @@ function Members({ org, me, reload }: { org: Me['orgs'][number]; me: Me; reload:
         <div className="flex flex-wrap gap-2">
           <input type="email" className="field !min-h-[46px] flex-1 min-w-[220px]" placeholder="name@organisation.org" value={email} onChange={e => setEmail(e.target.value)} aria-label="Email to invite" data-testid="invite-email" />
           <select className="field !min-h-[46px] !w-auto !text-base" value={role} onChange={e => setRole(e.target.value as Role)} aria-label="Role">{roles.filter(r => r !== 'owner').map(r => <option key={r} value={r}>{r}</option>)}</select>
-          <button className="btn-primary !min-h-[46px]" disabled={!email} onClick={act(() => api.invite(org.id, email, role).then(() => setEmail('')), `Invited. They join ${org.name} the first time they sign in with that email.`)} data-testid="invite">Invite</button>
+          <button className="btn-primary !min-h-[46px]" disabled={!email} onClick={act(async () => {
+            const e = email.trim().toLowerCase(); await api.invite(org.id, e, role); setEmail('');
+            try { await api.inviteEmail(org.id, e); setMsg(`Invited ${e} and emailed a sign-in link. They join ${org.name} when they sign in.`); }
+            catch (x) { setMsg(`Invited ${e}. The email could not be sent (${(x as Error).message}): ask them to sign in at this site with that address.`); }
+          })} data-testid="invite">Invite and email</button>
         </div>
-        <p className="text-sm text-ink-soft">PulsePlay does not send invitation emails yet: tell them to sign in at this site with that address. {ROLE_INFO[role]}.</p>
+        <p className="text-sm text-ink-soft">They get an email with a sign-in link and join {org.name} on first sign-in. {ROLE_INFO[role]}.</p>
       </div>}
       {msg && <p className="text-teal-600 font-bold" role="status">{msg}</p>}
       {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}

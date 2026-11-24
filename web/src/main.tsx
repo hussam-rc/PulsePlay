@@ -14,6 +14,7 @@ import { Workspace } from './pages/Workspace';
 import { HostLive } from './pages/HostLive';
 import { JoinLive } from './pages/JoinLive';
 import { Editor, Preview } from './pages/Editor';
+import { Guide } from './pages/Guide';
 import { consumeRedirect } from './live/auth';
 
 // A returning sign-in link carries tokens in the URL fragment; turn them into a session before the router reads the hash.
@@ -27,7 +28,7 @@ const NAV: [string, string, string][] = [['/discover', '🔭', t('nav.discover')
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-paper-line">
+      <header className="print:hidden sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-paper-line">
         <div className="max-w-6xl mx-auto px-4 flex items-center gap-4 h-16">
           <Link to="/discover" className="flex items-center gap-2 font-extrabold text-lg shrink-0" aria-label="PulsePlay home">
             <span className="w-9 h-9 rounded-xl grid place-items-center text-white bg-gradient-to-br from-violet-600 to-teal-500" aria-hidden>◉</span>
@@ -43,7 +44,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="border-t border-paper-line text-sm text-ink-soft">
+      <footer className="print:hidden border-t border-paper-line text-sm text-ink-soft">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-wrap gap-x-6 gap-y-2 justify-between">
           <span>PulsePlay · {t('tagline')}</span><span>{t('privacy.short')}</span>
         </div>
@@ -65,6 +66,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/x/:id" element={<Detail />} />
+          <Route path="/guide/:id" element={<Guide />} />
           <Route path="/play" element={<Play />} />
           <Route path="/play/:id" element={<Solo />} />
           <Route path="/host" element={<Host />} />

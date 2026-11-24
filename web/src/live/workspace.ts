@@ -27,6 +27,7 @@ export const api = {
   get: (id: string) => call<ServerExperience | null>('pp_get_experience', { p_id: id }),
   saveDraft: (id: string | null, org: string | null, title: string, draft: unknown) => call<{ id: string }>('pp_save_draft', { p_id: id, p_org: org, p_title: title, p_draft: draft }),
   sessions: (org: string | null) => call<SessionSummary[]>('pp_my_sessions', { p_org: org }),
+  inviteEmail: (org: string, email: string) => callFunction<{ sent: 'invite' | 'signin' }>('invite-email', { orgId: org, email }),
   publish: (id: string, visibility: 'private' | 'org' | 'unlisted') => callFunction<{ ok: true; version: number; warnings: string[] }>('publish', { experienceId: id, visibility }),
 };
 

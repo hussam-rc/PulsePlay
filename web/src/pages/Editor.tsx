@@ -84,6 +84,7 @@ export function Editor() {
         {err && <p className="text-coral-500 font-bold" role="alert" data-testid="err">{err}</p>}
         {x.versions.length > 0 && <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-paper-line">
           <span className="text-sm text-ink-soft me-auto">Versions: {x.versions.map(v => `v${v.version} (${new Date(v.publishedAt).toLocaleDateString()})`).join(' · ')}</span>
+          <Link className="btn-ghost" to={`/guide/${x.id}`} data-testid="guide">📋 Facilitator guide</Link>
           <Link className="btn-primary" to={`/host/${x.id}`} data-testid="host">Host live</Link></div>}
       </section>
 

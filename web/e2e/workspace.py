@@ -33,6 +33,9 @@ with sync_playwright() as pw:
     a.click('[role=tab]:has-text("Members")')
     for email, role in [('carol@example.org', 'creator'), ('dave@example.org', 'facilitator')]:
         a.fill('[data-testid=invite-email]', email); a.select_option('[aria-label=Role]', role); a.click('[data-testid=invite]'); a.wait_for_selector(f'text={email}')
+    mails = json.load(urllib.request.urlopen(f'{API}/__test/mail'))
+    ok(sorted(m['to'] for m in mails if m['type'] == 'invite') == ['carol@example.org', 'dave@example.org'] and all(m['data'].get('invited_to') == 'Org A' for m in mails if m['type'] == 'invite'), 'invite: new people receive an invitation email naming the organisation')
+    ok('emailed a sign-in link' in a.inner_text('[data-testid=members]'), 'invite: owner sees that the email went out')
     ok(a.locator('text=invited · creator').count() == 1 and a.locator('text=invited · facilitator').count() == 1, 'members: invites listed with roles')
     a.click('[role=tab]:has-text("Library")'); a.select_option('#tpl', 'myth-or-fact'); a.click('[data-testid=copy-template]')
     a.wait_for_selector('[data-testid=checker]'); exp_id = a.url.split('/edit/')[1]
@@ -82,6 +85,19 @@ with sync_playwright() as pw:
         r = fetch(bob, fn, args); leaked = r['status'] == 200 and r['body'] not in (None, [], {})
         ok(not leaked, f'iso: Bob calling {fn} on Org A gets nothing ({r["status"]})')
     r = fetch(bob, 'pp_create_session', {'p_experience': exp_id, 'p_settings': {}}); ok(r['status'] >= 400, f'iso: Bob cannot create a room for it via the API ({r["status"]})')
+    # facilitator guide
+    d.goto(BASE + f'#/guide/{exp_id}'); d.wait_for_selector('[data-testid=guide]')
+    ok('FACILITATOR GUIDE' in d.inner_text('[data-testid=guide]') and 'Debrief' in d.inner_text('[data-testid=guide]') and 'Answer:' in d.inner_text('[data-testid=guide]'), 'guide: member opens the generated guide with answers and debrief')
+    bob.goto(BASE + f'#/guide/{exp_id}'); bob.wait_for_selector('[role=alert]'); ok(bob.locator('[data-testid=guide]').count() == 0, 'iso: outsider cannot open the org game guide')
+    pg = b.new_page(); pg.goto(BASE + '#/x/ego-check'); pg.click('[data-testid=guide-link]'); pg.wait_for_selector('[data-testid=guide]')
+    ok('Who is in Control?' in pg.inner_text('h1') and 'private' in pg.inner_text('[data-testid=guide]'), 'guide: built-in game guide opens without an account')
+    pg.emulate_media(media='print'); pg.pdf(path=f'{SHOTS}/guide.pdf'); ok(pg.locator('header.print\\:hidden').is_hidden(), 'guide: navigation hidden when printing')
+    # existing user gets a sign-in link instead of an account invitation
+    a.goto(BASE + '#/workspace'); space(a, 'Org A'); a.click('[role=tab]:has-text("Members")'); a.fill('[data-testid=invite-email]', 'dave@example.org'); a.select_option('[aria-label=Role]', 'facilitator'); a.click('[data-testid=invite]')
+    a.wait_for_selector('[role=status]'); mails = json.load(urllib.request.urlopen(f'{API}/__test/mail'))
+    ok(any(m['to'] == 'dave@example.org' and m['type'] == 'signin' for m in mails), 'invite: existing account gets a sign-in link')
+    r = fetch(c, 'invite-email', {'orgId': a.evaluate("localStorage.getItem('pp_space')"), 'email': 'mallory@example.org'}, fn=True)
+    ok(r['status'] == 403, f'invite: a creator cannot send invitation emails ({r["status"]})')
     # personal space: build a quiz from scratch with forms only, preview, publish, play it live
     bob.goto(BASE + '#/workspace'); bob.wait_for_selector('[data-testid=library]'); bob.click('[data-testid=new-quiz]')
     bob.wait_for_selector('[data-testid=checker]'); bob_id = bob.url.split('/edit/')[1]
