@@ -17,6 +17,7 @@ const lazyNamed = <K extends string>(load: () => Promise<Record<K, React.Compone
   React.lazy(() => load().then(m => ({ default: m[name] })));
 const Practice = lazyNamed(() => import('./pages/Practice'), 'Practice');
 const Create = lazyNamed(() => import('./pages/Create'), 'Create');
+const TryTemplate = lazyNamed(() => import('./pages/Create'), 'TryTemplate');
 const Workspace = lazyNamed(() => import('./pages/Workspace'), 'Workspace');
 const HostLive = lazyNamed(() => import('./pages/HostLive'), 'HostLive');
 const Editor = lazyNamed(() => import('./pages/Editor'), 'Editor');
@@ -79,6 +80,7 @@ function App() {
     <HashRouter>
       <Routes>
         <Route path="/practice/:id" element={<React.Suspense fallback={<Loading />}><Practice /></React.Suspense>} />
+        <Route path="/create/try/:id" element={<React.Suspense fallback={<Loading />}><TryTemplate /></React.Suspense>} />
         <Route path="/host/:id" element={<React.Suspense fallback={<Loading />}><HostLive /></React.Suspense>} />
         <Route path="/workspace/preview/:id" element={<React.Suspense fallback={<Loading />}><Preview /></React.Suspense>} />
         <Route path="/j" element={<JoinLive />} />
