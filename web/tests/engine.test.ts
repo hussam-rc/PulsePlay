@@ -175,6 +175,12 @@ describe('game language versions', () => {
       expect(JSON.stringify(v)).not.toContain("Who's driving today"); // no untranslated English left
     }
     for (const e of [egoCheck, ...VARIANTS]) expect(JSON.stringify(e).toLowerCase()).not.toMatch(/autopilot|pilote auto|طيار/);
+    // A band's short message must not repeat a sentence of its explanation (shown together on the result screen).
+    const sentences = (t = '') => t.split(/(?<=[.!?。])\s+/).map(x => x.trim()).filter(x => x.length > 12);
+    for (const e of [egoCheck, ...VARIANTS]) for (const b of e.results!) {
+      const ex = sentences(b.explanation);
+      for (const m of sentences(b.message)) expect(ex.some(x => x.slice(0, 20) === m.slice(0, 20) || x.slice(-25) === m.slice(-25)), `${e.id} ${b.title}: ${m}`).toBe(false);
+    }
   });
 });
 
