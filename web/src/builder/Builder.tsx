@@ -3,6 +3,7 @@ import { ReactNode, useMemo, useState } from 'react';
 import type { Activity, ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
+import { PhonePreview } from './PhonePreview';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, nextOptionId, splitBands } from './model';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
@@ -22,6 +23,7 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
   const problems = useMemo(() => humanize(check.errors, d), [check, d]);
   const warnings = useMemo(() => humanize(check.warnings, d), [check, d]);
   const scored = kind === 'quiz' || kind === 'score';
+  const [focus, setFocus] = useState(0);
 
   return (
     <div className="grid lg:grid-cols-[1fr_300px] gap-5 items-start">
@@ -68,10 +70,10 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
 
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
-          {acts.map((a, i) => <Question key={a.id} a={a} i={i} total={acts.length} kind={kind}
+          {acts.map((a, i) => <Question key={a.id} a={a} i={i} total={acts.length} kind={kind} onFocus={() => setFocus(i)} focused={i === focus}
             change={f => setActs(xs => xs.map(y => { if (y.id !== a.id) return y; const c = structuredClone(y); f(c); return c; }))}
             replace={b => setActs(xs => xs.map(y => y.id === a.id ? b : y))}
-            move={dir => setActs(xs => { const c = [...xs]; const j = i + dir; [c[i], c[j]] = [c[j], c[i]]; return c; })}
+            move={dir => { setActs(xs => { const c = [...xs]; const j = i + dir; [c[i], c[j]] = [c[j], c[i]]; return c; }); setFocus(i + dir); }}
             dup={() => setActs(xs => { const c = [...xs]; c.splice(i + 1, 0, { ...structuredClone(a), id: newId() }); return c; })}
             del={() => { if (confirm(`Delete question ${i + 1}?`)) setActs(xs => xs.filter(y => y.id !== a.id)); }} />)}
           {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => setActs(xs => [...xs.filter(x => x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))), ...add])} />}
@@ -114,20 +116,23 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
       </fieldset>
 
       {/* ---------- checker ---------- */}
-      <aside className="card p-4 grid gap-3 lg:sticky lg:top-4" aria-live="polite" data-testid="checker">
+      <div className="grid gap-4 lg:sticky lg:top-4">
+      <PhonePreview acts={acts} index={focus} onIndex={i => { setFocus(i); document.getElementById(`q-${i + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} title={d.title} />
+      <aside className="card p-4 grid gap-3" aria-live="polite" data-testid="checker">
         <b className="text-lg">{problems.length ? `✏️ ${problems.length} thing${problems.length === 1 ? '' : 's'} to fix` : '✅ Ready to publish'}</b>
         {problems.length === 0 && <p className="text-sm text-ink-soft">Everything checks out. Preview it with simulated players, then publish.</p>}
         <ul className="grid gap-2">{problems.map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); document.getElementById(p.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="block rounded-xl bg-coral-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
         {warnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2">{warnings.map((p, i) => <li key={i} className="rounded-xl bg-sun-50 p-2 text-sm"><b>{p.where}:</b> {p.text}</li>)}</ul></>}
       </aside>
+      </div>
     </div>
   );
 }
 
-function Question({ a, i, total, kind, change, replace, move, dup, del }: { a: Activity; i: number; total: number; kind: GameKind; change: (f: (a: Activity) => void) => void; replace: (a: Activity) => void; move: (d: number) => void; dup: () => void; del: () => void }) {
+function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus, focused }: { a: Activity; i: number; total: number; kind: GameKind; change: (f: (a: Activity) => void) => void; replace: (a: Activity) => void; move: (d: number) => void; dup: () => void; del: () => void; onFocus: () => void; focused: boolean }) {
   const types = KINDS[kind].activity;
   return (
-    <div id={`q-${i + 1}`} className="rounded-2xl border border-paper-line p-4 grid gap-3 scroll-mt-4" data-testid="question">
+    <div id={`q-${i + 1}`} onFocusCapture={onFocus} onClick={onFocus} className={`rounded-2xl border p-4 grid gap-3 scroll-mt-4 ${focused ? 'border-violet-500 ring-1 ring-violet-500' : 'border-paper-line'}`} data-testid="question">
       <div className="flex flex-wrap items-center gap-2">
         <b className="me-auto">Question {i + 1}</b>
         {types.length > 1 && <select className="field !min-h-[36px] !w-auto !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
