@@ -32,3 +32,4 @@ The Supabase project's display name is now **"pulseplay-development"** (it was c
 
 - **25 Nov 2026, 01:25 UTC:** stage 1 install applied to production with Hussam's approval (`pp_cleanup`: function, run log, health view; deletes nothing by itself). One manual report-only run (run 1): 0 rooms, players, answers or counters to delete; 1 active room kept. Verified that `anon` and `authenticated` cannot execute `pp.cleanup` or read `pp.cleanup_runs` / `pp.cleanup_health`.
 - **Not yet done:** the daily report-only schedule (needs `pg_cron`; `supabase/manual/pp_cleanup_schedule.sql`, using `pp.cleanup(true)` first). Awaiting explicit approval. Real deletion (`pp.cleanup(false)`) stays off.
+- **25 Nov 2026:** Hussam confirmed daily backups are listed in the dashboard, and that `pulseplay-development` is the only (and therefore production) project. Point-in-time recovery remains off; not needed for this job.
