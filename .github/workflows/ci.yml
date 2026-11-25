@@ -2,6 +2,9 @@ name: CI
 on:
   push: { branches: [main] }
   pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   web:
     runs-on: ubuntu-latest
@@ -40,3 +43,46 @@ jobs:
             out=$(psql -q -At -f "$t"); echo "$out"
             echo "$out" | grep -q "^FAIL" && exit 1 || true
           done
+
+  browser:
+    # Main user journeys in a real browser (Chromium) against an isolated database and a local Supabase stand-in.
+    # Never uses production data or credentials.
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env: { PGHOST: localhost, PGPORT: 5432, PGUSER: postgres, PGPASSWORD: postgres, BASE: 'http://localhost:8789/PulsePlay/app/', SHOTS: /tmp/pp-shots }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - name: Install
+        run: |
+          (cd web && npm ci) && (cd test-env && npm ci)
+          pip install playwright==1.* && python -m playwright install --with-deps chromium
+      - name: Build the app for the test environment
+        working-directory: web
+        run: |
+          VITE_SUPABASE_URL=http://localhost:8789 VITE_SUPABASE_PUBLISHABLE_KEY=testkey npx vite build --outDir /tmp/ppsite/PulsePlay/app --emptyOutDir
+          cp ../index.html /tmp/ppsite/PulsePlay/index.html
+      - name: Start database, Supabase stand-in, Edge Functions
+        run: SITE=/tmp/ppsite test-env/start.sh
+      - name: Browser journeys (desktop + 375 px phones, EN/DE/FR/AR, direct links, multiplayer)
+        run: web/e2e/run_all.sh
+      - name: Screenshots and logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure
+          retention-days: 7
+          path: |
+            /tmp/pp-shots
+            /tmp/pp-*.log

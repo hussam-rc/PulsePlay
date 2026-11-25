@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import { SectionHeader } from '../ui/SectionHeader';
 import { useCallback, useEffect, useState, ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { requestSignIn, verifyCode, signOut } from '../live/auth';
@@ -62,11 +64,8 @@ function SignedIn() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 grid gap-6">
-      <header className="flex flex-wrap items-center gap-3">
-        <h1 className="text-4xl font-extrabold me-auto">🗂️ Workspace</h1>
-        <span className="text-sm text-ink-soft" data-testid="who">{auth.email}</span>
-        <button className="btn-ghost !min-h-[40px] text-sm" onClick={() => signOut()}>Sign out</button>
-      </header>
+      <SectionHeader icon="🗂️" title="Workspace" purpose={t('sec.workspace')} links={[{ lead: t('x.ownGame'), label: t('v2.create'), to: '/create' }, { lead: t('x.hostIt'), label: t('nav.host'), to: '/host' }]}
+        aside={<><span className="text-sm text-ink-soft" data-testid="who">{auth.email}</span><button className="btn-ghost !min-h-[40px] text-sm" onClick={() => signOut()}>Sign out</button></>} />
       {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
       {me && <SpaceBar me={me} space={space} setSpace={setSpace} reload={reload} />}
       {me && <>

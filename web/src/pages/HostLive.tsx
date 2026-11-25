@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom';
 import { byId, languagesOf } from '../experiences';
+import { HighlightsView } from '../live/HighlightsView';
+import { clearMoments } from '../live/highlights';
 import { t } from '../i18n';
 import { LangSwitch } from '../ui/LangSwitch';
 import { LiveHost, rpc, saveHost, savedHost } from '../live/controllers';
@@ -87,7 +89,13 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
           {recap.group && !recap.group.suppressed && <Chip>{t('hl.avg', { n: recap.group.average ?? '' })}{e.scoring.kind === 'correct' ? t('stage.pctCorrect') : '/100'}</Chip>}</div>
         <p className="text-ink-soft">{t('hl.deleted')}</p>
       </div>
-      <div className="flex gap-2"><button className="btn-primary" onClick={() => { setRecap(null); setC(null); }}>{t('hl.another')}</button><Link className="btn-ghost" to="/host">{t('hl.choose')}</Link></div>
+      <HighlightsView code={recap.code} kind={e.scoring.kind} compact />
+      <section className="card p-5 grid gap-3" data-testid="next-steps"><h2 className="text-xl font-extrabold">{t('next.title')}</h2>
+        <div className="grid sm:grid-cols-3 gap-2">
+          <button className="btn-primary" onClick={() => { clearMoments(recap.code); setRecap(null); setC(null); }}>↻ {t('hl.another')}</button>
+          <Link className="btn-ghost" to="/find">✨ {t('next.find')}</Link>
+          <Link className="btn-ghost" to="/host">🎤 {t('hl.choose')}</Link>
+        </div></section>
     </div>
   );
 

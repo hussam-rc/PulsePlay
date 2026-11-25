@@ -46,7 +46,7 @@ with sync_playwright() as pw:
     ok(m.is_visible('text=How it works') and m.is_visible('[data-testid=detail-host]'), 'detail: how it works, sample question, host action')
     ok(not overflow(m), 'detail: no sideways scrolling at 375 px'); m.screenshot(path=f'{SHOTS}/2a_detail_375.png', full_page=True)
     # lazy routes still work
-    for path, sel in [('#/host/ego-check', '[data-testid=create]'), ('#/workspace', 'text=Sign in'), ('#/practice/would-you-rather', 'text=PRACTICE'), ('#/guide/ego-check', 'h1'), ('#/create', 'text=Create a game')]:
+    for path, sel in [('#/host/ego-check', '[data-testid=create]'), ('#/workspace', 'text=Sign in'), ('#/practice/would-you-rather', 'text=PRACTICE'), ('#/guide/ego-check', 'h1'), ('#/create', '[data-testid=section-header]')]:
         m.goto(BASE + path); m.wait_for_selector(sel, timeout=10000); ok(True, f'on-demand page loads: {path}')
     # languages
     for l, headline in [('de', 'Weniger peinliche Meetings'), ('fr', 'Moins de réunions gênantes'), ('ar', 'اجتماعات أقل حرجًا')]:

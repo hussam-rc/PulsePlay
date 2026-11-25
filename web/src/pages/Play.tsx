@@ -18,7 +18,8 @@ export function Play() {
     <div className="max-w-xl mx-auto px-4 py-10 grid gap-8">
       <form onSubmit={join} className="card p-6 grid gap-4">
         <div className="text-center"><div className="text-5xl" aria-hidden>📱</div><h1 className="text-3xl font-extrabold mt-2">{t('play.title')}</h1>
-          <p className="text-ink-soft">{t('play.sub')}</p></div>
+          <p className="text-ink-soft">{t('play.sub')}</p>
+          <p className="text-sm mt-1" data-testid="section-purpose">{t('x.hostIt')} <Link className="font-bold text-violet-700 underline" to="/host">{t('nav.host')}</Link></p></div>
         <label className="grid gap-1.5 font-bold text-sm">{t('join.code')}
           <input className="field text-center !text-3xl tracking-[.3em] font-extrabold" inputMode="numeric" maxLength={6} value={code}
             onChange={e => { setCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setErr(''); }} placeholder="000000" aria-describedby="code-err" />

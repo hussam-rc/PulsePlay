@@ -57,10 +57,11 @@ export function Meter({ value }: { value: number }) {
   </div>;
 }
 
-export function ResultCard({ r, disclaimer, onCopy, onDelete }: { r: PersonalResult; disclaimer: string; onCopy?: () => void; onDelete?: () => void }) {
+export function ResultCard({ r, disclaimer, onCopy, onDelete, onTakeaway }: { r: PersonalResult; disclaimer: string; onCopy?: () => void; onDelete?: () => void; onTakeaway?: () => void }) {
   const [copied, setCopied] = useState('');
-  const footer = (onCopy || onDelete) && <div className="grid gap-2 justify-items-center">
+  const footer = (onCopy || onDelete || onTakeaway) && <div className="grid gap-2 justify-items-center">
     <div className="flex flex-wrap gap-2 justify-center">
+      {onTakeaway && r.habit && <button className="btn-primary" data-testid="copy-takeaway" onClick={() => { try { onTakeaway(); setCopied(t('res.takeawayCopied')); } catch { setCopied(t('res.copyBlocked')); } }}>📋 {t('res.takeaway')}</button>}
       {onCopy && <button className="btn-ghost" onClick={() => { try { onCopy(); setCopied(t('res.copied')); } catch { setCopied(t('res.copyBlocked')); } }}>{t('res.copy')}</button>}
       {onDelete && <button className="btn-ghost" onClick={() => { if (confirm(t('keep.confirm'))) onDelete(); }} data-testid="delete-result">{t('keep.delete')}</button>}
     </div>
@@ -99,6 +100,11 @@ export function ResultCard({ r, disclaimer, onCopy, onDelete }: { r: PersonalRes
       </div>
     </div>
   );
+}
+
+/** Share-safe: the habit and challenge only, never the score or result band. */
+export function takeawayText(title: string, r: PersonalResult): string {
+  return [t('res.takeawayHead', { title }), r.habit ? `🔁 ${r.habit}` : '', r.challenge ? `🎯 ${r.challenge}` : ''].filter(Boolean).join('\n');
 }
 
 export function resultText(title: string, r: PersonalResult): string {

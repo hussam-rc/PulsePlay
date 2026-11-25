@@ -88,3 +88,20 @@ Items 1–8 above. All are frontend-only, with no database or privacy change. It
 All new UI strings exist in EN/DE/FR/AR. Tests: unit 47/47; browser: release_2a 31/31, e2e (0 fails), feedback2 21/21, live_multiplayer 34/34, workspace 59/59, resilience 5/5, results_keep 7/7, i18n 7/7 — on the local emulator, Chromium only. Not tested: real phones, Safari/Firefox, screen readers.
 
 **Next (2.0B):** Experience Concierge (#9), kind-specific reveals (#11), Playwright in CI. **Needs your approval:** #14 scheduled purge job and #15 retiring the legacy `egocheck` backend.
+
+## 7. Release 2.0B — in PR #3 (25 Nov)
+
+| Area | Change | Evidence |
+|---|---|---|
+| Concierge | `/find`: 4 questions (audience, goal, group size, time) → up to 3 suggestions with reasons and honest warnings. Deterministic (`experiences/recommend.ts`, `Recommender` interface ready for a server-side AI ranker). Group size is a hard rule; answers live in the link (shareable, survives refresh). | `tests/recommend.test.ts` 7, `release_2b.py` |
+| Opinion results | End screen: most divided (split bar + discussion prompt), most united, every question at a glance | `release_2b.py` |
+| Quiz results | Toughest and easiest claim with % right and explanation; leaderboard as a podium (volunteers only) | same |
+| Reflection results | Private result unchanged on the phone; new "copy my takeaway (no score)"; group average counts up; no per-question highlights | same |
+| Highlights privacy | Built only from totals the projector already showed (above the group minimum), kept in the host tab only | `live/highlights.ts` |
+| Next steps | Host end screen and solo end: host this / find another / play again | same |
+| One product | Shared section header (purpose + next-step links) on Host, Play, Create, Workspace | same |
+| Motion | Count-up numbers, growing bars, short fade-up entrance; all instant with reduced motion (tested) | same |
+| Languages | Solo screens were English-only; now EN/DE/FR/AR | same |
+| CI | New `browser` job: Postgres + local Supabase stand-in + Edge Functions + Chromium; runs 9 suites incl. 375 px phones, 4 languages, direct links, multiplayer. Fixed one flaky check. | GitHub Actions run 45501378571 (8 suites green before 2.0B UI was added) |
+
+Bundle: main JS 113.8 → 120.8 KB gzip (+7 KB for the new results components and strings on the player path).

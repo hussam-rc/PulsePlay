@@ -38,7 +38,8 @@ def play_game(b, game, n, picker, settings=None, boards=(), reload_player_at=Non
     next_(h); next_(h)
     total = 10
     for q in range(total):
-        h.wait_for_selector('[data-testid=prompt]')
+        # wait until the projector shows THIS question (the previous one can linger for a moment after "next")
+        h.wait_for_selector(f'[data-testid=prompt][data-idx="{q}"]', timeout=15000)
         prompt = h.inner_text('[data-testid=prompt]')
         for i, p in enumerate(phones):
             if skip(i, q): continue
@@ -58,7 +59,7 @@ def play_game(b, game, n, picker, settings=None, boards=(), reload_player_at=Non
             ok('Locked in' in p.inner_text('body'), f'{game}: phone refresh rejoins and keeps its answer')
         if q == 2 and reload_host_at:
             h.reload(); h.wait_for_selector('[data-testid=resume]'); h.click('[data-testid=resume]'); h.wait_for_selector('[data-testid=prompt]', timeout=10000)
-            ok(h.inner_text('[data-testid=prompt]') == prompt, f'{game}: presenter refresh resumes the same room at the same question ({h.inner_text("[data-testid=prompt]")!r} vs {prompt!r})')
+            ok(h.get_attribute('[data-testid=prompt]', 'data-idx') == str(q) and h.inner_text('[data-testid=prompt]') == prompt, f'{game}: presenter refresh resumes the same room at the same question ({h.inner_text("[data-testid=prompt]")!r} vs {prompt!r})')
         if q == 0 and game == 'would-you-rather': h.screenshot(path=f'{SHOTS}/live_poll.png')
         if q == 0 and game == 'myth-or-fact': h.screenshot(path=f'{SHOTS}/live_trivia.png'); phones[0].screenshot(path=f'{SHOTS}/live_trivia_phone.png')
         next_(h)
@@ -77,7 +78,7 @@ with sync_playwright() as pw:
     phones[0].screenshot(path=f'{SHOTS}/live_ego_result.png')
     ok('43' not in h.inner_text('[data-testid=stage]'), 'ego: no individual score on the projector')
     next_(h); h.wait_for_selector('[data-testid=group]')
-    avg = h.inner_text('[data-testid=group-average]'); ok(avg.startswith('37'), f'ego: team average 37 on projector (got {avg[:6]})')
+    avg = h.get_attribute('[data-testid=group-average] [data-value]', 'data-value'); ok(avg == '37', f'ego: team average 37 on projector (got {avg[:6]})')
     ok(not h.query_selector('[data-testid=leaderboard]'), 'ego: no leaderboard')
     h.screenshot(path=f'{SHOTS}/live_ego_group.png')
     h.click('[data-testid=end]'); h.click('[data-testid=end-confirm]'); h.wait_for_selector('[data-testid=recap]', timeout=10000)

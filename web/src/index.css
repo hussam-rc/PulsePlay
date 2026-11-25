@@ -20,6 +20,9 @@
 @keyframes fall { to { transform: translateY(700px) rotate(540deg); opacity: .2 } }
 .anim-pop { animation: pop .35s ease-out }
 .anim-rise { animation: rise .7s cubic-bezier(.3,1.5,.5,1) }
+/* Gentle entrance for cards and choices: short, no bounce. */
+.anim-in { animation: fadeup .35s ease-out both }
+@keyframes fadeup { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
 .anim-pulse { animation: pulse-num 1s infinite }
 .confetti i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: fall 2.6s ease-in forwards }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important } }

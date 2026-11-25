@@ -9,10 +9,13 @@ export const PURPOSES = [
 export type Purpose = typeof PURPOSES[number][0];
 export type Format = 'reflection' | 'opinion' | 'quiz';
 
-export const CATALOG: Record<string, { purposes: Purpose[]; format: Format; competitive: boolean; tone: string }> = {
-  'ego-check': { purposes: ['trust', 'conversation'], format: 'reflection', competitive: false, tone: 'from-violet-600 to-sky-500' },
-  'would-you-rather': { purposes: ['icebreak', 'fun', 'conversation'], format: 'opinion', competitive: false, tone: 'from-sky-500 to-teal-500' },
-  'myth-or-fact': { purposes: ['learn', 'fun', 'challenge'], format: 'quiz', competitive: true, tone: 'from-teal-500 to-violet-600' },
+export const AUDIENCES = ['colleagues', 'community', 'students', 'friends', 'conference', 'other'] as const;
+export type Audience = typeof AUDIENCES[number];
+
+export const CATALOG: Record<string, { purposes: Purpose[]; format: Format; competitive: boolean; tone: string; audiences: Audience[] }> = {
+  'ego-check': { purposes: ['trust', 'conversation'], format: 'reflection', competitive: false, tone: 'from-violet-600 to-sky-500', audiences: ['colleagues', 'conference', 'students'] },
+  'would-you-rather': { purposes: ['icebreak', 'fun', 'conversation'], format: 'opinion', competitive: false, tone: 'from-sky-500 to-teal-500', audiences: ['colleagues', 'community', 'students', 'friends', 'conference', 'other'] },
+  'myth-or-fact': { purposes: ['learn', 'fun', 'challenge'], format: 'quiz', competitive: true, tone: 'from-teal-500 to-violet-600', audiences: ['colleagues', 'community', 'students', 'friends', 'conference', 'other'] },
 };
 export const meta = (id: string) => CATALOG[id.replace(/-(de|fr|ar)$/, '')];
 

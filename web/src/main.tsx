@@ -23,6 +23,7 @@ const Editor = lazyNamed(() => import('./pages/Editor'), 'Editor');
 const Preview = lazyNamed(() => import('./pages/Editor'), 'Preview');
 const Guide = lazyNamed(() => import('./pages/Guide'), 'Guide');
 const Report = lazyNamed(() => import('./pages/Report'), 'Report');
+const Find = lazyNamed(() => import('./pages/Find'), 'Find');
 const Loading = () => <div className="min-h-[50vh] grid place-items-center text-ink-soft" role="status"><span className="anim-pulse text-3xl" aria-hidden>◉</span><span className="sr-only">Loading…</span></div>;
 
 // A returning sign-in link carries tokens in the URL fragment; turn them into a session before the router reads the hash.
@@ -85,6 +86,7 @@ function App() {
         <Route path="*" element={<Shell><Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/find" element={<Find />} />
           <Route path="/x/:id" element={<Detail />} />
           <Route path="/guide/:id" element={<Guide />} />
           <Route path="/play" element={<Play />} />
