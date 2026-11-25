@@ -7,6 +7,7 @@ import { api, useAuth, Me, LibraryItem, Role, ROLE_INFO, SessionSummary } from '
 import { EXPERIENCES } from '../experiences';
 import { Chip } from '../ui/bits';
 import { blankDraft, GameKind, KINDS } from '../builder/model';
+import { templateById, PENDING_TEMPLATE } from '../builder/templates';
 
 const SPACE_KEY = 'pp_space';
 
@@ -125,10 +126,18 @@ function Library({ org }: { org: Me['orgs'][number] | null }) {
   useEffect(() => { api.library(org?.id ?? null).then(setItems).catch(e => setErr(e.message)); }, [org?.id]);
   const blank = async (k: GameKind) => { try { const d = blankDraft(k); const { id } = await api.saveDraft(null, org?.id ?? null, d.title, d); nav(`/workspace/edit/${id}`); } catch (e) { setErr((e as Error).message); } };
   const copy = async () => { try { const { id } = await api.copyTemplate(tpl, org?.id ?? null); nav(`/workspace/edit/${id}`); } catch (e) { setErr((e as Error).message); } };
+  const [pending, setPending] = useState(() => { try { return templateById(sessionStorage.getItem(PENDING_TEMPLATE) ?? '') ?? null; } catch { return null; } });
+  const dropPending = () => { try { sessionStorage.removeItem(PENDING_TEMPLATE); } catch { /* ignore */ } setPending(null); };
+  const fromTemplate = async () => { if (!pending) return; try { const d = pending.build(); const { id } = await api.saveDraft(null, org?.id ?? null, d.title, d); dropPending(); nav(`/workspace/edit/${id}`); } catch (e) { setErr((e as Error).message); } };
   return (
     <section className="grid gap-4" data-testid="library">
+      {pending && canCreate && <div className="card p-5 grid gap-3 ring-2 ring-violet-500" data-testid="pending-template">
+        <p className="text-lg"><span aria-hidden>{pending.emoji}</span> Ready to use the <b>{pending.name}</b> template in <b>{org ? org.name : 'your personal space'}</b>.</p>
+        <p className="text-sm text-ink-soft">Switch space above first if you want it somewhere else. You can change everything afterwards.</p>
+        <div className="flex flex-wrap gap-2"><button className="btn-primary" onClick={fromTemplate} data-testid="create-from-template">Create my copy</button><button className="btn-ghost" onClick={dropPending}>Not now</button></div>
+      </div>}
       {canCreate && <div className="card p-5 grid gap-4">
-        <h2 className="text-xl font-extrabold">Create a game, no code needed</h2>
+        <div className="flex flex-wrap items-baseline gap-3"><h2 className="text-xl font-extrabold me-auto">Create a game, no code needed</h2><Link className="text-sm font-bold text-violet-700 underline" to="/create">Browse starter templates</Link></div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">{(Object.keys(KINDS) as GameKind[]).map(k =>
           <button key={k} className="text-left rounded-2xl p-4 border-2 border-paper-line bg-white hover:border-violet-500" onClick={() => blank(k)} data-testid={`new-${k}`}>
             <div className="text-lg font-extrabold">{KINDS[k].emoji} {KINDS[k].label}</div><div className="text-sm text-ink-soft mt-1">{KINDS[k].blurb}</div></button>)}</div>
