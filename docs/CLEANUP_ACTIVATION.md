@@ -27,3 +27,8 @@ Everything the job deletes is already unusable: expired rooms cannot be joined, 
 ## Also noticed
 
 The Supabase project's display name is now **"pulseplay-development"** (it was created as "pulseplay"). If this project is meant to be production, consider renaming it back to avoid confusion. If a separate production project is planned, the cleanup job should be activated there, not here.
+
+## Status log
+
+- **25 Nov 2026, 01:25 UTC:** stage 1 install applied to production with Hussam's approval (`pp_cleanup`: function, run log, health view; deletes nothing by itself). One manual report-only run (run 1): 0 rooms, players, answers or counters to delete; 1 active room kept. Verified that `anon` and `authenticated` cannot execute `pp.cleanup` or read `pp.cleanup_runs` / `pp.cleanup_health`.
+- **Not yet done:** the daily report-only schedule (needs `pg_cron`; `supabase/manual/pp_cleanup_schedule.sql`, using `pp.cleanup(true)` first). Awaiting explicit approval. Real deletion (`pp.cleanup(false)`) stays off.
