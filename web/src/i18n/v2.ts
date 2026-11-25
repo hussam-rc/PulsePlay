@@ -12,7 +12,7 @@ export const V2_EN = {
   'v2.emptyPurpose': 'No ready-made experience for this goal yet. You can build one in a few minutes, no code needed.',
   'v2.emptyCreate': 'Create one',
   'fmt.reflection': 'Private reflection', 'fmt.opinion': 'Group opinions', 'fmt.quiz': 'Quiz',
-  'badge.live': 'Live with phones', 'badge.solo': 'Solo', 'badge.noWinners': 'No winners', 'badge.scores': 'Scores',
+  'badge.live': 'Live with phones', 'badge.solo': 'Solo', 'badge.noWinners': 'No scores', 'badge.scores': 'Scores',
   'card.host': 'Host', 'card.preview': 'Try it', 'card.solo': 'Play solo', 'card.save': 'Save', 'card.unsave': 'Remove from saved',
   'do.ego-check': 'Everyone reacts to 10 work moments on their phone and gets a private result. The room sees only the team average.',
   'do.would-you-rather': 'Pick one of two options, then watch the room split live. Quick laughs that start real conversations.',
@@ -22,6 +22,7 @@ export const V2_EN = {
   'dt.h3': 'Everyone answers at the same time, then results are revealed together.',
   'dt.sample': 'Sample question', 'dt.sampleNote': 'This is what players see on their phone.', 'dt.tryFirst': 'Not sure yet? Try it first with simulated players. Nothing is saved.',
   'nav.ws': 'Workspace',
+  'v2.browse': 'Or browse all experiences', 'v2.noGameYet': 'No ready-made game yet for these goals. Build your own:', 'card.saved': 'Saved',
   'v2.ready': '{n} ready to play', 'v2.soon': 'Build your own',
 };
 
@@ -40,7 +41,7 @@ export const V2_DE: D = {
   'v2.emptyPurpose': 'Für dieses Ziel gibt es noch kein fertiges Erlebnis. Du kannst in wenigen Minuten eines bauen, ganz ohne Code.',
   'v2.emptyCreate': 'Eines erstellen',
   'fmt.reflection': 'Private Reflexion', 'fmt.opinion': 'Gruppenmeinungen', 'fmt.quiz': 'Quiz',
-  'badge.live': 'Live mit Handys', 'badge.solo': 'Allein', 'badge.noWinners': 'Keine Gewinner', 'badge.scores': 'Punkte',
+  'badge.live': 'Live mit Handys', 'badge.solo': 'Allein', 'badge.noWinners': 'Ohne Punkte', 'badge.scores': 'Punkte',
   'card.host': 'Leiten', 'card.preview': 'Ausprobieren', 'card.solo': 'Allein spielen', 'card.save': 'Merken', 'card.unsave': 'Nicht mehr merken',
   'do.ego-check': 'Alle reagieren auf dem Handy auf 10 Arbeitssituationen und erhalten ein privates Ergebnis. Der Raum sieht nur den Teamdurchschnitt.',
   'do.would-you-rather': 'Wähle eine von zwei Optionen und sieh live, wie sich der Raum aufteilt. Schnelle Lacher, die echte Gespräche auslösen.',
@@ -50,6 +51,7 @@ export const V2_DE: D = {
   'dt.h3': 'Alle antworten gleichzeitig, dann werden die Ergebnisse gemeinsam enthüllt.',
   'dt.sample': 'Beispielfrage', 'dt.sampleNote': 'So sieht es auf dem Handy aus.', 'dt.tryFirst': 'Noch unsicher? Probier es zuerst mit simulierten Teilnehmenden aus. Nichts wird gespeichert.',
   'nav.ws': 'Bereich',
+  'v2.browse': 'Oder alle Erlebnisse ansehen', 'v2.noGameYet': 'Für diese Ziele gibt es noch kein fertiges Spiel. Bau dein eigenes:', 'card.saved': 'Gemerkt',
   'v2.ready': '{n} spielbereit', 'v2.soon': 'Selbst bauen',
 };
 
@@ -66,7 +68,7 @@ export const V2_FR: D = {
   'v2.emptyPurpose': 'Pas encore d’expérience prête pour cet objectif. Tu peux en créer une en quelques minutes, sans code.',
   'v2.emptyCreate': 'En créer une',
   'fmt.reflection': 'Réflexion privée', 'fmt.opinion': 'Opinions du groupe', 'fmt.quiz': 'Quiz',
-  'badge.live': 'En direct avec téléphones', 'badge.solo': 'Solo', 'badge.noWinners': 'Pas de gagnants', 'badge.scores': 'Points',
+  'badge.live': 'En direct avec téléphones', 'badge.solo': 'Solo', 'badge.noWinners': 'Sans points', 'badge.scores': 'Points',
   'card.host': 'Animer', 'card.preview': 'Essayer', 'card.solo': 'Jouer en solo', 'card.save': 'Enregistrer', 'card.unsave': 'Retirer des favoris',
   'do.ego-check': 'Chacun réagit sur son téléphone à 10 situations de travail et reçoit un résultat privé. La salle ne voit que la moyenne de l’équipe.',
   'do.would-you-rather': 'Choisis entre deux options, puis regarde la salle se partager en direct. Des rires rapides qui lancent de vraies discussions.',
@@ -76,6 +78,7 @@ export const V2_FR: D = {
   'dt.h3': 'Tout le monde répond en même temps, puis les résultats sont révélés ensemble.',
   'dt.sample': 'Exemple de question', 'dt.sampleNote': 'Voici ce que les joueurs voient sur leur téléphone.', 'dt.tryFirst': 'Pas encore sûr ? Essaie d’abord avec des joueurs simulés. Rien n’est enregistré.',
   'nav.ws': 'Espace',
+  'v2.browse': 'Ou parcourir toutes les expériences', 'v2.noGameYet': 'Pas encore de jeu prêt pour ces objectifs. Crée le tien :', 'card.saved': 'Enregistré',
   'v2.ready': '{n} prêt(s) à jouer', 'v2.soon': 'Crée le tien',
 };
 
@@ -92,7 +95,7 @@ export const V2_AR: D = {
   'v2.emptyPurpose': 'لا توجد بعد تجربة جاهزة لهذا الهدف. يمكنك بناء واحدة في دقائق، دون أي برمجة.',
   'v2.emptyCreate': 'أنشئ واحدة',
   'fmt.reflection': 'تأمل خاص', 'fmt.opinion': 'آراء المجموعة', 'fmt.quiz': 'اختبار معلومات',
-  'badge.live': 'مباشر بالهواتف', 'badge.solo': 'فردي', 'badge.noWinners': 'بلا فائزين', 'badge.scores': 'نقاط',
+  'badge.live': 'مباشر بالهواتف', 'badge.solo': 'فردي', 'badge.noWinners': 'بلا نقاط', 'badge.scores': 'نقاط',
   'card.host': 'أدِر', 'card.preview': 'جرّب', 'card.solo': 'العب منفردًا', 'card.save': 'احفظ', 'card.unsave': 'أزل من المحفوظات',
   'do.ego-check': 'يتفاعل الجميع على هواتفهم مع 10 مواقف عمل ويحصلون على نتيجة خاصة. لا ترى القاعة إلا متوسط الفريق.',
   'do.would-you-rather': 'اختر أحد خيارين، ثم شاهد القاعة تنقسم مباشرة. ضحكات سريعة تفتح أحاديث حقيقية.',
@@ -102,5 +105,6 @@ export const V2_AR: D = {
   'dt.h3': 'يجيب الجميع في الوقت نفسه، ثم تُكشف النتائج معًا.',
   'dt.sample': 'سؤال تجريبي', 'dt.sampleNote': 'هذا ما يراه اللاعبون على هواتفهم.', 'dt.tryFirst': 'لست متأكدًا بعد؟ جرّبها أولًا مع لاعبين افتراضيين. لا يُحفظ شيء.',
   'nav.ws': 'مساحتي',
+  'v2.browse': 'أو تصفح كل التجارب', 'v2.noGameYet': 'لا توجد لعبة جاهزة بعد لهذه الأهداف. ابنِ لعبتك:', 'card.saved': 'محفوظ',
   'v2.ready': '{n} جاهزة للعب', 'v2.soon': 'أنشئ تجربتك',
 };

@@ -47,7 +47,7 @@ const TONE: Record<ResultBand['tone'], { bg: string; ink: string; bar: string }>
   grow: { bg: 'from-coral-500 to-violet-600', ink: 'text-coral-500', bar: '#E2553A' },
 };
 
-/** "You drive ↔ autopilot drives": a road with a car at the player's score. */
+/** "You drive ↔ ego drives": a road with a car at the player's score. */
 export function Meter({ value }: { value: number }) {
   return <div className="grid gap-1" dir="ltr" role="img" aria-label={`${t('res.score')}: ${value} / 100`}>
     <div className="relative h-4 rounded-full" style={{ background: 'linear-gradient(90deg,#14A38B,#2F6FEB,#E59A1C,#E2553A)' }}>

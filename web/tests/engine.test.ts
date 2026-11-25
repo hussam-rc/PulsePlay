@@ -60,7 +60,7 @@ describe('Ego Check scoring (must match the live backend rubric)', () => {
     const r = (n: number) => personalResult(egoCheck, resp(n));
     expect([r(7).score, r(7).band!.emoji]).toEqual([23, '🥳']);
     expect([r(8).score, r(8).band!.emoji]).toEqual([27, '😎']);
-    expect([r(16).score, r(16).band!.emoji]).toEqual([53, '🦙']);
+    expect([r(16).score, r(16).band!.emoji]).toEqual([53, '🚦']);
     expect([r(23).score, r(23).band!.emoji]).toEqual([77, '🏎️']);
   });
   it('matches the live server for the pattern used in the backend test (options (i+q)%4) → team average 37', () => {
@@ -172,8 +172,9 @@ describe('game language versions', () => {
       expect(validateExperience(v).errors, v.id).toEqual([]);
       expect(pts(v)).toEqual(pts(egoCheck));
       expect(v.results!.map(b => [b.min, b.max, b.tone, b.emoji])).toEqual(egoCheck.results!.map(b => [b.min, b.max, b.tone, b.emoji]));
-      expect(JSON.stringify(v)).not.toContain('autopilot');
+      expect(JSON.stringify(v)).not.toContain("Who's driving today"); // no untranslated English left
     }
+    for (const e of [egoCheck, ...VARIANTS]) expect(JSON.stringify(e).toLowerCase()).not.toMatch(/autopilot|pilote auto|طيار/);
   });
 });
 

@@ -11,7 +11,7 @@ export const egoCheck: Experience = {
   schemaVersion: 1,
   id: 'ego-check',
   title: 'Who is in Control?',
-  tagline: "Who's driving today: you, or your autopilot?",
+  tagline: "Who's driving today: you, or your ego?",
   emoji: '🪞🚗',
   category: 'reflection',
   description: 'Ten everyday work moments, a few seconds each. Go with your first instinct, then look in a private mirror: are you behind the wheel, or are your reflexes driving? The group sees only an anonymous team score.',
@@ -44,10 +44,10 @@ export const egoCheck: Experience = {
     ],
   }],
   results: [
-    { min: 0, max: 25, emoji: '🥳', tone: 'great', title: "Cool, calm and in the driver's seat!", message: "Your autopilot is napping in the back seat. 😴 You're driving. Keep it up!", explanation: 'Your answers show curiosity, humility and openness, even in moments that sting.', groupTitle: 'Our team is cool, calm and in control!', groupMessage: 'Our autopilots are napping. We choose how we react. 😴' },
-    { min: 26, max: 50, emoji: '😎', tone: 'good', title: "You're mostly in control!", message: 'Now and then your autopilot honks from the back seat. 📯 But you usually keep the wheel.', explanation: 'Most of your reactions are open and collaborative. A few situations pull you towards defending or proving yourself, which is very human.', groupTitle: "We're mostly in control!", groupMessage: 'A few honks from the back seat, but we keep the wheel. 📯' },
-    { min: 51, max: 75, emoji: '🦙', tone: 'watch', title: 'The llama grabbed the wheel!', message: 'In some moments your first reflex takes over the steering. Good news: llamas can be retrained.', explanation: 'In several situations your first reflex protected your position or your credit. Noticing that is the hardest part, and you just did.', groupTitle: 'The team llama grabbed the wheel!', groupMessage: "Our reflexes take over now and then. Good thing we're noticing. 🦙" },
-    { min: 76, max: 100, emoji: '🏎️', tone: 'grow', title: 'Autopilot on full throttle!', message: 'Your quick reflexes are doing donuts in the parking lot. Time to grab the wheel back. 😄', explanation: 'Today your quick reactions leaned towards defending, convincing or claiming credit. That says more about fast reflexes than about who you are, and reflexes can be retrained.', groupTitle: 'Our autopilot is on full throttle!', groupMessage: "Our reflexes did a lot of the driving. Let's grab the wheel together. 🏎️" },
+    { min: 0, max: 25, emoji: '🥳', tone: 'great', title: "Cool, calm and in the driver's seat!", message: "Your ego is napping in the back seat. 😴 You're driving. Keep it up!", explanation: 'Your answers show curiosity, humility and openness, even in moments that sting.', groupTitle: 'Our team is cool, calm and in control!', groupMessage: 'Our egos are napping. We choose how we react. 😴' },
+    { min: 26, max: 50, emoji: '😎', tone: 'good', title: "You're mostly in control!", message: 'Now and then your ego honks from the back seat. 📯 But you usually keep the wheel.', explanation: 'Most of your reactions are open and collaborative. A few situations pull you towards defending or proving yourself, which is very human.', groupTitle: "We're mostly in control!", groupMessage: 'A few honks from the back seat, but we keep the wheel. 📯' },
+    { min: 51, max: 75, emoji: '🚦', tone: 'watch', title: 'Your ego sometimes grabs the wheel', message: 'In some moments your first reflex steers. Noticing it is the hardest part, and you just did.', explanation: 'In several situations your first reflex protected your position or your credit. Noticing that is the hardest part, and you just did.', groupTitle: 'Our egos sometimes grab the wheel', groupMessage: "Our reflexes take over now and then. Good thing we're noticing. 🚦" },
+    { min: 76, max: 100, emoji: '🏎️', tone: 'grow', title: 'Time to take back the wheel!', message: 'Today your ego did a lot of the driving. Good news: reflexes can be retrained, one pause at a time. 💪', explanation: 'Today your quick reactions leaned towards defending, convincing or claiming credit. That says more about fast reflexes than about who you are, and reflexes can be retrained.', groupTitle: 'Let\'s take back the wheel together!', groupMessage: 'Our egos did a lot of the driving today. A great starting point for this conversation. 🏎️' },
   ],
   insights: {
     defaultHabit: 'Keep asking "what am I missing?" in meetings. It keeps you in the driver\'s seat.',
@@ -65,6 +65,6 @@ export const egoCheck: Experience = {
       decision: { label: 'Team decisions', strength: 'You commit once the team decides.', growth: 'Letting go after a decision takes real effort.', habit: "Once a decision is made, write down one way you'll help it work.", challenge: "Help move forward one decision you didn't agree with." },
     },
   },
-  transitions: ['Some reflexes just woke up… 👀', 'The mirror saw that. 🪞', 'Hands on the wheel, everyone! 🚗', 'Was that you or your autopilot? 🤔', 'Green light, keep going! 🚦', 'Somebody check the rear-view mirror. 😏', 'The llama is watching. 🦙', 'Seatbelts on, this one is spicy. 🌶️', 'Nobody saw your answer. Only you. 🤫', 'Finish line! 🏁'],
-  closing: { questions: ['When does my autopilot take the wheel?', 'How can I notice it earlier?', 'What can I do differently tomorrow?'], message: "Reflexes are human. Just don't let them drive every meeting. 🚗💜" },
+  transitions: ['Some reflexes just woke up… 👀', 'The mirror saw that. 🪞', 'Hands on the wheel, everyone! 🚗', 'Was that you or your ego? 🤔', 'Green light, keep going! 🚦', 'Somebody check the rear-view mirror. 😏', 'The llama is watching. 🦙', 'Seatbelts on, this one is spicy. 🌶️', 'Nobody saw your answer. Only you. 🤫', 'Finish line! 🏁'],
+  closing: { questions: ['When does my ego take the wheel?', 'How can I notice it earlier?', 'What can I do differently tomorrow?'], message: "Reflexes are human. Just don't let them drive every meeting. 🚗💜" },
 };

@@ -31,8 +31,11 @@ with sync_playwright() as pw:
     # purposes
     m.click('[data-testid=purpose-icebreak]'); ok(cards(m) == ['would-you-rather'], f'purpose "Break the ice" shows matching games {cards(m)}')
     m.click('[data-testid=purpose-learn]'); ok(cards(m) == ['myth-or-fact'], 'purpose "Learn together" shows the quiz')
-    m.click('[data-testid=purpose-ideas]'); ok(m.is_visible('[data-testid=empty-purpose] >> text=Create one'), 'purpose without games: honest empty state with a create link')
-    m.click('[data-testid=purpose-ideas]'); ok(len(cards(m)) == 3, 'purpose toggles off')
+    ok(m.locator('[data-testid=purpose-ideas]').count() == 0 and m.get_attribute('[data-testid=build-ideas]', 'href').endswith('#/create'), 'goals without games: no dead-end tile, a "build your own" link instead')
+    m.click('[data-testid=purpose-learn]'); ok(len(cards(m)) == 3, 'purpose toggles off')
+    ok(m.is_visible('[data-testid=open-find]') and not m.is_visible('[data-testid=hero-visual]'), 'phone hero: concierge as main action, decorative visual hidden')
+    m.evaluate('window.scrollTo(0, 0)'); m.wait_for_timeout(300); box = m.locator('[data-testid=hero-code]').bounding_box(); ok(box and box['y'] + box['height'] < 812, f'phone: room code visible without scrolling (y={box and int(box["y"])})')
+    m.click('[data-testid=save-myth-or-fact]'); ok('Saved' in m.inner_text('[data-testid=save-myth-or-fact]'), 'save button has a visible label'); m.click('[data-testid=save-myth-or-fact]')
     # filters
     m.click('summary:has-text("More filters")'); m.select_option('[data-testid=f-duration]', 'short'); ok(sorted(cards(m)) == ['myth-or-fact', 'would-you-rather'], 'filter: up to 10 min')
     m.select_option('[data-testid=f-duration]', 'any'); m.select_option('[data-testid=f-group]', '50+'); ok(sorted(cards(m)) == ['ego-check', 'myth-or-fact', 'would-you-rather'], 'filter: 50+ people')
@@ -57,7 +60,7 @@ with sync_playwright() as pw:
         p.close()
     # desktop + accessibility
     d = b.new_context(viewport={'width': 1280, 'height': 800}).new_page(); d.goto(BASE + '#/discover'); d.wait_for_selector('text=Less awkward meetings')
-    d.screenshot(path=f'{SHOTS}/2a_discover_1280.png'); ok(not d.is_visible('[data-testid=tabbar]'), 'desktop: top navigation, no bottom tab bar')
+    d.screenshot(path=f'{SHOTS}/2a_discover_1280.png'); ok(d.is_visible('[data-testid=hero-visual]'), 'desktop: product visual shown'); ok(not d.is_visible('[data-testid=tabbar]'), 'desktop: top navigation, no bottom tab bar')
     for path in ['#/discover', '#/x/ego-check', '#/play', '#/j']:
         d.goto(BASE + path); d.wait_for_timeout(600); v = axe(d); ok(not v, f'axe (serious/critical) {path}: {v or "none"}')
     ok(not errors, f'no page errors {errors[:2]}')
