@@ -172,8 +172,9 @@ describe('game language versions', () => {
       expect(validateExperience(v).errors, v.id).toEqual([]);
       expect(pts(v)).toEqual(pts(egoCheck));
       expect(v.results!.map(b => [b.min, b.max, b.tone, b.emoji])).toEqual(egoCheck.results!.map(b => [b.min, b.max, b.tone, b.emoji]));
-      expect(JSON.stringify(v)).not.toContain('autopilot');
+      expect(JSON.stringify(v)).not.toContain("Who's driving today"); // no untranslated English left
     }
+    for (const e of [egoCheck, ...VARIANTS]) expect(JSON.stringify(e).toLowerCase()).not.toMatch(/autopilot|pilote auto|طيار/);
   });
 });
 

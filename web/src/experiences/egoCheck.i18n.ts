@@ -13,7 +13,7 @@ interface Tr {
 }
 
 const de: Tr = {
-  title: 'Wer hat das Steuer?', tagline: 'Wer fährt heute: du oder dein Autopilot?',
+  title: 'Wer hat das Steuer?', tagline: 'Wer fährt heute: du oder dein Ego?',
   description: 'Zehn Alltagsmomente bei der Arbeit, je ein paar Sekunden. Geh mit deinem ersten Impuls und schau dann in einen privaten Spiegel: Sitzt du am Steuer, oder fahren deine Reflexe? Die Gruppe sieht nur einen anonymen Teamwert.',
   disclaimer: 'Ein augenzwinkerndes Reflexionsspiel, kein psychologischer Test und kein Leistungsinstrument. Gefühle zählen nie gegen dich, nur Reaktionen.',
   q: {
@@ -29,13 +29,13 @@ const de: Tr = {
     q10: ['Du bist dir 100 % sicher, aber das Team wählt eine andere Richtung.', ['Ich argumentiere weiter, bis das Meeting vorbei ist. ⏰', 'Ich sage meine Bedenken und ziehe dann voll mit.', 'Ich mache mit, warte aber heimlich auf mein «Hab ich doch gesagt».', 'Ich bleibe neugierig und helfe, dass es funktioniert.']],
   },
   results: [
-    ['Cool, ruhig und am Steuer!', 'Dein Autopilot macht ein Nickerchen auf dem Rücksitz. 😴 Du fährst. Weiter so!', 'Deine Antworten zeigen Neugier, Bescheidenheit und Offenheit, auch in Momenten, die wehtun.', 'Unser Team ist cool, ruhig und am Steuer!', 'Unsere Autopiloten schlafen. Wir entscheiden, wie wir reagieren. 😴'],
-    ['Du hast meistens die Kontrolle!', 'Ab und zu hupt dein Autopilot vom Rücksitz. 📯 Aber meistens behältst du das Steuer.', 'Die meisten deiner Reaktionen sind offen und kooperativ. Einige Situationen ziehen dich ins Verteidigen oder Beweisen, was sehr menschlich ist.', 'Wir haben meistens die Kontrolle!', 'Ein paar Hupen vom Rücksitz, aber wir behalten das Steuer. 📯'],
+    ['Cool, ruhig und am Steuer!', 'Dein Ego macht ein Nickerchen auf dem Rücksitz. 😴 Du fährst. Weiter so!', 'Deine Antworten zeigen Neugier, Bescheidenheit und Offenheit, auch in Momenten, die wehtun.', 'Unser Team ist cool, ruhig und am Steuer!', 'Unsere Egos schlafen. Wir entscheiden, wie wir reagieren. 😴'],
+    ['Du hast meistens die Kontrolle!', 'Ab und zu hupt dein Ego vom Rücksitz. 📯 Aber meistens behältst du das Steuer.', 'Die meisten deiner Reaktionen sind offen und kooperativ. Einige Situationen ziehen dich ins Verteidigen oder Beweisen, was sehr menschlich ist.', 'Wir haben meistens die Kontrolle!', 'Ein paar Hupen vom Rücksitz, aber wir behalten das Steuer. 📯'],
     ['Das Lama hat das Steuer übernommen!', 'In manchen Momenten übernimmt dein erster Reflex die Lenkung. Gute Nachricht: Lamas lassen sich umerziehen.', 'In mehreren Situationen hat dein erster Reflex deine Position oder deine Anerkennung geschützt. Das zu bemerken ist der schwierigste Teil, und das hast du gerade getan.', 'Das Team-Lama hat das Steuer übernommen!', 'Unsere Reflexe übernehmen ab und zu. Gut, dass wir es merken. 🦙'],
-    ['Autopilot mit Vollgas!', 'Deine schnellen Reflexe drehen Donuts auf dem Parkplatz. Zeit, das Steuer zurückzuholen. 😄', 'Heute haben deine schnellen Reaktionen eher verteidigt, überzeugt oder Anerkennung beansprucht. Das sagt mehr über schnelle Reflexe als darüber, wer du bist, und Reflexe kann man trainieren.', 'Unser Autopilot fährt mit Vollgas!', 'Unsere Reflexe sind viel gefahren. Holen wir uns das Steuer gemeinsam zurück. 🏎️'],
+    ['Ego mit Vollgas!', 'Deine schnellen Reflexe drehen Donuts auf dem Parkplatz. Zeit, das Steuer zurückzuholen. 😄', 'Heute haben deine schnellen Reaktionen eher verteidigt, überzeugt oder Anerkennung beansprucht. Das sagt mehr über schnelle Reflexe als darüber, wer du bist, und Reflexe kann man trainieren.', 'Unser Ego fährt mit Vollgas!', 'Unsere Reflexe sind viel gefahren. Holen wir uns das Steuer gemeinsam zurück. 🏎️'],
   ],
-  transitions: ['Ein paar Reflexe sind gerade aufgewacht … 👀', 'Der Spiegel hat das gesehen. 🪞', 'Hände ans Steuer, alle! 🚗', 'Warst das du oder dein Autopilot? 🤔', 'Grünes Licht, weiter geht\'s! 🚦', 'Kurz in den Rückspiegel schauen. 😏', 'Das Lama schaut zu. 🦙', 'Anschnallen, die nächste ist scharf. 🌶️', 'Niemand hat deine Antwort gesehen. Nur du. 🤫', 'Ziellinie! 🏁'],
-  closing: { questions: ['Wann übernimmt mein Autopilot das Steuer?', 'Wie kann ich es früher bemerken?', 'Was kann ich morgen anders machen?'], message: 'Reflexe sind menschlich. Lass sie nur nicht jedes Meeting fahren. 🚗💜' },
+  transitions: ['Ein paar Reflexe sind gerade aufgewacht … 👀', 'Der Spiegel hat das gesehen. 🪞', 'Hände ans Steuer, alle! 🚗', 'Warst das du oder dein Ego? 🤔', 'Grünes Licht, weiter geht\'s! 🚦', 'Kurz in den Rückspiegel schauen. 😏', 'Das Lama schaut zu. 🦙', 'Anschnallen, die nächste ist scharf. 🌶️', 'Niemand hat deine Antwort gesehen. Nur du. 🤫', 'Ziellinie! 🏁'],
+  closing: { questions: ['Wann übernimmt mein Ego das Steuer?', 'Wie kann ich es früher bemerken?', 'Was kann ich morgen anders machen?'], message: 'Reflexe sind menschlich. Lass sie nur nicht jedes Meeting fahren. 🚗💜' },
   defaultHabit: 'Frag im Meeting weiterhin: «Was übersehe ich?» So bleibst du am Steuer.',
   defaultChallenge: 'Frag diese Woche eine Kollegin oder einen Kollegen, wie du sie besser unterstützen kannst.',
   themes: {
@@ -53,7 +53,7 @@ const de: Tr = {
 };
 
 const fr: Tr = {
-  title: 'Qui est aux commandes ?', tagline: 'Qui conduit aujourd’hui : toi ou ton pilote automatique ?',
+  title: 'Qui est aux commandes ?', tagline: 'Qui conduit aujourd’hui : toi ou ton ego ?',
   description: 'Dix situations de travail du quotidien, quelques secondes chacune. Suis ton premier instinct, puis regarde-toi dans un miroir privé : es-tu au volant, ou tes réflexes conduisent-ils ? Le groupe ne voit qu’un score d’équipe anonyme.',
   disclaimer: 'Un jeu de réflexion avec humour, pas un test psychologique ni un outil d’évaluation. Les émotions ne comptent jamais contre toi, seules les réactions comptent.',
   q: {
@@ -69,13 +69,13 @@ const fr: Tr = {
     q10: ['Tu es sûr à 100 % d’avoir raison, mais l’équipe choisit une autre direction.', ['Je continue à argumenter jusqu’à la fin de la réunion. ⏰', 'Je partage mes doutes, puis je soutiens pleinement la décision.', 'Je suis le mouvement, mais j’attends en secret mon « je vous l’avais dit ».', 'Je reste curieux et j’aide à ce que ça marche.']],
   },
   results: [
-    ['Cool, calme et au volant !', 'Ton pilote automatique fait la sieste à l’arrière. 😴 C’est toi qui conduis. Continue comme ça !', 'Tes réponses montrent de la curiosité, de l’humilité et de l’ouverture, même dans les moments qui piquent.', 'Notre équipe est cool, calme et aux commandes !', 'Nos pilotes automatiques font la sieste. Nous choisissons comment réagir. 😴'],
-    ['Tu gardes presque toujours le contrôle !', 'De temps en temps, ton pilote automatique klaxonne depuis l’arrière. 📯 Mais tu gardes en général le volant.', 'La plupart de tes réactions sont ouvertes et coopératives. Quelques situations te poussent à te défendre ou à faire tes preuves, ce qui est très humain.', 'Nous gardons presque toujours le contrôle !', 'Quelques coups de klaxon à l’arrière, mais nous gardons le volant. 📯'],
+    ['Cool, calme et au volant !', 'Ton ego fait la sieste à l’arrière. 😴 C’est toi qui conduis. Continue comme ça !', 'Tes réponses montrent de la curiosité, de l’humilité et de l’ouverture, même dans les moments qui piquent.', 'Notre équipe est cool, calme et aux commandes !', 'Nos egos font la sieste. Nous choisissons comment réagir. 😴'],
+    ['Tu gardes presque toujours le contrôle !', 'De temps en temps, ton ego klaxonne depuis l’arrière. 📯 Mais tu gardes en général le volant.', 'La plupart de tes réactions sont ouvertes et coopératives. Quelques situations te poussent à te défendre ou à faire tes preuves, ce qui est très humain.', 'Nous gardons presque toujours le contrôle !', 'Quelques coups de klaxon à l’arrière, mais nous gardons le volant. 📯'],
     ['Le lama a pris le volant !', 'Dans certains moments, ton premier réflexe prend la direction. Bonne nouvelle : les lamas se rééduquent.', 'Dans plusieurs situations, ton premier réflexe a protégé ta position ou ta reconnaissance. Le remarquer est le plus difficile, et tu viens de le faire.', 'Le lama de l’équipe a pris le volant !', 'Nos réflexes prennent parfois le dessus. Heureusement qu’on le remarque. 🦙'],
-    ['Pilote automatique à fond !', 'Tes réflexes rapides font des dérapages sur le parking. Il est temps de reprendre le volant. 😄', 'Aujourd’hui, tes réactions rapides ont plutôt défendu, convaincu ou revendiqué le mérite. Cela en dit plus sur des réflexes rapides que sur qui tu es, et les réflexes s’entraînent.', 'Notre pilote automatique est à fond !', 'Nos réflexes ont beaucoup conduit. Reprenons le volant ensemble. 🏎️'],
+    ['Ego à fond !', 'Tes réflexes rapides font des dérapages sur le parking. Il est temps de reprendre le volant. 😄', 'Aujourd’hui, tes réactions rapides ont plutôt défendu, convaincu ou revendiqué le mérite. Cela en dit plus sur des réflexes rapides que sur qui tu es, et les réflexes s’entraînent.', 'Notre ego est à fond !', 'Nos réflexes ont beaucoup conduit. Reprenons le volant ensemble. 🏎️'],
   ],
-  transitions: ['Quelques réflexes viennent de se réveiller… 👀', 'Le miroir a tout vu. 🪞', 'Les mains sur le volant, tout le monde ! 🚗', 'C’était toi ou ton pilote automatique ? 🤔', 'Feu vert, on continue ! 🚦', 'Un petit coup d’œil dans le rétroviseur. 😏', 'Le lama vous regarde. 🦙', 'Attachez vos ceintures, celle-ci est épicée. 🌶️', 'Personne n’a vu ta réponse. Seulement toi. 🤫', 'Ligne d’arrivée ! 🏁'],
-  closing: { questions: ['Quand mon pilote automatique prend-il le volant ?', 'Comment le remarquer plus tôt ?', 'Que puis-je faire autrement demain ?'], message: 'Les réflexes sont humains. Ne les laisse simplement pas conduire chaque réunion. 🚗💜' },
+  transitions: ['Quelques réflexes viennent de se réveiller… 👀', 'Le miroir a tout vu. 🪞', 'Les mains sur le volant, tout le monde ! 🚗', 'C’était toi ou ton ego ? 🤔', 'Feu vert, on continue ! 🚦', 'Un petit coup d’œil dans le rétroviseur. 😏', 'Le lama vous regarde. 🦙', 'Attachez vos ceintures, celle-ci est épicée. 🌶️', 'Personne n’a vu ta réponse. Seulement toi. 🤫', 'Ligne d’arrivée ! 🏁'],
+  closing: { questions: ['Quand mon ego prend-il le volant ?', 'Comment le remarquer plus tôt ?', 'Que puis-je faire autrement demain ?'], message: 'Les réflexes sont humains. Ne les laisse simplement pas conduire chaque réunion. 🚗💜' },
   defaultHabit: 'Continue à demander « qu’est-ce que je rate ? » en réunion. Ça te garde au volant.',
   defaultChallenge: 'Demande cette semaine à un collègue comment tu pourrais mieux le soutenir.',
   themes: {
@@ -93,7 +93,7 @@ const fr: Tr = {
 };
 
 const ar: Tr = {
-  title: 'من يمسك المقود؟', tagline: 'من يقود اليوم: أنت أم طيارك الآلي؟',
+  title: 'من يمسك المقود؟', tagline: 'من يقود اليوم: أنت أم الأنا لديك؟',
   description: 'عشرة مواقف يومية في العمل، لكلٍّ منها بضع ثوانٍ. اتبع حدسك الأول، ثم انظر في مرآة خاصة: هل أنت خلف المقود، أم أن ردود فعلك هي التي تقود؟ لا ترى المجموعة إلا نتيجة جماعية مجهولة الهوية.',
   disclaimer: 'لعبة تأمل خفيفة الظل، وليست اختبارًا نفسيًا ولا أداة لتقييم الأداء. المشاعر لا تُحسب ضدك أبدًا، وحدها ردود الفعل تُحسب.',
   q: {
@@ -109,13 +109,13 @@ const ar: Tr = {
     q10: ['أنت متأكد مئة بالمئة أنك على حق، لكن الفريق يختار اتجاهًا آخر.', ['أواصل الجدال حتى ينتهي الاجتماع. ⏰', 'أعبّر عن مخاوفي، ثم أدعم القرار بالكامل.', 'أوافق، لكنني أنتظر سرًا لحظة «ألم أقل لكم؟».', 'أبقى فضوليًا وأساعد على إنجاحه.']],
   },
   results: [
-    ['هادئ ورائق وخلف المقود!', 'طيارك الآلي يأخذ قيلولة في المقعد الخلفي. 😴 أنت من يقود. استمر هكذا!', 'تُظهر إجاباتك فضولًا وتواضعًا وانفتاحًا، حتى في اللحظات المؤلمة.', 'فريقنا هادئ ورائق وممسك بالمقود!', 'طيّاراتنا الآلية نائمة. نحن من يختار كيف نتصرف. 😴'],
-    ['أنت ممسك بالمقود في معظم الأحيان!', 'من حين لآخر يطلق طيارك الآلي البوق من المقعد الخلفي. 📯 لكنك غالبًا تحتفظ بالمقود.', 'معظم ردود فعلك منفتحة وتعاونية. بعض المواقف تدفعك إلى الدفاع عن نفسك أو إثبات ذاتك، وهذا أمر إنساني جدًا.', 'نحن ممسكون بالمقود في معظم الأحيان!', 'بضع أبواق من المقعد الخلفي، لكننا نحتفظ بالمقود. 📯'],
+    ['هادئ ورائق وخلف المقود!', 'الأنا لديك يأخذ قيلولة في المقعد الخلفي. 😴 أنت من يقود. استمر هكذا!', 'تُظهر إجاباتك فضولًا وتواضعًا وانفتاحًا، حتى في اللحظات المؤلمة.', 'فريقنا هادئ ورائق وممسك بالمقود!', 'الأنا لدينا نائم. نحن من يختار كيف نتصرف. 😴'],
+    ['أنت ممسك بالمقود في معظم الأحيان!', 'من حين لآخر يطلق الأنا لديك البوق من المقعد الخلفي. 📯 لكنك غالبًا تحتفظ بالمقود.', 'معظم ردود فعلك منفتحة وتعاونية. بعض المواقف تدفعك إلى الدفاع عن نفسك أو إثبات ذاتك، وهذا أمر إنساني جدًا.', 'نحن ممسكون بالمقود في معظم الأحيان!', 'بضع أبواق من المقعد الخلفي، لكننا نحتفظ بالمقود. 📯'],
     ['اللاما أمسكت بالمقود!', 'في بعض اللحظات تتولى ردة فعلك الأولى القيادة. الخبر الجيد: يمكن إعادة تدريب اللاما.', 'في عدة مواقف حمت ردة فعلك الأولى موقعك أو التقدير الذي تستحقه. ملاحظة ذلك هي أصعب جزء، وقد فعلته للتو.', 'لاما الفريق أمسكت بالمقود!', 'ردود فعلنا تتولى القيادة أحيانًا. من الجيد أننا ننتبه لذلك. 🦙'],
-    ['الطيار الآلي بأقصى سرعة!', 'ردود فعلك السريعة تقوم بالدوران في موقف السيارات. حان وقت استعادة المقود. 😄', 'اليوم مالت ردود فعلك السريعة إلى الدفاع أو الإقناع أو المطالبة بالتقدير. هذا يقول عن سرعة ردود الفعل أكثر مما يقول عن حقيقتك، وردود الفعل يمكن تدريبها.', 'طيارنا الآلي بأقصى سرعة!', 'ردود فعلنا قادت كثيرًا. لنستعد المقود معًا. 🏎️'],
+    ['الأنا بأقصى سرعة!', 'ردود فعلك السريعة تقوم بالدوران في موقف السيارات. حان وقت استعادة المقود. 😄', 'اليوم مالت ردود فعلك السريعة إلى الدفاع أو الإقناع أو المطالبة بالتقدير. هذا يقول عن سرعة ردود الفعل أكثر مما يقول عن حقيقتك، وردود الفعل يمكن تدريبها.', 'الأنا لدينا بأقصى سرعة!', 'ردود فعلنا قادت كثيرًا. لنستعد المقود معًا. 🏎️'],
   ],
-  transitions: ['بعض ردود الفعل استيقظت للتو… 👀', 'المرآة رأت ذلك. 🪞', 'الأيدي على المقود يا جماعة! 🚗', 'هل كان ذلك أنت أم طيارك الآلي؟ 🤔', 'الإشارة خضراء، لنكمل! 🚦', 'نظرة سريعة في المرآة الخلفية. 😏', 'اللاما تراقب. 🦙', 'اربطوا الأحزمة، السؤال القادم حار. 🌶️', 'لم يرَ أحد إجابتك. أنت فقط. 🤫', 'خط النهاية! 🏁'],
-  closing: { questions: ['متى يمسك طياري الآلي بالمقود؟', 'كيف ألاحظ ذلك في وقت أبكر؟', 'ماذا يمكنني أن أفعل بشكل مختلف غدًا؟'], message: 'ردود الفعل أمر إنساني. فقط لا تدعها تقود كل اجتماع. 🚗💜' },
+  transitions: ['بعض ردود الفعل استيقظت للتو… 👀', 'المرآة رأت ذلك. 🪞', 'الأيدي على المقود يا جماعة! 🚗', 'هل كان ذلك أنت أم الأنا لديك؟ 🤔', 'الإشارة خضراء، لنكمل! 🚦', 'نظرة سريعة في المرآة الخلفية. 😏', 'اللاما تراقب. 🦙', 'اربطوا الأحزمة، السؤال القادم حار. 🌶️', 'لم يرَ أحد إجابتك. أنت فقط. 🤫', 'خط النهاية! 🏁'],
+  closing: { questions: ['متى يمسك الأنا لديّ بالمقود؟', 'كيف ألاحظ ذلك في وقت أبكر؟', 'ماذا يمكنني أن أفعل بشكل مختلف غدًا؟'], message: 'ردود الفعل أمر إنساني. فقط لا تدعها تقود كل اجتماع. 🚗💜' },
   defaultHabit: 'واصل السؤال في الاجتماعات: «ما الذي يفوتني؟» هكذا تبقى خلف المقود.',
   defaultChallenge: 'اسأل زميلًا هذا الأسبوع كيف يمكنك دعمه بشكل أفضل.',
   themes: {
