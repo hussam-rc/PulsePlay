@@ -39,6 +39,15 @@ with sync_playwright() as pw:
     d.click('[data-testid=create-from-template]'); d.wait_for_selector('[data-testid=checker]')
     ok('Ready to publish' in d.inner_text('[data-testid=checker]') and d.locator('[data-testid=question]').count() == 4, 'use: editor opens with the template, 4 questions, ready to publish')
     ok(d.input_value('[data-testid=b-title]') == 'Team Pulse', 'use: template title prefilled')
+    # live phone preview beside the editor
+    ok(d.inner_text('[data-testid=preview-prompt]') == 'How energised do you feel this week?', 'preview: shows question 1 as on a phone')
+    q2 = d.locator('[data-testid=question]').nth(1)
+    q2.locator('[data-testid=q-prompt]').click()
+    ok(d.inner_text('[data-testid=preview-index]') == '2/4' and 'spend more time' in d.inner_text('[data-testid=preview-prompt]'), 'preview: follows the question being edited')
+    q2.locator('[data-testid=q-prompt]').fill('What should we try next month?')
+    ok(d.inner_text('[data-testid=preview-prompt]') == 'What should we try next month?', 'preview: updates while typing')
+    d.click('[data-testid=phone-preview] button[aria-label="Next question"]'); ok(d.inner_text('[data-testid=preview-index]') == '3/4', 'preview: arrows step through questions')
+    ok('correct' not in d.inner_text('[data-testid=phone-preview]').lower().replace('the correct answer before', ''), 'preview: no points or correct answers shown')
     # edit the first question and publish
     d.fill('[data-testid=b-title]', 'Our Team Pulse'); d.wait_for_timeout(1500)
     d.click('[data-testid=publish]'); d.wait_for_selector('[data-testid=msg]', timeout=10000)
