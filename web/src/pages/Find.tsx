@@ -59,7 +59,7 @@ export function Find() {
               return (
                 <li key={r.id} className={`card overflow-hidden anim-in ${i === 0 ? 'ring-2 ring-violet-500' : ''}`} style={{ animationDelay: `${i * 90}ms` }} data-testid={`rec-${r.id}`}>
                   <div className={`bg-gradient-to-br ${m?.tone} text-white px-5 py-4 flex items-center gap-4`}>
-                    <span className="text-4xl" aria-hidden>{e.emoji}</span>
+                    <span className="text-4xl" aria-hidden>{m?.icon ?? e.emoji}</span>
                     <div className="min-w-0 flex-1"><span className="chip bg-white/20 text-white text-xs">{i === 0 ? '🏅 ' + t('fx.best') : t('fx.alt')}</span>
                       <h2 className="text-2xl font-extrabold mt-1" dir="auto">{le.title}</h2></div>
                   </div>
