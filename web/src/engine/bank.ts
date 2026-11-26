@@ -116,7 +116,8 @@ export function sessionExperience<E extends Experience>(e: E, opts: { n?: number
   const strategy = opts.strategy ?? strategyOf(e), n = opts.n ?? defaultLength(e, strategy);
   if (!n) return e;
   const random = opts.seed != null ? seeded(hash(opts.seed)) : undefined;
-  return applySelection(e, selectActivities(e, n, { strategy, recency: opts.recency, random }), strategy);
+  try { return applySelection(e, selectActivities(e, n, { strategy, recency: opts.recency, random }), strategy); }
+  catch { return e; } // e.g. an unfinished draft whose required questions exceed the length: preview it whole
 }
 
 export interface DurationInput { questions: number; readSec: number; answerSec: number; reveal: Experience['reveal']; scored: boolean; autoAdvanceSec?: number }

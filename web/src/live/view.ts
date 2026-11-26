@@ -13,7 +13,8 @@ export interface View {
   now: number; code: string; stage: 'lobby' | 'intro' | 'activity' | 'results' | 'group' | 'closing'; index: number;
   phase?: 'read' | 'answer' | 'reveal'; phaseAt: number; deadline?: number; paused: boolean; pausedRemaining?: number;
   seq: number; total: number; joined: number; answered?: number; timing?: { readSec: number; answerSec: number };
-  settings: { leaderboard: boolean; autoAdvanceSec?: number };
+  settings: { leaderboard: boolean; autoAdvanceSec?: number; readSec?: number; answerSec?: number };
+  selection?: { strategy: string; count: number; bankSize: number };
   experience: Pick<Experience, 'id' | 'title' | 'tagline' | 'emoji' | 'disclaimer' | 'privacy' | 'reveal' | 'defaultTiming' | 'transitions' | 'closing' | 'results' | 'insights'> & { scoringKind: Experience['scoring']['kind'] };
   activity?: PublicActivity;
   reveal?: { distribution: Distribution; correct?: string; explanation?: string };
