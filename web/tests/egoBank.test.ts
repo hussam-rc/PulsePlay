@@ -56,4 +56,28 @@ describe('Who is in Control? v2 draft bank', () => {
     expect(r.habit).toBe(e.insights!.themes.recognition.habit);
     expect(r.challenge).toBe(e.insights!.themes.recognition.challenge);
   });
+
+  // Content-quality guards (see docs/EGO_BANK_QUALITY_REPORT.md): the wording must not reveal the scoring.
+  const lvl = (q: typeof BANK_EN[number], p: number) => q.options.find(o => o.points === p)!.text;
+  const first = (t: string) => t.split(/[\s,;:]/)[0].toLowerCase();
+  it('no opening word gives away a level (at most 20% of answers at any level)', () => {
+    for (const p of [0, 1, 2, 3]) {
+      const m: Record<string, number> = {};
+      for (const q of BANK_EN) m[first(lvl(q, p))] = (m[first(lvl(q, p))] ?? 0) + 1;
+      expect(Math.max(...Object.values(m)) / BANK_EN.length).toBeLessThanOrEqual(0.2);
+    }
+  });
+  it('answer length gives nothing away (level averages within 6 characters)', () => {
+    const avg = [0, 1, 2, 3].map(p => BANK_EN.reduce((s, q) => s + lvl(q, p).length, 0) / BANK_EN.length);
+    expect(Math.max(...avg) - Math.min(...avg)).toBeLessThanOrEqual(6);
+  });
+  it('feelings are never scored: no feeling words in 2- or 3-point answers', () => {
+    const FEEL = /\b(feel|feels|felt|upset|hurt|annoyed|disappointed|irritated|sting)\b/i;
+    for (const q of BANK_EN) for (const p of [2, 3]) expect(lvl(q, p)).not.toMatch(FEEL);
+  });
+  it('every answer in the bank is distinct', () => {
+    const t = BANK_EN.flatMap(q => q.options.map(o => o.text.toLowerCase()));
+    expect(new Set(t).size).toBe(t.length);
+  });
 });
+
