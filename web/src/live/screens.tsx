@@ -193,7 +193,7 @@ function MyResult({ v, my, seed, revealed, onReveal }: { v: View; my: MyState; s
   if (gone) return <p className="card p-6 text-center" role="status">{t('keep.deleted')}</p>;
   if (!revealed) return <button className="w-full grid gap-3 place-items-center py-12 text-center" onClick={onReveal} data-testid="reveal"><span className="text-7xl anim-pulse" aria-hidden>🪞</span><span className="text-2xl font-extrabold">{t('phone.ready')}</span><span className="text-ink-soft">{t('phone.tap')}</span></button>;
   return <div className="grid gap-3">
-    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
+    <ResultCard r={r} disclaimer={e.disclaimer} showScore={v.snapshot?.scoring.showScore ?? true} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
     {my.boardName && <p className="text-sm text-center text-ink-soft">{t('phone.onBoard', { name: my.boardName })}</p>}
     {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm">{e.closing.questions.map((q, i) => <p key={i} dir="auto">{i + 1}. {q}</p>)}</div>}
   </div>;

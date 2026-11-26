@@ -38,4 +38,54 @@ for (const n of [10, 15, 20]) {
   }
   out.push('');
 }
+// ---------- Feedback coherence (scoring v2) ----------
+type Combo = { name: string; target?: string[]; pick: (dim: string, r: () => number) => number };
+const COMBOS: Combo[] = [
+  { name: 'Strongly reflective', pick: () => 0 },
+  { name: 'Healthy confidence', pick: () => 1 },
+  { name: 'Realistic mix', pick: weighted([35, 35, 20, 10]) },
+  { name: 'Defensive (all 2)', pick: () => 2 },
+  { name: 'Strongly ego-driven', pick: () => 3 },
+  { name: 'Ego in recognition only', target: ['recognition'], pick: d => (d === 'recognition' ? 3 : 0) },
+  { name: 'Self-protective in feedback + collaboration', target: ['feedback', 'collaboration'], pick: d => (d === 'feedback' || d === 'collaboration' ? 2 : weighted([1, 1, 0, 0])(d, Math.random)) },
+  { name: 'Confident, but ego in humility', target: ['humility'], pick: d => (d === 'humility' ? 3 : 1) },
+  { name: 'Uniform random', pick: weighted([1, 1, 1, 1]) },
+];
+out.push('# Feedback coherence (scoring v2)', '',
+  'Per pattern and game length, over 1,000 simulated players on fresh balanced selections:',
+  '- "≥1 strength" and the reflection mix (pattern / single situation / none).',
+  '- "Hits target": share of reflections naming one of the dimensions the pattern was built to stress.',
+  '- "Incoherent": count of feedback that contradicts the answers. It should be 0. It counts:',
+  '  - a reflection without any 2-3 point answer',
+  '  - a single situation without a 3-point answer',
+  '  - a pattern based on fewer than 2 answers',
+  '  - a strength in a dimension with a 2-3 point answer',
+  '  - the same dimension named as a strength and as the reflection', '');
+for (const n of [10, 15, 20]) {
+  out.push(`## ${n} questions`, '', '| Pattern | Category (most common) | ≥1 strength | Pattern | Single situation | Nothing to reflect on | Hits target | Incoherent |', '|---|---|---:|---:|---:|---:|---:|---:|');
+  for (const c of COMBOS) {
+    let st = 0, pat = 0, mom = 0, none = 0, hit = 0, bad = 0; const cat: Record<string, number> = {};
+    for (let k = 0; k < RUNS; k++) {
+      const r = rng(hash(`fb-${c.name}-${n}-${k}`));
+      const acts = selectActivities(e, n, { random: r }) as any[];
+      const levels: Record<string, number> = {};
+      const answers = Object.fromEntries(acts.map(a => { const l = c.pick(a.dimension, r); levels[a.id] = l; return [a.id, a.options.find((o: any) => o.points === l).id]; }));
+      const res = personalResult({ ...e, rounds: [{ id: 'main', activities: acts }] }, answers); const f = res.feedback!;
+      cat[res.band!.emoji] = (cat[res.band!.emoji] ?? 0) + 1;
+      if (f.strengths.length) st++;
+      const ref = f.reflection; if (!ref) none++; else if (ref.kind === 'pattern') pat++; else mom++;
+      if (ref && c.target?.includes(ref.theme)) hit++;
+      const inDim = (d: string) => acts.filter(a => a.dimension === d).map(a => levels[a.id]);
+      if (ref && !Object.values(levels).some(l => l >= 2)) bad++;
+      if (ref?.kind === 'moment' && levels[ref.activityId] !== 3) bad++;
+      if (ref?.kind === 'pattern' && inDim(ref.theme).filter(l => l >= 2).length < 2) bad++;
+      if (f.strengths.some(s => inDim(s.theme).some(l => l >= 2))) bad++;
+      if (f.strengths.some(s => s.theme === ref?.theme)) bad++;
+    }
+    const top = Object.entries(cat).sort((a, b) => b[1] - a[1])[0];
+    const p = (x: number) => `${Math.round((100 * x) / RUNS)}%`;
+    out.push(`| ${c.name} | ${top[0]} ${p(top[1])} | ${p(st)} | ${p(pat)} | ${p(mom)} | ${p(none)} | ${c.target ? p(hit) : '–'} | ${bad} |`);
+  }
+  out.push('');
+}
 console.log(out.join('\n'));

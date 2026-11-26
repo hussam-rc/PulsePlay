@@ -92,7 +92,13 @@ export const Experience = z.object({
   defaultTiming: Timing,
   reveal: z.enum(['none', 'distribution', 'correct']),
   privacy: z.object({ individualResults: z.boolean(), groupMinimum: z.number().int().min(3).max(50), retainResponses: z.boolean() }),
-  scoring: z.object({ kind: z.enum(['behaviour', 'correct', 'aggregate', 'none']), minAnsweredRatio: z.number().min(0).max(1).default(0.7) }),
+  scoring: z.object({
+    kind: z.enum(['behaviour', 'correct', 'aggregate', 'none']), minAnsweredRatio: z.number().min(0).max(1).default(0.7),
+    /** 1 = original results. 2 = evidence-based feedback (strengths, reflection, one challenge). Scores of different versions are never compared. */
+    version: z.union([z.literal(1), z.literal(2)]).optional(),
+    /** Show the numeric 0-100 game score on the personal result (v2). Default true. */
+    showScore: z.boolean().optional(),
+  }),
   results: z.array(ResultBand).optional(),
   insights: z.object({ themes: z.record(Theme), defaultHabit: text(200), defaultChallenge: text(200) }).optional(),
   transitions: z.array(text(120)).optional(),

@@ -2,6 +2,7 @@
 import type { Experience, Activity, ResultBand } from './schema';
 import { flatActivities } from './util';
 import { hash } from './random';
+import { feedbackV2, scoringVersion, type FeedbackV2 } from './feedback';
 
 /** A response is an option id (choice/poll), a number (scale), a string (reflection, never aggregated) or null (missed). */
 export type ResponseValue = string | number | null;
@@ -18,6 +19,9 @@ export interface PersonalResult {
   observations: Observation[];
   habit?: string;
   challenge?: string;
+  /** Scoring v2 only: evidence-based feedback. v1 results never have it. */
+  feedback?: FeedbackV2;
+  scoringVersion: number;
 }
 
 const scoredActivities = (e: Experience) => flatActivities(e).filter(a => a.type === 'choice');
@@ -46,7 +50,7 @@ export function personalResult(e: Experience, responses: Responses, seed = ''): 
     score = total ? Math.round((100 * correct) / total) : null; // missed questions count as not correct
   }
   const band = score == null ? null : bandFor(e.results ?? [], score);
-  const r: PersonalResult = { answered, total, valid, score, band, correct, observations: [] };
+  const r: PersonalResult = { answered, total, valid, score, band, correct, observations: [], scoringVersion: scoringVersion(e) };
 
   if (e.insights && e.scoring.kind === 'behaviour') {
     const themes = e.insights.themes, rot = hash(seed) % Math.max(1, per.length);
@@ -64,6 +68,10 @@ export function personalResult(e: Experience, responses: Responses, seed = ''): 
     const focus = growth[0];
     r.habit = focus ? themes[focus].habit : e.insights.defaultHabit;
     r.challenge = focus ? themes[focus].challenge : strengths[0] ? themes[strengths[0]].challenge : e.insights.defaultChallenge;
+  }
+  if (scoringVersion(e) === 2 && e.scoring.kind === 'behaviour' && valid) {
+    r.feedback = feedbackV2(e, responses);
+    r.challenge = r.feedback.challenge.text; r.habit = undefined; // v2 gives exactly one practical action
   }
   return r;
 }

@@ -160,15 +160,15 @@ export const BANK_EN = [
 
 export const INSIGHTS_EN: NonNullable<Experience['insights']> = {
   themes: {
-    'self-awareness': { label: 'Self-awareness', strength: 'You notice your own reactions and can name them.', growth: 'Your own patterns can be hard to spot in the moment.', habit: 'After a tense moment, ask yourself: what did I just protect?', challenge: 'Ask one colleague: "What do I do that I might not notice?"' },
-    feedback: { label: 'Feedback', strength: 'You stay curious when your work is criticised.', growth: 'Criticism can switch you into defending quickly.', habit: 'When feedback comes, ask one question before you answer.', challenge: 'Ask for one piece of honest feedback this week, and only listen.' },
-    recognition: { label: 'Recognition', strength: 'You can enjoy shared success without keeping score.', growth: 'Being overlooked can stay with you for a while.', habit: 'Name a colleague\'s contribution out loud each week.', challenge: 'Ask for recognition once, openly and calmly, instead of hoping for it.' },
-    collaboration: { label: 'Collaboration', strength: 'You let go of control when the team needs it.', growth: 'Letting others do it their way takes real effort.', habit: 'Before stepping in, ask: does this need my way, or just a good way?', challenge: 'Hand over one task this week and do not correct it.' },
-    humility: { label: 'Learning', strength: 'You learn from anyone, whatever their title or age.', growth: 'Not knowing can feel like losing face.', habit: 'Practise "I don\'t know yet, I\'ll find out."', challenge: 'Ask a younger or newer colleague to teach you one thing.' },
-    empathy: { label: 'Empathy', strength: 'You notice how others feel and respond with care.', growth: 'Under pressure, other people\'s feelings can slip out of view.', habit: 'In tense moments, name the other person\'s feeling before the facts.', challenge: 'Check in privately with someone who seemed off this week.' },
+    'self-awareness': { label: 'Self-awareness', strength: 'You notice your own reactions and can name them.', growth: 'Your own patterns can be hard to spot in the moment.', habit: 'After a tense moment, ask yourself: what did I just protect?', challenge: 'Next time you get something wrong, acknowledge it without immediately explaining it.' },
+    feedback: { label: 'Feedback', strength: 'You stay curious when your work is criticised.', growth: 'Criticism can switch you into defending quickly.', habit: 'When feedback comes, ask one question before you answer.', challenge: 'Ask one more question before you defend your opinion.' },
+    recognition: { label: 'Recognition', strength: 'You can enjoy shared success without keeping score.', growth: 'Being overlooked can stay with you for a while.', habit: 'Name a colleague\'s contribution out loud each week.', challenge: 'Give someone else recognition for their contribution, out loud.' },
+    collaboration: { label: 'Collaboration', strength: 'You let go of control when the team needs it.', growth: 'Letting others do it their way takes real effort.', habit: 'Before stepping in, ask: does this need my way, or just a good way?', challenge: 'Let one teammate do a task their way tomorrow, and don\'t correct it.' },
+    humility: { label: 'Learning', strength: 'You learn from anyone, whatever their title or age.', growth: 'Not knowing can feel like losing face.', habit: 'Practise "I don\'t know yet, I\'ll find out."', challenge: 'Invite a colleague to challenge one of your assumptions.' },
+    empathy: { label: 'Empathy', strength: 'You notice how others feel and respond with care.', growth: 'Under pressure, other people\'s feelings can slip out of view.', habit: 'In tense moments, name the other person\'s feeling before the facts.', challenge: 'Before your next tense reply, name what the other person might be feeling.' },
   },
   defaultHabit: 'Keep asking "what am I missing?" in meetings. It keeps you in the driver\'s seat.',
-  defaultChallenge: 'Ask one colleague how you could support them better this week.',
+  defaultChallenge: 'Tomorrow, ask one colleague: "What am I missing?"',
 };
 
 export const RESULTS_EN: NonNullable<Experience['results']> = [
