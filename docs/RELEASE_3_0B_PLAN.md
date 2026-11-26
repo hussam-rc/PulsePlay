@@ -1,6 +1,14 @@
 # Release 3.0B plan: Who is in Control? with 60 questions
 
-Status: **plan, not built.** Nothing here changes production. Content and scoring changes ship as new immutable versions after review.
+Status: **English bank drafted for review** (`docs/EGO_BANK_REVIEW.md`, simulation in `docs/EGO_BANK_SIMULATION.md`). Nothing here changes production. Content and scoring changes ship as new immutable versions after review.
+
+## Decisions so far (26 Nov)
+- **Approved:**
+  - the 60-question bank across six dimensions
+  - the tone direction
+  - EN first, then DE / FR / AR via versioned publishing
+- **Score:** keep the 0–100 score as an anonymous **Ego Driving Score**, labelled as a game-based reflection score, not a psychological measurement. Results presentation becomes configurable (below).
+- **Not yet approved:** the final question wording and the scoring rubric, which need review before publishing. Production scoring stays unchanged until the revised model is tested and approved.
 
 ## 1. What the 25 Nov game tells us (44 joined, 43 completed, average 9/100)
 
@@ -58,7 +66,30 @@ Six draft items to agree the tone before all 60 are written:
 6. **empathy**: *A colleague snaps at you during a stressful deadline.*
    0 Ask later if they're OK · 1 Tell them calmly it didn't feel good · 2 Keep your distance for a few days · 3 Snap back, it's only fair
 
-## 4. Scoring review (current model stays live until you approve a new one)
+## 4. Scoring and results presentation (current model stays live until you approve a new one)
+
+Configurable presentation (scoring version 2):
+
+| Personal (own phone only) | Company (shared screen and report) |
+|---|---|
+| Friendly category + clear interpretation | Anonymous average **Ego Driving Score** |
+| Two insights: a strength **and** the strongest growth area when any answer scored 3 | Group interpretation (category text) |
+| Optional number (host setting, default on), labelled "game reflection score" | Number of completed participants |
+| One practical reflection challenge | Privacy threshold (≥ 5 valid results; band breakdown ≥ 10) |
+| | Never individual scores or rankings |
+
+Versioning:
+- Every snapshot and session summary records `scoring.version`.
+- Reports show a version label and never average or compare across versions.
+- v1 sessions stay v1.
+
+Simulation finding (`docs/EGO_BANK_SIMULATION.md`):
+- Fixed patterns land in the same category on any selection, at 10, 15 and 20 questions.
+- Healthy confidence always lands in 😎.
+- A realistic mix lands in the same category 78% / 85% / 89% of the time at 10 / 15 / 20 questions.
+- A strong reflex in one area does not move the category. Today's insight rules then show two strengths and no growth line; the v2 rule above fixes that.
+
+Earlier analysis:
 
 Current model: points ÷ maximum of answered questions → 0–100 → four bands (0–25, 26–50, 51–75, 76–100); valid if ≥ 70% answered. It already works for any length and ignores unanswered questions.
 
