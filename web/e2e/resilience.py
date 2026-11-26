@@ -8,7 +8,7 @@ def ok(c, m): results.append((c, m)); print(('PASS ' if c else 'FAIL ') + m, flu
 with sync_playwright() as pw:
     b = pw.chromium.launch()
     h = b.new_context(viewport={'width': 1366, 'height': 860}).new_page()
-    h.goto(BASE + '#/host/would-you-rather'); h.wait_for_selector('[data-testid=create]'); h.select_option('#answer', '20')
+    h.goto(BASE + '#/host/would-you-rather'); h.wait_for_selector('[data-testid=create]'); h.select_option('#answer', '12')
     h.click('[data-testid=create]'); h.wait_for_selector('[data-testid=room-code]', timeout=10000); code = h.inner_text('[data-testid=room-code]').replace(' ', '')
     phones = []
     for i in range(3):

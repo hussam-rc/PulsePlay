@@ -13,10 +13,18 @@ import type { Experience } from '../engine/schema';
 import { api, isUuid, useAuth } from '../live/workspace';
 import { validateExperience } from '../engine/schema';
 import { SignIn } from './Workspace';
+import { lengthOptions, defaultLength, strategyOf, strategiesFor, estimateMinutes, type Strategy } from '../engine/bank';
 import { BrandBar, useRoomBrand } from '../ui/Brand';
 function RoomBrandBar({ code }: { code: string }) { return <BrandBar brand={useRoomBrand(code)} />; }
 
-const READS = [3, 4, 5, 8], ANSWERS = [5, 8, 12, 15, 20, 30], AUTO = [0, 5, 8, 12];
+const READS = [5, 8, 10], ANSWERS = [3, 5, 8, 12], AUTO = [0, 5, 8, 12];
+const withDefault = (xs: number[], d: number) => [...new Set([...xs, d])].sort((a, b) => a - b);
+type K = Parameters<typeof t>[0];
+const LENGTH_LABEL: Record<number, [string, K]> = { 10: ['⚡', 'qb.quick'], 15: ['🎯', 'qb.standard'], 20: ['🚀', 'qb.extended'] };
+const RECENT_KEY = (id: string) => `pp_recent_q:${id}`;
+/** The host's own recent selections for this game, on this device only (repeat avoidance for hosts without an account). */
+function recentSelections(id: string): string[][] { try { const v = JSON.parse(localStorage.getItem(RECENT_KEY(id)) ?? '[]'); return Array.isArray(v) ? v.slice(0, 5) : []; } catch { return []; } }
+function rememberSelection(id: string, ids: string[]) { try { localStorage.setItem(RECENT_KEY(id), JSON.stringify([ids, ...recentSelections(id)].slice(0, 5))); } catch { /* ignore */ } }
 const LANG_NAME: Record<string, string> = { en: 'English', de: 'Deutsch', fr: 'Français', ar: 'العربية' };
 
 export const joinUrlFor = (code: string) => `${location.origin}${location.pathname}#/j/${code}`;
@@ -52,6 +60,11 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
   const [ans, setAns] = useState(e?.defaultTiming.answerSec ?? 5);
   const [auto, setAuto] = useState(0);
   const [board, setBoard] = useState(false);
+  const [strategy, setStrategy] = useState<Strategy>(strategyOf(e));
+  const lengths = lengthOptions(e, strategy);
+  const [count, setCount] = useState(defaultLength(e, strategy));
+  const n = lengths.some(o => o.available && o.n === count) ? count : defaultLength(e, strategy);
+  const minutes = estimateMinutes({ questions: n, readSec: read, answerSec: ans, reveal: e.reveal, scored: e.scoring.kind === 'behaviour' || e.scoring.kind === 'correct', autoAdvanceSec: auto || undefined });
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -66,10 +79,12 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
   const create = async () => {
     setBusy(true); setErr('');
     try {
-      const settings: Record<string, unknown> = { readSec: read, answerSec: ans };
+      const settings: Record<string, unknown> = { readSec: read, answerSec: ans, questions: n, selection: strategy };
+      if (strategy !== 'fixed') settings.recent = recentSelections(expKey);
       if (auto) settings.autoAdvanceSec = auto;
       if (board) settings.leaderboard = true;
-      const { data } = await rpc<{ code: string; hostToken: string }>('pp_create_session', { p_experience: expKey, p_settings: settings });
+      const { data } = await rpc<{ code: string; hostToken: string; selection?: { ids: string[] } }>('pp_create_session', { p_experience: expKey, p_settings: settings });
+      if (strategy !== 'fixed' && data.selection?.ids) rememberSelection(expKey, data.selection.ids);
       saveHost({ code: data.code, token: data.hostToken, experienceId: expKey, at: Date.now() });
       setC(new LiveHost(data.code, data.hostToken));
     } catch (x) { setErr((x as Error).message); } finally { setBusy(false); }
@@ -124,13 +139,35 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
         <h2 className="text-xl font-extrabold">{t('hl.settings')}</h2>
         {langs.length > 1 && <label className="grid gap-1 text-sm font-bold" htmlFor="glang">{t('hl.lang')}
           <select id="glang" className="field !min-h-[48px] !text-base" value={expKey} onChange={x => nav(`/host/${x.target.value}`)} data-testid="game-lang">{langs.map(l => <option key={l.id} value={l.id}>{LANG_NAME[l.lang] ?? l.lang}</option>)}</select></label>}
+        <fieldset className="grid gap-2" data-testid="lengths"><legend className="text-sm font-bold mb-1">{t('qb.questions')}</legend>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {lengths.map(o => { const [icon, key]: [string, K] = LENGTH_LABEL[o.n] ?? ['📋', o.all ? 'qb.all' : 'qb.nQ']; const on = o.available && o.n === n; return (
+              <button key={o.n} type="button" disabled={!o.available} aria-pressed={on} onClick={() => setCount(o.n)} data-testid={`len-${o.n}`}
+                className={`rounded-2xl border-2 p-3 text-start grid gap-0.5 transition ${on ? 'border-violet-600 bg-violet-50' : 'border-paper-line'} ${o.available ? 'hover:border-violet-400' : 'opacity-50 cursor-not-allowed'}`}>
+                <span className="font-extrabold"><span aria-hidden>{icon} </span>{o.n}</span>
+                <span className="text-sm font-bold">{t(key, { n: o.n })}</span>
+                <span className="text-xs text-ink-soft">{o.available ? (o.all ? t('qb.all') : t('qb.nQ', { n: o.n })) : t('qb.needs', { n: o.missing })}</span>
+              </button>); })}
+          </div>
+          <p className="text-xs text-ink-soft" data-testid="bank-size">{t('qb.bank', { n: lengths.reduce((m, o) => (o.available ? Math.max(m, o.n) : m), 0) })}</p>
+        </fieldset>
+        <label className="grid gap-1 text-sm font-bold" htmlFor="selection">{t('qb.selection')}
+          <select id="selection" className="field !min-h-[48px] !text-base" value={strategy} onChange={x => setStrategy(x.target.value as Strategy)} data-testid="selection">
+            {strategiesFor(e).map(s => <option key={s} value={s}>{t(`qb.s.${s}`)}{s === strategyOf(e) ? ` (${t('hl.recommended')})` : ''}</option>)}</select>
+          <span className="font-normal text-ink-soft">{t(`qb.sd.${strategy}`)}</span></label>
         <div className="grid sm:grid-cols-3 gap-4">
-          <Select label={t('hl.read')} value={read} options={READS.map(x => [x, `${x} s${x === e.defaultTiming.readSec ? ` (${t('hl.recommended')})` : ''}`])} onChange={setRead} id="read" />
-          <Select label={t('hl.answer')} value={ans} options={ANSWERS.map(x => [x, `${x} s${x === 5 ? ` · ${t('hl.lightning')}` : x === 20 ? ` · ${t('hl.reflective')}` : ''}${x === e.defaultTiming.answerSec ? ` (${t('hl.recommended')})` : ''}`])} onChange={setAns} id="answer" />
+          <Select label={t('hl.read')} value={read} options={withDefault(READS, e.defaultTiming.readSec).map(x => [x, `${x} s${x === e.defaultTiming.readSec ? ` (${t('hl.recommended')})` : ''}`])} onChange={setRead} id="read" />
+          <Select label={t('hl.answer')} value={ans} options={withDefault(ANSWERS, e.defaultTiming.answerSec).map(x => [x, `${x} s${x === 3 ? ` · ${t('hl.lightning')}` : x >= 15 ? ` · ${t('hl.reflective')}` : ''}${x === e.defaultTiming.answerSec ? ` (${t('hl.recommended')})` : ''}`])} onChange={setAns} id="answer" />
           <Select label={t('hl.after')} value={auto} options={AUTO.map(x => [x, x ? t('hl.auto', { n: x }) : t('hl.wait')])} onChange={setAuto} id="auto" />
         </div>
         {e.scoring.kind === 'correct' && <label className="flex gap-2 items-start font-bold"><input type="checkbox" className="w-5 h-5 accent-violet-600 mt-0.5" checked={board} onChange={x => setBoard(x.target.checked)} data-testid="leaderboard" />
           <span>{t('hl.board')}<span className="block text-sm font-normal text-ink-soft">{t('hl.boardSub')}</span></span></label>}
+        <section className="rounded-2xl border-2 border-paper-line p-4 grid gap-1" aria-live="polite" data-testid="game-summary">
+          <h3 className="font-extrabold">{t('qb.yourGame')}</h3>
+          <p className="text-sm">{t('qb.summary', { n, sel: t(`qb.s.${strategy}`), r: read, a: ans })}</p>
+          <p className="text-lg font-extrabold text-violet-700" data-testid="duration">⏱ {t('qb.duration', { m: minutes })}</p>
+          <p className="text-xs text-ink-soft">{t('qb.durationNote')} {t('qb.later')}</p>
+        </section>
         <div className="rounded-2xl bg-violet-50 text-violet-700 p-4 text-sm"><b>{t('hl.privacy')}</b> {e.privacy.individualResults ? t('hl.privInd') : t('stage.groupOnly') + '.'} {t('hl.privMin', { n: e.privacy.groupMinimum })}{e.scoring.kind === 'behaviour' ? ` ${t('hl.noBoard')}` : ''}</div>
         {err && <p className="text-coral-500 font-bold" role="alert">{err}</p>}
         <button className="btn-primary" onClick={create} disabled={busy} data-testid="create">{busy ? t('hl.creating') : t('hl.create')}</button>

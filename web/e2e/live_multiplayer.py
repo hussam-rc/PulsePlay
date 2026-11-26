@@ -70,7 +70,7 @@ with sync_playwright() as pw:
     errors = []
     # ---- Ego Check: 6 players, pattern (i+q)%4 → team average 37; P6 misses 4 questions (still valid) ----
     acts = 'abcd'
-    h, phones, code = play_game(b, 'ego-check', 6, lambda i, q: acts[(i + 1 + q) % 4], settings={'read': 3, 'answer': 5},
+    h, phones, code = play_game(b, 'ego-check', 6, lambda i, q: acts[(i + 1 + q) % 4], settings={'answer': 5},
                                 reload_player_at=1, reload_host_at=True)
     h.wait_for_selector('text=Look at your phone', timeout=10000); ok(True, 'ego: projector sends people to their phones')
     phones[0].click('[data-testid=reveal]'); sc = phones[0].inner_text('[data-testid=score]')
@@ -84,14 +84,14 @@ with sync_playwright() as pw:
     h.click('[data-testid=end]'); h.click('[data-testid=end-confirm]'); h.wait_for_selector('[data-testid=recap]', timeout=10000)
     phones[2].wait_for_selector('[data-testid=saved-result]', timeout=10000); ok('ended' in phones[2].inner_text('body'), 'ego: phones see the game end and keep their result')
     # ---- Would You Rather: 4 players, P1-P3 pick a, P4 picks b ----
-    h, phones, code = play_game(b, 'would-you-rather', 4, lambda i, q: 'a' if i < 3 else 'b', settings={'read': 3, 'answer': 5})
+    h, phones, code = play_game(b, 'would-you-rather', 4, lambda i, q: 'a' if i < 3 else 'b', settings={'answer': 5})
     h.wait_for_selector('text=That was fun', timeout=10000); ok(True, 'wyr: completes all 10 questions')
     next_(h); h.wait_for_selector('text=Before you go'); ok(True, 'wyr: closing reflection shown')
     h.click('[data-testid=end]'); h.click('[data-testid=end-confirm]'); h.wait_for_selector('[data-testid=recap]')
     # ---- Myth or Fact: 3 players, leaderboard on, P1/P2 opt in; P3 skips q≥7 (invalid) ----
     right = ['myth','myth','myth','myth','fact','myth','myth','fact','fact','myth']
     def pick(i, q): return right[q] if i == 0 else (right[q] if q < 6 else ('fact' if right[q] == 'myth' else 'myth')) if i == 1 else ('fact' if right[q] == 'myth' else 'myth')
-    h, phones, code = play_game(b, 'myth-or-fact', 3, pick, settings={'read': 3, 'answer': 5, 'leaderboard': True}, boards=(0, 1), skip=lambda i, q: i == 2 and q >= 6)
+    h, phones, code = play_game(b, 'myth-or-fact', 3, pick, settings={'answer': 5, 'leaderboard': True}, boards=(0, 1), skip=lambda i, q: i == 2 and q >= 6)
     h.wait_for_selector('[data-testid=leaderboard]'); lb = h.inner_text('[data-testid=leaderboard]')
     ok('P1' in lb and 'P2' in lb and 'P3' not in lb and lb.find('P1') < lb.find('P2'), 'trivia: leaderboard shows only opt-ins, P1 first')
     phones[0].click('[data-testid=reveal]'); ok(phones[0].inner_text('[data-testid=score]').startswith('10/10'), 'trivia: P1 sees 10/10 privately')

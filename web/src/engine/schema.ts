@@ -2,6 +2,7 @@
 import { z } from 'zod';
 
 export const SCHEMA_VERSION = 1 as const;
+export const SELECTION_STRATEGIES = ['fixed', 'random', 'category', 'dimension'] as const;
 
 const id = z.string().regex(/^[a-z0-9-]{1,40}$/, 'ids use a-z, 0-9 and hyphens');
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -18,7 +19,20 @@ const ChoiceOption = z.object({
   correct: z.boolean().optional(),
 });
 
-const base = { id, prompt: text(220), theme: z.string().max(40).optional(), timing: Timing.optional() };
+const tag = z.string().regex(/^[a-z0-9-]{1,30}$/, 'tags use a-z, 0-9 and hyphens');
+/** Question-bank metadata. All optional: content without it behaves exactly as before. */
+const bankMeta = {
+  category: tag.optional(),                   // balanced-by-category key (e.g. trivia topic)
+  dimension: tag.optional(),                  // balanced-by-dimension key (e.g. a behavioural dimension)
+  difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
+  tags: z.array(tag).max(10).optional(),
+  estSec: z.number().int().min(3).max(120).optional(), // estimated response time
+  rev: z.number().int().min(1).max(999).optional(),    // question version within the bank
+  active: z.boolean().optional(),             // false = archived, never selected
+  random: z.boolean().optional(),             // false = only used by the fixed selection
+  required: z.boolean().optional(),           // true = included in every selection
+};
+const base = { id, prompt: text(220), theme: z.string().max(40).optional(), timing: Timing.optional(), ...bankMeta };
 
 export const ChoiceActivity = z.object({
   ...base,
@@ -87,6 +101,16 @@ export const Experience = z.object({
   creator: text(80),
   status: z.enum(['draft', 'review', 'published', 'archived']),
   rounds: z.array(z.object({ id, title: z.string().max(80).optional(), activities: z.array(Activity).min(1) })).min(1),
+  /** Question bank: how a session picks its questions. Absent = every question, in authored order (previous behaviour). */
+  bank: z.object({
+    strategy: z.enum(SELECTION_STRATEGIES),
+    lengths: z.array(z.number().int().min(3).max(50)).min(1).max(5),
+    defaultLength: z.number().int().min(3).max(50).optional(),
+  }).optional(),
+  /** Written by the server into a session snapshot: which questions this session uses. Never authored. */
+  selection: z.object({
+    strategy: z.enum(SELECTION_STRATEGIES), count: z.number().int(), bankSize: z.number().int(), ids: z.array(z.string()),
+  }).optional(),
 });
 
 export type Experience = z.infer<typeof Experience>;
@@ -128,6 +152,21 @@ export function validateExperience(input: unknown): ValidationResult {
     const bandErr = validateBands(e.results ?? []);
     errors.push(...bandErr);
   }
+  if (e.bank) {
+    const b = e.bank, ls = b.lengths;
+    if (new Set(ls).size !== ls.length || ls.some((n, i) => i > 0 && n <= ls[i - 1])) errors.push('bank.lengths must be unique and ascending');
+    if (b.defaultLength != null && !ls.includes(b.defaultLength)) errors.push('bank.defaultLength must be one of bank.lengths');
+    const pool = acts.filter(a => a.active !== false && (b.strategy === 'fixed' || a.random !== false));
+    const req = pool.filter(a => a.required).length;
+    if (req > ls[0]) errors.push(`${req} required questions do not fit the shortest game (${ls[0]})`);
+    const short = ls.filter(n => n > pool.length);
+    if (short.length) warnings.push(`only ${pool.length} eligible questions: ${short.join('/')}-question games are not available`);
+    if (b.strategy === 'category' || b.strategy === 'dimension') {
+      const key = b.strategy, missing = pool.filter(a => !a[key]).length;
+      if (missing) warnings.push(`${missing} eligible questions have no ${b.strategy}; they are balanced as one extra group`);
+    }
+  }
+  if (acts.some(a => a.required && a.active === false)) errors.push('an archived question cannot be required');
   if (e.reveal === 'correct' && e.scoring.kind !== 'correct') warnings.push('reveal "correct" is only meaningful with correct-answer scoring');
   if (e.insights) {
     for (const a of acts) if (a.theme && !e.insights.themes[a.theme]) errors.push(`${a.id}: theme "${a.theme}" has no insight entry`);

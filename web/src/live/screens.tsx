@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import type { View, MyState } from './view';
 import type { ResponseValue } from '../engine/scoring';
 import { personalResult } from '../engine/scoring';
+import { estimateMinutes } from '../engine/bank';
 import { ActivityInput } from '../ui/Activity';
 import { Bar, Chip, Confetti, Gauge, ResultCard, resultText, takeawayText, useNow } from '../ui/bits';
 import { QR } from '../ui/LazyQR';
@@ -34,6 +35,10 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
         {!practice && <p className="text-sm text-ink-soft break-all" data-testid="join-url">{joinUrl}</p>}
         <div className="flex items-baseline gap-3 flex-wrap"><span className="text-5xl font-extrabold" data-testid="joined">{n}</span><span className="font-bold">{t('stage.joined')}</span>
           {n < e.privacy.groupMinimum && <Chip tone="sun">{t('stage.more', { n: e.privacy.groupMinimum - n })}</Chip>}</div>
+        <div className="flex flex-wrap gap-2" data-testid="lobby-length"><Chip tone="sky">{t('qb.lobby', { n: v.total, m: estimateMinutes({ questions: v.total,
+            readSec: v.settings.readSec ?? e.defaultTiming.readSec, answerSec: v.settings.answerSec ?? e.defaultTiming.answerSec, reveal: e.reveal,
+            scored: e.scoringKind === 'behaviour' || e.scoringKind === 'correct', autoAdvanceSec: v.settings.autoAdvanceSec }) })}</Chip>
+          {v.selection && v.selection.bankSize > v.selection.count && <Chip>{t('qb.lobbyOf', { n: v.selection.count, b: v.selection.bankSize })}</Chip>}</div>
         <div className="flex flex-wrap gap-2 max-h-40 overflow-auto">{(v.names ?? []).map((p, i) => <span key={p.i ?? i} className="chip bg-paper border border-paper-line anim-pop" data-testid="lobby-name"><span dir="auto">{p.a} {p.n}</span>{onKick && p.i && <button className="ms-1 w-6 h-6 rounded-full hover:bg-coral-50 text-ink-soft hover:text-coral-500" aria-label={`${t('stage.kick')} ${p.n}`} title={t('stage.kick')} onClick={() => onKick(p.i!, p.n)} data-testid="kick">✕</button>}</span>)}</div>
       </div></div></div>
   );

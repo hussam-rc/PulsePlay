@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { byId } from '../experiences';
+import { sessionExperience } from '../engine/bank';
 import { Session, MAX_SIMULATED, Player } from '../engine/session';
 import type { Experience } from '../engine/schema';
 import { PracticeHost } from '../live/controllers';
@@ -18,7 +19,7 @@ export function Practice() {
 /** Practice mode: the real engine with simulated players, entirely in memory. Never touches the server. */
 export function PracticeRun({ e, exitTo }: { e: Experience; exitTo?: string }) {
   const [gen, setGen] = useState(0);
-  const c = useMemo(() => { const s = new Session(e); s.addSimulated(6); return new PracticeHost(s); }, [e, gen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const c = useMemo(() => { const s = new Session(sessionExperience(e)); s.addSimulated(6); return new PracticeHost(s); }, [e, gen]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => c.stop(), [c]);
   useController(c);
   const s = c.session, v = c.view!;

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { byId } from '../experiences';
 import { flatActivities } from '../engine/util';
+import { sessionExperience } from '../engine/bank';
 import { personalResult, Responses, ResponseValue } from '../engine/scoring';
 import { randomId } from '../engine/random';
 import { ActivityInput } from '../ui/Activity';
@@ -11,7 +12,8 @@ import { t } from '../i18n';
 
 /** Self-paced mode: one person, no timer, nothing sent anywhere. */
 export function Solo() {
-  const e = byId(useParams().id ?? '');
+  const base = byId(useParams().id ?? '');
+  const e = useMemo(() => base && sessionExperience(base), [base]); // this play's questions (all of them for games without a bank)
   const seed = useMemo(() => randomId(), []);
   const [i, setI] = useState(-1);
   const [resp, setResp] = useState<Responses>({});
