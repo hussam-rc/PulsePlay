@@ -14,3 +14,15 @@ export const egoCheckV2Draft: Experience = {
   bank: { strategy: 'dimension', lengths: [10, 15, 20], defaultLength: 10 },
   rounds: [{ id: 'main', activities: BANK_EN }],
 };
+
+import { buildBank, type LanguagePack } from './translate';
+import { DE } from './egoCheckV2.de';
+import { FR } from './egoCheckV2.fr';
+import { AR } from './egoCheckV2.ar';
+
+export const LANGUAGE_PACKS = [DE, FR, AR];
+/** A language version of the draft: same ids, option ids, points and bank settings as the English master. */
+export function egoCheckV2For(pack: LanguagePack): Experience {
+  return { ...egoCheckV2Draft, id: `ego-check-${pack.lang}`, languages: [pack.lang], ...pack.meta,
+    insights: pack.insights, results: pack.results, rounds: [{ id: 'main', activities: buildBank(pack) }] };
+}

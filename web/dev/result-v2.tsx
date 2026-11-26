@@ -5,11 +5,12 @@ import { setLang } from '../src/i18n';
 import { ResultCard } from '../src/ui/bits';
 import { personalResult } from '../src/engine/scoring';
 import { sessionExperience } from '../src/engine/bank';
-import { egoCheckV2Draft } from '../src/experiences/drafts/egoCheckV2';
+import { egoCheckV2Draft, egoCheckV2For, LANGUAGE_PACKS } from '../src/experiences/drafts/egoCheckV2';
 
 const qs = new URLSearchParams(location.search);
 setLang((qs.get('lang') ?? 'en') as 'en');
-const e = sessionExperience(egoCheckV2Draft, { n: 15, seed: 'preview' });
+const pack = LANGUAGE_PACKS.find(p => p.lang === qs.get('lang'));
+const e = sessionExperience(pack ? egoCheckV2For(pack) : egoCheckV2Draft, { n: 15, seed: 'preview' });
 const acts = e.rounds[0].activities as any[];
 const P: Record<string, (a: any, i: number) => number> = {
   open: () => 0, confident: () => 1, defensive: () => 2, ego: () => 3,
