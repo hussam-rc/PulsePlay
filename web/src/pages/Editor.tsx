@@ -67,7 +67,7 @@ export function Editor() {
       <header className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-extrabold me-auto">{draft.emoji} {draft.title || 'Untitled game'}</h1>
         <Chip tone={x.status === 'published' ? 'teal' : 'sun'}>{x.status === 'published' ? 'published' : 'draft'}</Chip>{latest && <Chip tone="sky">live version v{latest}</Chip>}{!x.canEdit && <Chip tone="coral">view only</Chip>}</header>
 
-      <Builder value={draft} onChange={onChange} readOnly={!x.canEdit} />
+      <Builder value={draft} onChange={onChange} readOnly={!x.canEdit} storageKey={x.id} />
 
       <section className="card p-5 grid gap-3">
         <h2 className="text-xl font-extrabold">Try it and publish</h2>

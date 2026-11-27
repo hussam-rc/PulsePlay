@@ -1,12 +1,16 @@
 // No-code game builder. Edits a schema v1 draft through forms only; the checker speaks plain language.
-import { ReactNode, useMemo, useState } from 'react';
-import type { Activity, ResultBand } from '../engine/schema';
+import { ReactNode, useDeferredValue, useMemo, useRef, useState } from 'react';
+import type { ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
 import { BankPanel } from './BankPanel';
-import { balanceOf, groups, setArchived, setGroup, type BalanceBy, type GroupCount } from './bankModel';
+import { balanceOf, groups, setArchived, setGroup } from './bankModel';
+import { Num, Select, Slider, Text, Toggle } from './fields';
+import { appendActivities, deleteActivity, duplicateActivity, moveActivity, patchActivity, problemIdsFrom, replaceActivity } from './listModel';
 import { PhonePreview } from './PhonePreview';
-import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, nextOptionId, splitBands } from './model';
+import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, splitBands } from './model';
+import type { BankGroups, QuestionApi } from './QuestionEditor';
+import { QuestionList } from './QuestionList';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
   ['communication', 'Communication'], ['leadership', 'Leadership'], ['collaboration', 'Collaboration'], ['trivia', 'Trivia & quiz'], ['education', 'Education'], ['community', 'Community'],
@@ -15,19 +19,50 @@ const EMOJIS = ['🧠', '🪞', '📊', '💬', '🎯', '🧩', '🚀', '🌍', 
 const LANGS: [Draft['languages'][number], string][] = [['en', 'English'], ['ar', 'Arabic'], ['de', 'German'], ['fr', 'French']];
 const TONES: [ResultBand['tone'], string][] = [['great', '🟢 Great'], ['good', '🔵 Good'], ['watch', '🟡 Watch out'], ['grow', '🟠 Room to grow']];
 
-export function Builder({ value, onChange, readOnly }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean }) {
+export function Builder({ value, onChange, readOnly, storageKey }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string }) {
   const d = value;
+  // Question edits go through a stable API that always applies to the latest draft and copies only the changed question,
+  // so a 200-question bank stays responsive while typing. Checks run on a deferred copy of the draft.
+  const latest = useRef({ d, onChange, readOnly }); latest.current = { d, onChange, readOnly };
+  const [focus, setFocus] = useState(0);
+  const api = useMemo<QuestionApi>(() => {
+    const emit = (next: Draft) => { if (latest.current.readOnly) return; latest.current.d = next; latest.current.onChange(next); };
+    const cur = () => latest.current.d;
+    return {
+      patch: (id, f) => emit(patchActivity(cur(), id, f)),
+      replace: (id, b) => emit(replaceActivity(cur(), id, b)),
+      move: (id, dir) => emit(moveActivity(cur(), id, dir)),
+      dup: id => emit(duplicateActivity(cur(), id, newId())),
+      del: (id, n) => { if (confirm(`Delete question ${n}?`)) emit(deleteActivity(cur(), id)); },
+      archive: (id, v) => emit(setArchived(cur(), id, v)),
+      group: (id, name) => emit(setGroup(cur(), id, balanceOf(cur()), name)),
+      focus: i => setFocus(i),
+    };
+  }, []);
+  const checked = useDeferredValue(d);
   const set = (f: (x: Draft) => void) => { if (readOnly) return; const x = structuredClone(d); f(x); onChange(x); };
   const kind = kindOf(d);
   const acts = d.rounds.flatMap(r => r.activities);
-  const setActs = (f: (a: Activity[]) => Activity[]) => set(x => { x.rounds = [{ ...x.rounds[0], id: x.rounds[0]?.id ?? 'main', activities: f(x.rounds.flatMap(r => r.activities)) }]; });
-  const check = useMemo(() => validateExperience({ ...d, status: 'published' }), [d]);
-  const problems = useMemo(() => humanize(check.errors, d), [check, d]);
-  const warnings = useMemo(() => humanize(check.warnings, d), [check, d]);
+  const check = useMemo(() => validateExperience({ ...checked, status: 'published' }), [checked]);
+  const problems = useMemo(() => humanize(check.errors, checked), [check, checked]);
+  const warnings = useMemo(() => humanize(check.warnings, checked), [check, checked]);
+  const checkedActs = useMemo(() => checked.rounds.flatMap(r => r.activities), [checked]);
+  const problemIds = useMemo(() => problemIdsFrom(problems.map(p => p.anchor), checkedActs), [problems, checkedActs]);
   const scored = kind === 'quiz' || kind === 'score';
-  const [focus, setFocus] = useState(0);
-  const by = balanceOf(d), bankGroups = useMemo(() => (d.bank && by !== 'random' ? { by, list: groups(d, by) } : null), [d, by]);
+  // groups change rarely: keep the same object while the list of names and counts is unchanged, so question cards stay memoised
+  const by = balanceOf(d), groupKey = by === 'dimension' ? 'dimension' as const : 'category' as const;
+  const groupSig = JSON.stringify(groups(checked, by === 'random' ? 'category' : by));
+  const bankGroups = useMemo<BankGroups | null>(() => (d.bank && by !== 'random' ? { by, list: JSON.parse(groupSig) } : null), [!!d.bank, by, groupSig]); // eslint-disable-line react-hooks/exhaustive-deps
+  const groupOptions = useMemo(() => (JSON.parse(groupSig) as { tag: string; label: string }[]).map(g => ({ tag: g.tag, label: g.label })), [groupSig]);
   const replaceDraft = (next: Draft) => { if (!readOnly) onChange(next); };
+  const addActs = (add: ReturnType<typeof newActivity>[], keep?: Parameters<typeof appendActivities>[2]) => replaceDraft(appendActivities(d, add, keep));
+
+  /** Scroll to a section or question; a collapsed question row opens when asked to. */
+  const goTo = (anchor: string, open: boolean) => {
+    const el = document.getElementById(anchor);
+    if (open && el?.dataset.testid === 'q-row') { el.click(); return; }
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="grid lg:grid-cols-[1fr_300px] gap-5 items-start">
@@ -74,16 +109,10 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
 
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
-          {acts.map((a, i) => <Question key={a.id} a={a} i={i} total={acts.length} kind={kind} onFocus={() => setFocus(i)} focused={i === focus}
-            bank={bankGroups} onGroup={name => replaceDraft(setGroup(d, a.id, by, name))} onArchive={v => replaceDraft(setArchived(d, a.id, v))}
-            change={f => setActs(xs => xs.map(y => { if (y.id !== a.id) return y; const c = structuredClone(y); f(c); return c; }))}
-            replace={b => setActs(xs => xs.map(y => y.id === a.id ? b : y))}
-            move={dir => { setActs(xs => { const c = [...xs]; const j = i + dir; [c[i], c[j]] = [c[j], c[i]]; return c; }); setFocus(i + dir); }}
-            dup={() => setActs(xs => { const c = [...xs]; c.splice(i + 1, 0, { ...structuredClone(a), id: newId() }); return c; })}
-            del={() => { if (confirm(`Delete question ${i + 1}?`)) setActs(xs => xs.filter(y => y.id !== a.id)); }} />)}
-          {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => setActs(xs => [...xs.filter(x => x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))), ...add])} />}
+          <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} api={api} focus={focus} storageKey={storageKey} />
+          {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => addActs(add, x => !!(x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))))} />}
           {!readOnly && <div className="flex flex-wrap gap-2">{KINDS[kind].activity.map(t =>
-            <button type="button" key={t} className="btn-ghost" onClick={() => setActs(xs => [...xs, newActivity(t, kind)])} data-testid={`add-${t}`}>+ Add {ACTIVITY_LABEL[t].split(' (')[0].toLowerCase()}</button>)}</div>}
+            <button type="button" key={t} className="btn-ghost" onClick={() => addActs([newActivity(t, kind)])} data-testid={`add-${t}`}>+ Add {ACTIVITY_LABEL[t].split(' (')[0].toLowerCase()}</button>)}</div>}
         </Section>
 
         {/* ---------- question bank ---------- */}
@@ -127,74 +156,16 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
 
       {/* ---------- checker ---------- */}
       <div className="grid gap-4 lg:sticky lg:top-4">
-      <PhonePreview acts={acts} index={focus} onIndex={i => { setFocus(i); document.getElementById(`q-${i + 1}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} title={d.title} />
+      <PhonePreview acts={acts} index={focus} onIndex={i => { setFocus(i); goTo(`q-${i + 1}`, false); }} title={d.title} />
       <aside className="card p-4 grid gap-3" aria-live="polite" data-testid="checker">
         <b className="text-lg">{problems.length ? `✏️ ${problems.length} thing${problems.length === 1 ? '' : 's'} to fix` : '✅ Ready to publish'}</b>
         {problems.length === 0 && <p className="text-sm text-ink-soft">Everything checks out. Preview it with simulated players, then publish.</p>}
-        <ul className="grid gap-2">{problems.map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); document.getElementById(p.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="block rounded-xl bg-coral-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
+        <ul className="grid gap-2">{problems.map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); goTo(p.anchor, true); }} className="block rounded-xl bg-coral-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
         {warnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2">{warnings.map((p, i) => <li key={i} className="rounded-xl bg-sun-50 p-2 text-sm"><b>{p.where}:</b> {p.text}</li>)}</ul></>}
       </aside>
       </div>
     </div>
   );
-}
-
-function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus, focused, bank, onGroup, onArchive }: { a: Activity; i: number; total: number; kind: GameKind; change: (f: (a: Activity) => void) => void; replace: (a: Activity) => void; move: (d: number) => void; dup: () => void; del: () => void; onFocus: () => void; focused: boolean;
-  bank: { by: BalanceBy; list: GroupCount[] } | null; onGroup: (name: string) => void; onArchive: (archived: boolean) => void }) {
-  const types = KINDS[kind].activity;
-  const archived = a.active === false;
-  const groupTag = bank ? a[bank.by === 'dimension' ? 'dimension' : 'category'] : undefined;
-  const groupLabel = bank?.list.find(g => g.tag === groupTag)?.label ?? groupTag ?? '';
-  return (
-    <div id={`q-${i + 1}`} onFocusCapture={onFocus} onClick={onFocus} className={`rounded-2xl border p-4 grid gap-3 scroll-mt-4 ${archived ? 'bg-paper opacity-80' : ''} ${focused ? 'border-violet-500 ring-1 ring-violet-500' : 'border-paper-line'}`} data-testid="question" data-archived={archived || undefined}>
-      <div className="flex flex-wrap items-center gap-2">
-        <b className="me-auto">Question {i + 1}{archived && <span className="ms-2 rounded-full bg-sun-50 px-2 py-0.5 text-xs font-bold" data-testid="q-archived">Archived: not used in games</span>}</b>
-        <button type="button" className="btn-ghost !min-h-[36px] !px-3 text-sm" onClick={() => onArchive(!archived)} data-testid="q-archive">{archived ? '↩ Restore' : '🗄 Archive'}</button>
-        {types.length > 1 && <select className="field !min-h-[36px] !w-auto !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
-        <IconBtn label="Move up" disabled={i === 0} onClick={() => move(-1)}>↑</IconBtn>
-        <IconBtn label="Move down" disabled={i === total - 1} onClick={() => move(1)}>↓</IconBtn>
-        <IconBtn label="Duplicate" onClick={dup}>⧉</IconBtn>
-        <IconBtn label="Delete" disabled={total === 1} onClick={del}>🗑</IconBtn>
-      </div>
-      {bank && <GroupField key={`${a.id}-${groupTag ?? ''}`} label={bank.by === 'dimension' ? 'Area' : 'Category'} value={groupLabel} options={bank.list.map(g => g.label)} onCommit={onGroup} id={a.id} />}
-      <Text label={a.type === 'reflection' ? 'Prompt for people to think or talk about' : 'Question'} area value={a.prompt} max={220} onChange={v => change(x => { x.prompt = v; })} testid="q-prompt" />
-      {(a.type === 'choice' || a.type === 'poll') && <div className="grid gap-2">
-        <span className="text-sm font-bold">{kind === 'quiz' ? 'Answers (mark the correct one)' : kind === 'score' ? 'Answers and their score (0 = most open, 3 = most defensive)' : 'Answers'}</span>
-        {a.options.map((o, j) => <div key={o.id} className="flex gap-2 items-center">
-          {a.type === 'choice' && kind === 'quiz' && <input type="radio" name={`c-${a.id}`} className="w-5 h-5 accent-teal-600 shrink-0" aria-label={`Answer ${j + 1} is correct`} checked={'correct' in o && !!o.correct}
-            onChange={() => change(x => { if (x.type === 'choice') x.options.forEach(p => { p.correct = p.id === o.id; }); })} />}
-          <input className="field !min-h-[44px] flex-1 min-w-0" value={o.text} maxLength={140} placeholder={`Answer ${j + 1}`} aria-label={`Answer ${j + 1}`} data-testid="q-option"
-            onChange={e => change(x => { if ('options' in x) x.options[j].text = e.target.value; })} />
-          {a.type === 'choice' && kind === 'score' && <select className="field !min-h-[44px] !w-20 !text-base" aria-label={`Score of answer ${j + 1}`} value={'points' in o ? o.points ?? 0 : 0}
-            onChange={e => change(x => { if (x.type === 'choice') x.options[j].points = +e.target.value; })}>{[0, 1, 2, 3].map(p => <option key={p} value={p}>{p}</option>)}</select>}
-          {a.options.length > 2 && <IconBtn label={`Remove answer ${j + 1}`} onClick={() => change(x => { if ('options' in x) x.options.splice(j, 1); })}>✕</IconBtn>}
-        </div>)}
-        {a.options.length < 6 && <button type="button" className="btn-ghost justify-self-start !min-h-[36px] text-sm" data-testid="q-add-option"
-          onClick={() => change(x => { if (x.type === 'choice') x.options.push({ id: nextOptionId(x.options), text: '', ...(kind === 'quiz' ? { correct: false } : { points: 0 }) }); else if (x.type === 'poll') x.options.push({ id: nextOptionId(x.options), text: '' }); })}>+ Add answer</button>}
-      </div>}
-      {a.type === 'choice' && kind === 'quiz' && <Text label="Explanation shown after the answer (optional)" area value={a.explanation ?? ''} max={400} onChange={v => change(x => { if (x.type === 'choice') x.explanation = v || undefined; })} />}
-      {a.type === 'scale' && <div className="grid sm:grid-cols-3 gap-3">
-        <Num label="Scale up to" value={a.max} min={3} max={10} onChange={v => change(x => { if (x.type === 'scale') x.max = v; })} />
-        <Text label="Label at 1" value={a.minLabel} max={40} onChange={v => change(x => { if (x.type === 'scale') x.minLabel = v; })} />
-        <Text label={`Label at ${a.max}`} value={a.maxLabel} max={40} onChange={v => change(x => { if (x.type === 'scale') x.maxLabel = v; })} />
-      </div>}
-      {a.type !== 'reflection' && <Toggle label="Own timing for this question" checked={!!a.timing} onChange={v => change(x => { x.timing = v ? { readSec: 3, answerSec: 20 } : undefined; })} />}
-      {a.timing && <div className="grid sm:grid-cols-2 gap-4">
-        <Slider label="Reading time" unit="s" value={a.timing.readSec} min={0} max={30} onChange={v => change(x => { x.timing!.readSec = v; })} />
-        <Slider label="Answer time" unit="s" value={a.timing.answerSec} min={3} max={120} onChange={v => change(x => { x.timing!.answerSec = v; })} />
-      </div>}
-    </div>
-  );
-}
-
-/** Group name with suggestions; saved when the field loses focus or on Enter, so typing is never interrupted. */
-function GroupField({ label, value, options, onCommit, id }: { label: string; value: string; options: string[]; onCommit: (v: string) => void; id: string }) {
-  const [v, setV] = useState(value);
-  const commit = () => { if (v.trim() !== value) onCommit(v.trim()); };
-  return <label className="grid gap-1 sm:max-w-xs"><span className="text-sm font-bold">{label}</span>
-    <input className="field !min-h-[40px]" list={`groups-${id}`} value={v} maxLength={30} placeholder={`Type or pick a ${label.toLowerCase()}`} data-testid="q-group"
-      onChange={e => setV(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }} />
-    <datalist id={`groups-${id}`}>{options.map(o => <option key={o} value={o} />)}</datalist></label>;
 }
 
 function Coverage({ bands }: { bands: ResultBand[] }) {
@@ -206,33 +177,4 @@ function Coverage({ bands }: { bands: ResultBand[] }) {
 // ---------- small controls ----------
 function Section({ id, n, title, children }: { id: string; n: number; title: string; children: ReactNode }) {
   return <section id={id} className="card p-5 grid gap-4 scroll-mt-4"><h2 className="text-xl font-extrabold"><span className="text-violet-600 me-2">{n}</span>{title}</h2>{children}</section>;
-}
-function Text({ label, hint, value, onChange, max, area, narrow, testid }: { label: string; hint?: string; value: string; onChange: (v: string) => void; max: number; area?: boolean; narrow?: boolean; testid?: string }) {
-  const [id] = useState(() => newId('f'));
-  const p = { id, value, maxLength: max, onChange: (e: { target: { value: string } }) => onChange(e.target.value), 'data-testid': testid };
-  return <label htmlFor={id} className={`grid gap-1 ${narrow ? 'w-20' : ''}`}><span className="text-sm font-bold">{label}</span>
-    {area ? <textarea {...p} rows={2} className="field py-2 !text-base" /> : <input {...p} className="field !min-h-[44px] !text-base" />}
-    {hint && <span className="text-xs text-ink-soft">{hint}</span>}{!narrow && value.length > max * 0.8 && <span className="text-xs text-ink-soft">{value.length}/{max}</span>}</label>;
-}
-function Num({ label, hint, value, onChange, min, max }: { label: string; hint?: string; value: number; onChange: (v: number) => void; min: number; max: number }) {
-  const [id] = useState(() => newId('f'));
-  return <label htmlFor={id} className="grid gap-1"><span className="text-sm font-bold">{label}</span>
-    <input id={id} type="number" inputMode="numeric" min={min} max={max} value={Number.isFinite(value) ? value : ''} onChange={e => onChange(Math.round(+e.target.value))} className="field !min-h-[44px] !text-base w-28" />
-    {hint && <span className="text-xs text-ink-soft">{hint}</span>}</label>;
-}
-function Select<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void }) {
-  const [id] = useState(() => newId('f'));
-  return <label htmlFor={id} className="grid gap-1"><span className="text-sm font-bold">{label}</span>
-    <select id={id} value={value} onChange={e => onChange(e.target.value as T)} className="field !min-h-[44px] !text-base">{options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>;
-}
-function Slider({ label, unit, value, min, max, onChange }: { label: string; unit: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
-  const [id] = useState(() => newId('f'));
-  return <label htmlFor={id} className="grid gap-1"><span className="text-sm font-bold">{label}: {value}{unit}</span>
-    <input id={id} type="range" min={min} max={max} value={value} onChange={e => onChange(+e.target.value)} className="accent-violet-600" /></label>;
-}
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return <label className="flex items-center gap-2 font-bold text-sm"><input type="checkbox" className="w-5 h-5 accent-violet-600" checked={checked} onChange={e => onChange(e.target.checked)} />{label}</label>;
-}
-function IconBtn({ label, onClick, disabled, children }: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode }) {
-  return <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick} className="w-9 h-9 rounded-lg border border-paper-line bg-white disabled:opacity-30 hover:bg-paper">{children}</button>;
 }
