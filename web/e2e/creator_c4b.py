@@ -26,7 +26,7 @@ with sync_playwright() as pw:
 
     # template
     with d.expect_download() as dl: d.click('[data-testid=csv-template]')
-    t = open(dl.value.path(), encoding='utf-8').read()
+    t = open(dl.value.path(), encoding='utf-8', newline='').read()
     ok(t.startswith('﻿') and t.split('\r\n')[0].lstrip('﻿').startswith('id;question;category;area;status;answer_1;points_1'), 'template: UTF-8 with BOM, semicolons for Excel, the columns this game needs')
 
     # a file with errors: preview explains, nothing changes until confirm, cancel leaves the game as it was
@@ -60,7 +60,7 @@ with sync_playwright() as pw:
     ok('Published version 1' in d.inner_text('[data-testid=msg]'), 'publish: version 1 of the imported bank')
     d.select_option('[data-testid=csv-sep]', ',');
     with d.expect_download() as dl: d.click('[data-testid=csv-export]')
-    exported = open(dl.value.path(), encoding='utf-8-sig').read().split('\r\n')
+    exported = open(dl.value.path(), encoding='utf-8-sig', newline='').read().split('\r\n')
     ok(len([l for l in exported if l]) == 201 and exported[0].startswith('id,question'), 'export: header plus 200 questions, with ids')
     exported[1] = exported[1].replace('Situation 0: a moment at work', 'Situation 0, reworded')
     if ',Situation 0, reworded,' in exported[1]: exported[1] = exported[1].replace(',Situation 0, reworded,', ',"Situation 0, reworded",')
