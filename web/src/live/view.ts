@@ -15,7 +15,7 @@ export interface View {
   seq: number; total: number; joined: number; answered?: number; timing?: { readSec: number; answerSec: number };
   settings: { leaderboard: boolean; autoAdvanceSec?: number; readSec?: number; answerSec?: number };
   selection?: { strategy: string; count: number; bankSize: number };
-  experience: Pick<Experience, 'id' | 'title' | 'tagline' | 'emoji' | 'disclaimer' | 'privacy' | 'reveal' | 'defaultTiming' | 'transitions' | 'closing' | 'results' | 'insights'> & { scoringKind: Experience['scoring']['kind'] };
+  experience: Pick<Experience, 'id' | 'title' | 'tagline' | 'emoji' | 'disclaimer' | 'privacy' | 'reveal' | 'defaultTiming' | 'transitions' | 'closing' | 'results' | 'insights'> & { scoringKind: Experience['scoring']['kind']; scoring?: Pick<Experience['scoring'], 'version'> };
   activity?: PublicActivity;
   reveal?: { distribution: Distribution; correct?: string; explanation?: string };
   group?: GroupView;
@@ -36,7 +36,7 @@ export function publicActivity(a: Activity): PublicActivity {
 }
 
 function meta(e: Experience): View['experience'] {
-  return { id: e.id, title: e.title, tagline: e.tagline, emoji: e.emoji, disclaimer: e.disclaimer, privacy: e.privacy, reveal: e.reveal, scoringKind: e.scoring.kind,
+  return { id: e.id, title: e.title, tagline: e.tagline, emoji: e.emoji, disclaimer: e.disclaimer, privacy: e.privacy, reveal: e.reveal, scoringKind: e.scoring.kind, scoring: e.scoring.version ? { version: e.scoring.version } : undefined,
     defaultTiming: e.defaultTiming, transitions: e.transitions, closing: e.closing, results: e.results, insights: e.insights };
 }
 
