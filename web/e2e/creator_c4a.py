@@ -64,6 +64,7 @@ with sync_playwright() as pw:
     d.select_option('[data-testid=f-status]', 'archived')
     cnt = d.inner_text('[data-testid=q-count]'); ok(cnt.startswith('5 of 200'), f'filters: search + archived combine ({cnt})')
     d.select_option('[data-testid=f-status]', 'all'); d.fill('[data-testid=q-search]', ''); d.select_option('[data-testid=f-group]', 'customers')
+    d.wait_for_function("document.querySelector('[data-testid=q-count]').innerText.startsWith('40 of 200')", timeout=3000)   # search text applies a moment later
     ok(d.inner_text('[data-testid=q-count]').startswith('40 of 200'), 'filters: category filter')
     d.click('[data-testid=f-clear]'); ok(d.inner_text('[data-testid=q-count]').startswith('200 question'), 'filters: Clear restores all 200')
 
