@@ -3,6 +3,8 @@ import { ReactNode, useMemo, useState } from 'react';
 import type { Activity, ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
+import { BankPanel } from './BankPanel';
+import { balanceOf, groups, setArchived, setGroup, type BalanceBy, type GroupCount } from './bankModel';
 import { PhonePreview } from './PhonePreview';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, nextOptionId, splitBands } from './model';
 
@@ -24,6 +26,8 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
   const warnings = useMemo(() => humanize(check.warnings, d), [check, d]);
   const scored = kind === 'quiz' || kind === 'score';
   const [focus, setFocus] = useState(0);
+  const by = balanceOf(d), bankGroups = useMemo(() => (d.bank && by !== 'random' ? { by, list: groups(d, by) } : null), [d, by]);
+  const replaceDraft = (next: Draft) => { if (!readOnly) onChange(next); };
 
   return (
     <div className="grid lg:grid-cols-[1fr_300px] gap-5 items-start">
@@ -71,6 +75,7 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
           {acts.map((a, i) => <Question key={a.id} a={a} i={i} total={acts.length} kind={kind} onFocus={() => setFocus(i)} focused={i === focus}
+            bank={bankGroups} onGroup={name => replaceDraft(setGroup(d, a.id, by, name))} onArchive={v => replaceDraft(setArchived(d, a.id, v))}
             change={f => setActs(xs => xs.map(y => { if (y.id !== a.id) return y; const c = structuredClone(y); f(c); return c; }))}
             replace={b => setActs(xs => xs.map(y => y.id === a.id ? b : y))}
             move={dir => { setActs(xs => { const c = [...xs]; const j = i + dir; [c[i], c[j]] = [c[j], c[i]]; return c; }); setFocus(i + dir); }}
@@ -81,9 +86,14 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
             <button type="button" key={t} className="btn-ghost" onClick={() => setActs(xs => [...xs, newActivity(t, kind)])} data-testid={`add-${t}`}>+ Add {ACTIVITY_LABEL[t].split(' (')[0].toLowerCase()}</button>)}</div>}
         </Section>
 
+        {/* ---------- question bank ---------- */}
+        <Section id="bank" n={4} title="Question bank">
+          <BankPanel d={d} set={replaceDraft} readOnly={readOnly} />
+        </Section>
+
         {/* ---------- results ---------- */}
-        {scored && <Section id="results" n={4} title="Results">
-          <p className="text-sm text-ink-soft">{kind === 'quiz' ? 'Scores are the % of correct answers.' : 'Scores run from 0 (every answer worth 0) to 100 (every answer worth 3).'} Every score from 0 to 100 needs exactly one result.</p>
+        {scored && <Section id="results" n={5} title="Results">
+          <p className="text-sm text-ink-soft">{kind === 'quiz' ? 'Scores are the % of correct answers.' : 'Scores run from 0 (every answer worth 0) to 100 (every answer at its highest score).'} Every score from 0 to 100 needs exactly one result.</p>
           <Coverage bands={d.results ?? []} />
           {!readOnly && <div className="flex flex-wrap gap-2 items-center"><span className="text-sm font-bold">Split 0–100 evenly into</span>
             {[2, 3, 4, 5].map(c => <button type="button" key={c} className="btn-ghost !min-h-[36px] !px-3 text-sm" onClick={() => set(x => { x.results = splitBands(x.results ?? [], c, kind); })} data-testid={`split-${c}`}>{c} results</button>)}</div>}
@@ -102,7 +112,7 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
         </Section>}
 
         {/* ---------- ending ---------- */}
-        <Section id="ending" n={scored ? 5 : 4} title="Ending and privacy note">
+        <Section id="ending" n={scored ? 6 : 5} title="Ending and privacy note">
           <Text label="Closing message" value={d.closing?.message ?? ''} max={200} onChange={v => set(x => { x.closing = { questions: x.closing?.questions ?? [], message: v }; })} />
           <div className="grid gap-2"><span className="text-sm font-bold">Discussion questions at the end (up to 5)</span>
             {(d.closing?.questions ?? []).map((q, i) => <div key={i} className="flex gap-2">
@@ -129,18 +139,24 @@ export function Builder({ value, onChange, readOnly }: { value: Draft; onChange:
   );
 }
 
-function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus, focused }: { a: Activity; i: number; total: number; kind: GameKind; change: (f: (a: Activity) => void) => void; replace: (a: Activity) => void; move: (d: number) => void; dup: () => void; del: () => void; onFocus: () => void; focused: boolean }) {
+function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus, focused, bank, onGroup, onArchive }: { a: Activity; i: number; total: number; kind: GameKind; change: (f: (a: Activity) => void) => void; replace: (a: Activity) => void; move: (d: number) => void; dup: () => void; del: () => void; onFocus: () => void; focused: boolean;
+  bank: { by: BalanceBy; list: GroupCount[] } | null; onGroup: (name: string) => void; onArchive: (archived: boolean) => void }) {
   const types = KINDS[kind].activity;
+  const archived = a.active === false;
+  const groupTag = bank ? a[bank.by === 'dimension' ? 'dimension' : 'category'] : undefined;
+  const groupLabel = bank?.list.find(g => g.tag === groupTag)?.label ?? groupTag ?? '';
   return (
-    <div id={`q-${i + 1}`} onFocusCapture={onFocus} onClick={onFocus} className={`rounded-2xl border p-4 grid gap-3 scroll-mt-4 ${focused ? 'border-violet-500 ring-1 ring-violet-500' : 'border-paper-line'}`} data-testid="question">
+    <div id={`q-${i + 1}`} onFocusCapture={onFocus} onClick={onFocus} className={`rounded-2xl border p-4 grid gap-3 scroll-mt-4 ${archived ? 'bg-paper opacity-80' : ''} ${focused ? 'border-violet-500 ring-1 ring-violet-500' : 'border-paper-line'}`} data-testid="question" data-archived={archived || undefined}>
       <div className="flex flex-wrap items-center gap-2">
-        <b className="me-auto">Question {i + 1}</b>
+        <b className="me-auto">Question {i + 1}{archived && <span className="ms-2 rounded-full bg-sun-50 px-2 py-0.5 text-xs font-bold" data-testid="q-archived">Archived: not used in games</span>}</b>
+        <button type="button" className="btn-ghost !min-h-[36px] !px-3 text-sm" onClick={() => onArchive(!archived)} data-testid="q-archive">{archived ? '↩ Restore' : '🗄 Archive'}</button>
         {types.length > 1 && <select className="field !min-h-[36px] !w-auto !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
         <IconBtn label="Move up" disabled={i === 0} onClick={() => move(-1)}>↑</IconBtn>
         <IconBtn label="Move down" disabled={i === total - 1} onClick={() => move(1)}>↓</IconBtn>
         <IconBtn label="Duplicate" onClick={dup}>⧉</IconBtn>
         <IconBtn label="Delete" disabled={total === 1} onClick={del}>🗑</IconBtn>
       </div>
+      {bank && <GroupField key={`${a.id}-${groupTag ?? ''}`} label={bank.by === 'dimension' ? 'Area' : 'Category'} value={groupLabel} options={bank.list.map(g => g.label)} onCommit={onGroup} id={a.id} />}
       <Text label={a.type === 'reflection' ? 'Prompt for people to think or talk about' : 'Question'} area value={a.prompt} max={220} onChange={v => change(x => { x.prompt = v; })} testid="q-prompt" />
       {(a.type === 'choice' || a.type === 'poll') && <div className="grid gap-2">
         <span className="text-sm font-bold">{kind === 'quiz' ? 'Answers (mark the correct one)' : kind === 'score' ? 'Answers and their score (0 = most open, 3 = most defensive)' : 'Answers'}</span>
@@ -169,6 +185,16 @@ function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus,
       </div>}
     </div>
   );
+}
+
+/** Group name with suggestions; saved when the field loses focus or on Enter, so typing is never interrupted. */
+function GroupField({ label, value, options, onCommit, id }: { label: string; value: string; options: string[]; onCommit: (v: string) => void; id: string }) {
+  const [v, setV] = useState(value);
+  const commit = () => { if (v.trim() !== value) onCommit(v.trim()); };
+  return <label className="grid gap-1 sm:max-w-xs"><span className="text-sm font-bold">{label}</span>
+    <input className="field !min-h-[40px]" list={`groups-${id}`} value={v} maxLength={30} placeholder={`Type or pick a ${label.toLowerCase()}`} data-testid="q-group"
+      onChange={e => setV(e.target.value)} onBlur={commit} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }} />
+    <datalist id={`groups-${id}`}>{options.map(o => <option key={o} value={o} />)}</datalist></label>;
 }
 
 function Coverage({ bands }: { bands: ResultBand[] }) {
