@@ -1,6 +1,6 @@
 // Strings added in Release 3.0A (question banks, game length, duration). Merged into each locale in ./index.ts.
 export const V3_EN = {
-  'qb.questions': 'Questions', 'qb.quick': 'Quick game', 'qb.standard': 'Standard game', 'qb.extended': 'Extended game', 'qb.all': 'All questions',
+  'qb.questions': 'Questions', 'qb.quick': 'Quick', 'qb.standard': 'Standard', 'qb.extended': 'Deep Dive', 'qb.all': 'All questions',
   'qb.nQ': '{n} questions', 'qb.needs': 'Needs {n} more questions', 'qb.bank': '{n} questions available',
   'qb.selection': 'Question selection',
   'qb.s.fixed': 'Fixed order', 'qb.s.random': 'Random mix', 'qb.s.category': 'Balanced by category', 'qb.s.dimension': 'Balanced by dimension',
@@ -19,11 +19,12 @@ export const V3_EN = {
   'r2.moment': 'One situation worth a second look: “{prompt}” What was your first reflex protecting?',
   'r2.playful': 'A playful self-reflection exercise, not a scientific assessment of personality.',
   'r2.takeaway': 'Save my takeaway (no score)', 'r2.takeawayHead': 'My takeaway from {title}:',
+  'qb.cardMin': 'about {m} min', 'qb.allShort': 'all questions',
 };
 type D = Record<keyof typeof V3_EN, string>;
 
 export const V3_DE: D = {
-  'qb.questions': 'Fragen', 'qb.quick': 'Kurzes Spiel', 'qb.standard': 'Standardspiel', 'qb.extended': 'Langes Spiel', 'qb.all': 'Alle Fragen',
+  'qb.questions': 'Fragen', 'qb.quick': 'Kurz', 'qb.standard': 'Standard', 'qb.extended': 'Tiefgang', 'qb.all': 'Alle Fragen',
   'qb.nQ': '{n} Fragen', 'qb.needs': 'Es fehlen {n} Fragen', 'qb.bank': '{n} Fragen verfügbar',
   'qb.selection': 'Fragenauswahl',
   'qb.s.fixed': 'Feste Reihenfolge', 'qb.s.random': 'Zufällige Mischung', 'qb.s.category': 'Ausgewogen nach Kategorie', 'qb.s.dimension': 'Ausgewogen nach Dimension',
@@ -42,10 +43,11 @@ export const V3_DE: D = {
   'r2.moment': 'Eine Situation, die einen zweiten Blick wert ist: «{prompt}» Was wollte dein erster Reflex schützen?',
   'r2.playful': 'Eine spielerische Selbstreflexion, keine wissenschaftliche Persönlichkeitsbeurteilung.',
   'r2.takeaway': 'Meine Erkenntnis speichern (ohne Punktzahl)', 'r2.takeawayHead': 'Meine Erkenntnis aus {title}:',
+  'qb.cardMin': 'etwa {m} Min.', 'qb.allShort': 'alle Fragen',
 };
 
 export const V3_FR: D = {
-  'qb.questions': 'Questions', 'qb.quick': 'Partie rapide', 'qb.standard': 'Partie standard', 'qb.extended': 'Partie longue', 'qb.all': 'Toutes les questions',
+  'qb.questions': 'Questions', 'qb.quick': 'Rapide', 'qb.standard': 'Standard', 'qb.extended': 'Immersion', 'qb.all': 'Toutes les questions',
   'qb.nQ': '{n} questions', 'qb.needs': 'Il manque {n} questions', 'qb.bank': '{n} questions disponibles',
   'qb.selection': 'Choix des questions',
   'qb.s.fixed': 'Ordre fixe', 'qb.s.random': 'Mélange aléatoire', 'qb.s.category': 'Équilibré par catégorie', 'qb.s.dimension': 'Équilibré par dimension',
@@ -64,11 +66,12 @@ export const V3_FR: D = {
   'r2.moment': 'Une situation qui mérite un second regard : « {prompt} » Que protégeait ton premier réflexe ?',
   'r2.playful': 'Un exercice ludique d’auto-réflexion, pas une évaluation scientifique de la personnalité.',
   'r2.takeaway': 'Garder mon enseignement (sans score)', 'r2.takeawayHead': 'Ce que je retiens de {title} :',
+  'qb.cardMin': 'environ {m} min', 'qb.allShort': 'toutes les questions',
 };
 
 // Arabic: counts are written as "label: n" to avoid number–noun agreement errors with variable numbers.
 export const V3_AR: D = {
-  'qb.questions': 'الأسئلة', 'qb.quick': 'لعبة سريعة', 'qb.standard': 'لعبة عادية', 'qb.extended': 'لعبة مطوّلة', 'qb.all': 'كل الأسئلة',
+  'qb.questions': 'الأسئلة', 'qb.quick': 'سريعة', 'qb.standard': 'عادية', 'qb.extended': 'تعمّق', 'qb.all': 'كل الأسئلة',
   'qb.nQ': 'عدد الأسئلة: {n}', 'qb.needs': 'ينقص {n} من الأسئلة', 'qb.bank': 'الأسئلة المتاحة: {n}',
   'qb.selection': 'اختيار الأسئلة',
   'qb.s.fixed': 'ترتيب ثابت', 'qb.s.random': 'مزيج عشوائي', 'qb.s.category': 'متوازن حسب الفئة', 'qb.s.dimension': 'متوازن حسب البُعد',
@@ -87,4 +90,5 @@ export const V3_AR: D = {
   'r2.moment': 'موقف يستحق نظرة ثانية: «{prompt}» ما الذي كانت ردة فعلك الأولى تحميه؟',
   'r2.playful': 'تمرين مرح للتأمل الذاتي، وليس تقييمًا علميًا للشخصية.',
   'r2.takeaway': 'احفظ خلاصتي (دون النقاط)', 'r2.takeawayHead': 'خلاصتي من {title}:',
+  'qb.cardMin': 'حوالي {m} دقيقة', 'qb.allShort': 'كل الأسئلة',
 };

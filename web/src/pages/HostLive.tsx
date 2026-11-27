@@ -64,7 +64,8 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
   const lengths = lengthOptions(e, strategy);
   const [count, setCount] = useState(defaultLength(e, strategy));
   const n = lengths.some(o => o.available && o.n === count) ? count : defaultLength(e, strategy);
-  const minutes = estimateMinutes({ questions: n, readSec: read, answerSec: ans, reveal: e.reveal, scored: e.scoring.kind === 'behaviour' || e.scoring.kind === 'correct', autoAdvanceSec: auto || undefined });
+  const minutesFor = (q: number) => estimateMinutes({ questions: q, readSec: read, answerSec: ans, reveal: e.reveal, scored: e.scoring.kind === 'behaviour' || e.scoring.kind === 'correct', autoAdvanceSec: auto || undefined });
+  const minutes = minutesFor(n);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -146,7 +147,7 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
                 className={`rounded-2xl border-2 p-3 text-start grid gap-0.5 transition ${on ? 'border-violet-600 bg-violet-50' : 'border-paper-line'} ${o.available ? 'hover:border-violet-400' : 'opacity-50 cursor-not-allowed'}`}>
                 <span className="font-extrabold"><span aria-hidden>{icon} </span>{o.n}</span>
                 <span className="text-sm font-bold">{t(key, { n: o.n })}</span>
-                <span className="text-xs text-ink-soft">{o.available ? (o.all ? t('qb.all') : t('qb.nQ', { n: o.n })) : t('qb.needs', { n: o.missing })}</span>
+                <span className="text-xs text-ink-soft" data-testid={`len-${o.n}-time`}>{o.available ? `⏱ ${t('qb.cardMin', { m: minutesFor(o.n) })}${o.all && LENGTH_LABEL[o.n] ? ` · ${t('qb.allShort')}` : ''}` : t('qb.needs', { n: o.missing })}</span>
               </button>); })}
           </div>
           <p className="text-xs text-ink-soft" data-testid="bank-size">{t('qb.bank', { n: lengths.reduce((m, o) => (o.available ? Math.max(m, o.n) : m), 0) })}</p>
