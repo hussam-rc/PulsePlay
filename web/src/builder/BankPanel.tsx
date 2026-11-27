@@ -1,18 +1,19 @@
 // Question bank section of the builder: overview, how games pick questions, game lengths, groups and sample games.
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import type { Draft } from './model';
 import { BALANCE_LABEL, LENGTH_CHOICES, balanceOf, groups, overview, previewSelections, renameGroup, setBalance, setBankEnabled,
   setDefaultLength, toggleLength, type BalanceBy } from './bankModel';
 
 export function BankPanel({ d, set, readOnly }: { d: Draft; set: (next: Draft) => void; readOnly?: boolean }) {
   const on = !!d.bank, by = balanceOf(d);
-  const ov = useMemo(() => overview(d), [d]);
-  const gs = useMemo(() => (by === 'random' ? [] : groups(d, by)), [d, by]);
+  const slow = useDeferredValue(d);   // overview and example games may lag a keystroke behind; actions always use the latest draft
+  const ov = useMemo(() => overview(slow), [slow]);
+  const gs = useMemo(() => (by === 'random' ? [] : groups(slow, by)), [slow, by]);
   const [n, setN] = useState<number | null>(null);
   const [seed, setSeed] = useState(1);
   const playable = ov.lengths.filter(l => l.available);
   const sampleN = n != null && playable.some(l => l.n === n) ? n : (d.bank?.defaultLength ?? playable[0]?.n ?? null);
-  const samples = useMemo(() => (on && sampleN ? previewSelections(d, sampleN, 3, seed) : []), [d, on, sampleN, seed]);
+  const samples = useMemo(() => (on && sampleN ? previewSelections(slow, sampleN, 3, seed) : []), [slow, on, sampleN, seed]);
   const [renaming, setRenaming] = useState<{ tag: string; name: string } | null>(null);
   const groupWord = by === 'dimension' ? 'area' : 'category';
 
