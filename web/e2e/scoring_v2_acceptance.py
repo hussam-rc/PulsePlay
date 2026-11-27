@@ -88,7 +88,7 @@ with sync_playwright() as pw:
     ok(not any(n in stage for n in [f'P{i}' for i in range(1, 7)]), 'presenter: no names on the results screen')
     next_(d); d.wait_for_selector('[data-testid=group]')
     g = d.inner_text('[data-testid=group]'); avg = d.get_attribute('[data-testid=group-average] [data-value]', 'data-value')
-    ok('Our Team Ego Driving Score' in g and avg == str(round(sum(expect) / 6)), f'presenter: team score = mean of valid scores ({avg} vs {round(sum(expect) / 6)})')
+    ok('Our Team Ego Driving Score' in g and avg == str(int(sum(expect) / 6 + 0.5)), f'presenter: team score = mean of valid scores, rounded half up as in the database ({avg} vs {int(sum(expect) / 6 + 0.5)})')
     ok('6 completed' in g and d.locator('[data-testid=group-reflect]').count() == 1, 'presenter: completions and reflection prompt shown')
     ok('%' not in g, 'presenter: no category breakdown below 10 valid results (existing threshold)')
     ok(not any(n in g for n in [f'P{i}' for i in range(1, 7)]), 'presenter: no names in the team result')
