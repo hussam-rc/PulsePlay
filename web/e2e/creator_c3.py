@@ -50,6 +50,7 @@ with sync_playwright() as pw:
     groups = d.inner_text('[data-testid=bank-groups]')
     ok(all(f'{c}\n7 in use' in groups or f'{c}\n\n7 in use' in groups or (c in groups and '7 in use' in groups) for c in CATS) and 'no category' not in d.inner_text('[data-testid=bank]'), 'categories: three categories with 7 questions each')
     d.click('[data-testid=rename-credit]'); d.get_by_label('New name for Credit').fill('Recognition'); d.get_by_role('button', name='Save').click()
+    d.wait_for_function("document.querySelector('[data-testid=bank-groups]').innerText.includes('Recognition')", timeout=5000)   # the overview follows a moment later
     ok('Recognition' in d.inner_text('[data-testid=bank-groups]') and d.locator('[data-testid=question]').nth(2).locator('[data-testid=q-group]').input_value() == 'Recognition', 'categories: rename updates every question')
 
     # Archive two questions, then restore one
