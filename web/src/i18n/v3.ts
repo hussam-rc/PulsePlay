@@ -12,6 +12,13 @@ export const V3_EN = {
   'qb.yourGame': 'Your game', 'qb.summary': '{n} questions · {sel} · {r} s reading · {a} s answering',
   'qb.lobby': '{n} questions · about {m} min', 'qb.lobbyOf': '{n} of {b} questions',
   'qb.later': 'Coming later: presentation themes (Professional, Playful, Party).',
+  'r2.heading': 'Your result', 'r2.well': 'What you\'re doing well', 'r2.reflect': 'Something to reflect on', 'r2.challenge': 'Your next challenge', 'r2.score': 'Your score',
+  'r2.scoreNote': 'A game-based reflection score for this round only. It is not a measurement of you.',
+  'r2.confident': 'In {label} moments, you stand up for your view without taking over.',
+  'r2.evidence': 'Based on {n} of your answers about {label}.', 'r2.pattern': 'A possible growth area. {text}', 'r2.patternEvidence': 'Seen in {n} of your {of} answers about {label}.',
+  'r2.moment': 'One situation worth a second look: “{prompt}” What was your first reflex protecting?',
+  'r2.playful': 'A playful self-reflection exercise, not a scientific assessment of personality.',
+  'r2.takeaway': 'Save my takeaway (no score)', 'r2.takeawayHead': 'My takeaway from {title}:',
   'qb.cardMin': 'about {m} min', 'qb.allShort': 'all questions',
 };
 type D = Record<keyof typeof V3_EN, string>;
@@ -29,6 +36,13 @@ export const V3_DE: D = {
   'qb.yourGame': 'Dein Spiel', 'qb.summary': '{n} Fragen · {sel} · {r} s Lesen · {a} s Antworten',
   'qb.lobby': '{n} Fragen · etwa {m} Min.', 'qb.lobbyOf': '{n} von {b} Fragen',
   'qb.later': 'Später verfügbar: Präsentationsstile (Professionell, Verspielt, Party).',
+  'r2.heading': 'Dein Ergebnis', 'r2.well': 'Was dir gut gelingt', 'r2.reflect': 'Etwas zum Nachdenken', 'r2.challenge': 'Deine nächste Challenge', 'r2.score': 'Deine Punktzahl',
+  'r2.scoreNote': 'Eine spielerische Reflexionspunktzahl nur für diese Runde. Sie misst nicht dich als Person.',
+  'r2.confident': 'In Momenten rund um {label} vertrittst du deine Sicht, ohne das Steuer an dich zu reissen.',
+  'r2.evidence': 'Basierend auf {n} deiner Antworten zu {label}.', 'r2.pattern': 'Ein mögliches Entwicklungsfeld. {text}', 'r2.patternEvidence': 'Zu sehen in {n} von {of} Antworten zu {label}.',
+  'r2.moment': 'Eine Situation, die einen zweiten Blick wert ist: «{prompt}» Was wollte dein erster Reflex schützen?',
+  'r2.playful': 'Eine spielerische Selbstreflexion, keine wissenschaftliche Persönlichkeitsbeurteilung.',
+  'r2.takeaway': 'Meine Erkenntnis speichern (ohne Punktzahl)', 'r2.takeawayHead': 'Meine Erkenntnis aus {title}:',
   'qb.cardMin': 'etwa {m} Min.', 'qb.allShort': 'alle Fragen',
 };
 
@@ -45,6 +59,13 @@ export const V3_FR: D = {
   'qb.yourGame': 'Ta partie', 'qb.summary': '{n} questions · {sel} · {r} s de lecture · {a} s de réponse',
   'qb.lobby': '{n} questions · environ {m} min', 'qb.lobbyOf': '{n} questions sur {b}',
   'qb.later': 'Bientôt : styles de présentation (Professionnel, Ludique, Fête).',
+  'r2.heading': 'Ton résultat', 'r2.well': 'Ce que tu fais bien', 'r2.reflect': 'Un point de réflexion', 'r2.challenge': 'Ton prochain défi', 'r2.score': 'Ton score',
+  'r2.scoreNote': 'Un score de réflexion ludique, pour cette partie seulement. Il ne te mesure pas en tant que personne.',
+  'r2.confident': 'Dans les moments liés à {label}, tu défends ton point de vue sans prendre le volant.',
+  'r2.evidence': 'D’après {n} de tes réponses sur {label}.', 'r2.pattern': 'Une piste de progression possible. {text}', 'r2.patternEvidence': 'Visible dans {n} de tes {of} réponses sur {label}.',
+  'r2.moment': 'Une situation qui mérite un second regard : « {prompt} » Que protégeait ton premier réflexe ?',
+  'r2.playful': 'Un exercice ludique d’auto-réflexion, pas une évaluation scientifique de la personnalité.',
+  'r2.takeaway': 'Garder mon enseignement (sans score)', 'r2.takeawayHead': 'Ce que je retiens de {title} :',
   'qb.cardMin': 'environ {m} min', 'qb.allShort': 'toutes les questions',
 };
 
@@ -62,5 +83,12 @@ export const V3_AR: D = {
   'qb.yourGame': 'لعبتك', 'qb.summary': 'الأسئلة: {n} · {sel} · القراءة: {r} ث · الإجابة: {a} ث',
   'qb.lobby': 'الأسئلة: {n} · حوالي {m} دقيقة', 'qb.lobbyOf': '{n} من أصل {b} سؤالًا',
   'qb.later': 'قريبًا: أنماط العرض (احترافي، مرح، حفلة).',
+  'r2.heading': 'نتيجتك', 'r2.well': 'ما تقوم به بشكل جيد', 'r2.reflect': 'أمر يستحق التأمل', 'r2.challenge': 'تحدّيك القادم', 'r2.score': 'نقاطك',
+  'r2.scoreNote': 'نقاط تأمل مرحة لهذه الجولة فقط، وليست قياسًا لشخصك.',
+  'r2.confident': 'في مواقف {label}، تعبّر عن رأيك دون أن تستولي على المقود.',
+  'r2.evidence': 'بناءً على {n} من إجاباتك حول {label}.', 'r2.pattern': 'مجال محتمل للنمو. {text}', 'r2.patternEvidence': 'ظهر في {n} من أصل {of} من إجاباتك حول {label}.',
+  'r2.moment': 'موقف يستحق نظرة ثانية: «{prompt}» ما الذي كانت ردة فعلك الأولى تحميه؟',
+  'r2.playful': 'تمرين مرح للتأمل الذاتي، وليس تقييمًا علميًا للشخصية.',
+  'r2.takeaway': 'احفظ خلاصتي (دون النقاط)', 'r2.takeawayHead': 'خلاصتي من {title}:',
   'qb.cardMin': 'حوالي {m} دقيقة', 'qb.allShort': 'كل الأسئلة',
 };

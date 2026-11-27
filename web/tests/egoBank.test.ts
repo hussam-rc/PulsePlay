@@ -45,18 +45,16 @@ describe('Who is in Control? v2 draft bank', () => {
       expect(r.band!.tone).toBe('good');
     }
   });
-  // Current (v1) insight rules give "great" results two strengths and no growth line; the habit still targets the reflex.
-  // Proposal for the v2 results presentation: always name the strongest growth area when any answer scored 3 (needs approval).
-  it('a strong ego reflex in one area still drives the personal habit and challenge', () => {
+  // Under scoring v2 the reflex is named (as a pattern or a single situation) and the challenge targets it.
+  it('a strong ego reflex in one area is named in the reflection, and the challenge targets it', () => {
     const s = sessionExperience(e, { n: 15, seed: 'one-area' });
     const acts = s.rounds[0].activities as typeof BANK_EN;
     const ans = Object.fromEntries(acts.map(a => [a.id, a.options.find(o => o.points === (a.dimension === 'recognition' ? 3 : 0))!.id]));
     const r = personalResult(s, ans);
     expect(r.band!.tone).toBe('great');
-    expect(r.habit).toBe(e.insights!.themes.recognition.habit);
+    expect(r.feedback!.reflection?.theme).toBe('recognition');
     expect(r.challenge).toBe(e.insights!.themes.recognition.challenge);
   });
-
   // Content-quality guards (see docs/EGO_BANK_QUALITY_REPORT.md): the wording must not reveal the scoring.
   const lvl = (q: typeof BANK_EN[number], p: number) => q.options.find(o => o.points === p)!.text;
   const first = (t: string) => t.split(/[\s,;:]/)[0].toLowerCase();

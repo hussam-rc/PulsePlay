@@ -42,3 +42,57 @@ Each cell: share of 1000 simulated players landing in each band, each on a fresh
 | Ego in one area (level 3 in recognition, level 0 elsewhere) | 100% | 0% | 0% | 0% | 17 | 100% |
 | Ego driving (always the 3-point answer) | 0% | 0% | 0% | 100% | 100 | 100% |
 
+# Feedback coherence (scoring v2)
+
+Per pattern and game length, over 1,000 simulated players on fresh balanced selections:
+- "≥1 strength" and the reflection mix (pattern / single situation / none).
+- "Hits target": share of reflections naming one of the dimensions the pattern was built to stress.
+- "Incoherent": count of feedback that contradicts the answers. It should be 0. It counts:
+  - a reflection without any 2-3 point answer
+  - a single situation without a 3-point answer
+  - a pattern based on fewer than 2 answers
+  - a strength in a dimension with a 2-3 point answer
+  - the same dimension named as a strength and as the reflection
+
+## 10 questions
+
+| Pattern | Category (most common) | ≥1 strength | Pattern | Single situation | Nothing to reflect on | Hits target | Incoherent |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Strongly reflective | 🧘 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Healthy confidence | 😎 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Realistic mix | 😎 77% | 94% | 30% | 39% | 31% | – | 0 |
+| Defensive (all 2) | 🦙 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Strongly ego-driven | 👑 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Ego in recognition only | 🧘 100% | 100% | 67% | 33% | 0% | 100% | 0 |
+| Self-protective in feedback + collaboration | 😎 95% | 100% | 94% | 0% | 6% | 94% | 0 |
+| Confident, but ego in humility | 😎 100% | 100% | 66% | 34% | 0% | 100% | 0 |
+| Uniform random | 😎 53% | 69% | 70% | 27% | 3% | – | 0 |
+
+## 15 questions
+
+| Pattern | Category (most common) | ≥1 strength | Pattern | Single situation | Nothing to reflect on | Hits target | Incoherent |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Strongly reflective | 🧘 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Healthy confidence | 😎 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Realistic mix | 😎 85% | 97% | 60% | 27% | 13% | – | 0 |
+| Defensive (all 2) | 🦙 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Strongly ego-driven | 👑 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Ego in recognition only | 🧘 100% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Self-protective in feedback + collaboration | 😎 97% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Confident, but ego in humility | 😎 100% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Uniform random | 😎 50% | 73% | 95% | 4% | 1% | – | 0 |
+
+## 20 questions
+
+| Pattern | Category (most common) | ≥1 strength | Pattern | Single situation | Nothing to reflect on | Hits target | Incoherent |
+|---|---|---:|---:|---:|---:|---:|---:|
+| Strongly reflective | 🧘 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Healthy confidence | 😎 100% | 100% | 0% | 0% | 100% | – | 0 |
+| Realistic mix | 😎 86% | 90% | 69% | 25% | 6% | – | 0 |
+| Defensive (all 2) | 🦙 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Strongly ego-driven | 👑 100% | 0% | 100% | 0% | 0% | – | 0 |
+| Ego in recognition only | 🧘 100% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Self-protective in feedback + collaboration | 😎 99% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Confident, but ego in humility | 😎 100% | 100% | 100% | 0% | 0% | 100% | 0 |
+| Uniform random | 😎 53% | 49% | 97% | 3% | 0% | – | 0 |
+
