@@ -104,6 +104,7 @@ export function humanize(errors: string[], d: Draft): Problem[] {
     if (b) return { where: `Result ${+b[1] + 1}`, anchor: 'results', text: `${b[2] ? cap(b[2]) + ' ' : ''}${plain(msg)}` };
     const sem = e.match(/^([a-z0-9-]+): (.*)$/);
     if (sem && qn(sem[1])) return { where: `Question ${qn(sem[1])}`, anchor: `q-${qn(sem[1])}`, text: semantic(sem[2]) };
+    if (/^bank\.|eligible questions|required questions|archived question/.test(e)) return { where: 'Question bank', anchor: 'bank', text: semantic(e) };
     if (/band|result/i.test(e)) return { where: 'Results', anchor: 'results', text: semantic(e) };
     if (FIELD[path]) return { where: 'Basics', anchor: 'basics', text: `${FIELD[path]} ${plain(msg)}` };
     if (path.startsWith('rounds')) return { where: 'Questions', anchor: 'questions', text: plain(msg) };
@@ -130,5 +131,11 @@ function semantic(m: string) {
     .replace(/bands "(.*)" and "(.*)" overlap/, 'Results "$1" and "$2" overlap.').replace(/gap between (\d+) and (\d+)/, 'No result covers the scores between $1 and $2.')
     .replace('result bands are required for scored experiences', 'Add at least one result.')
     .replace('players.min is greater than players.max', 'Minimum players is higher than maximum players.')
-    .replace(/duplicate activity id .*/, 'Two questions share an id. Duplicate it again or delete one.');
+    .replace(/duplicate activity id .*/, 'Two questions share an id. Duplicate it again or delete one.')
+    .replace('bank.lengths must be unique and ascending', 'Each game length can be chosen only once.')
+    .replace('bank.defaultLength must be one of bank.lengths', 'The suggested length must be one of the game lengths.')
+    .replace(/(\d+) required questions do not fit the shortest game \((\d+)\)/, '$1 questions are always included, which is more than the shortest game ($2).')
+    .replace(/only (\d+) eligible questions: (.*)-question games are not available/, 'Only $1 questions are in use, so $2-question games cannot be offered yet.')
+    .replace(/(\d+) eligible questions have no (category|dimension); they are balanced as one extra group/, (_, k, w) => `${k} questions have no ${w === 'dimension' ? 'area' : 'category'}; they are mixed as one extra group.`)
+    .replace('an archived question cannot be required', 'An archived question cannot be always included.');
 }
