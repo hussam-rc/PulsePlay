@@ -21,7 +21,8 @@ export function searchText(a: Activity): string {
   return normalize(parts.join(' ‖ '));
 }
 
-export type StatusFilter = 'all' | 'active' | 'archived' | 'problems';
+export type StatusFilter = 'all' | 'active' | 'archived' | 'problems' | 'duplicates' | 'changed';
+export interface FlagSets { problems?: Set<string>; duplicates?: Set<string>; changed?: Set<string> }
 export interface ListFilter { query: string; group: string; groupKey: 'category' | 'dimension'; status: StatusFilter; type: Activity['type'] | 'all' }
 export const NO_FILTER: ListFilter = { query: '', group: '', groupKey: 'category', status: 'all', type: 'all' };
 export const NO_GROUP = '__none__';
@@ -33,10 +34,12 @@ export function matches(a: Activity, words: string[], index?: Map<string, string
   return words.every(w => t.includes(w));
 }
 
-export function filterActivities(acts: Activity[], f: ListFilter, problemIds: Set<string> = new Set(), index?: Map<string, string>): Activity[] {
+export function filterActivities(acts: Activity[], f: ListFilter, flags: FlagSets | Set<string> = {}, index?: Map<string, string>): Activity[] {
   const words = normalize(f.query).split(' ').filter(Boolean);
+  const fl: FlagSets = flags instanceof Set ? { problems: flags } : flags, has = (k: keyof FlagSets, id: string) => !!fl[k]?.has(id);
   return acts.filter(a =>
-    (f.status === 'all' || (f.status === 'active' && a.active !== false) || (f.status === 'archived' && a.active === false) || (f.status === 'problems' && problemIds.has(a.id))) &&
+    (f.status === 'all' || (f.status === 'active' && a.active !== false) || (f.status === 'archived' && a.active === false) || (f.status === 'problems' && has('problems', a.id)) ||
+     (f.status === 'duplicates' && has('duplicates', a.id)) || (f.status === 'changed' && has('changed', a.id))) &&
     (f.type === 'all' || a.type === f.type) &&
     (!f.group || (f.group === NO_GROUP ? !a[f.groupKey] : a[f.groupKey] === f.group)) &&
     matches(a, words, index));

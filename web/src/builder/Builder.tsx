@@ -1,5 +1,5 @@
 // No-code game builder. Edits a schema v1 draft through forms only; the checker speaks plain language.
-import { ReactNode, useDeferredValue, useMemo, useRef, useState } from 'react';
+import { ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
@@ -12,6 +12,7 @@ import { PhonePreview } from './PhonePreview';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, splitBands } from './model';
 import type { BankGroups, QuestionApi } from './QuestionEditor';
 import { QuestionList } from './QuestionList';
+import { findDuplicates, type VersionDiff } from './qualityModel';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
   ['communication', 'Communication'], ['leadership', 'Leadership'], ['collaboration', 'Collaboration'], ['trivia', 'Trivia & quiz'], ['education', 'Education'], ['community', 'Community'],
@@ -20,7 +21,8 @@ const EMOJIS = ['🧠', '🪞', '📊', '💬', '🎯', '🧩', '🚀', '🌍', 
 const LANGS: [Draft['languages'][number], string][] = [['en', 'English'], ['ar', 'Arabic'], ['de', 'German'], ['fr', 'French']];
 const TONES: [ResultBand['tone'], string][] = [['great', '🟢 Great'], ['good', '🔵 Good'], ['watch', '🟡 Watch out'], ['grow', '🟠 Room to grow']];
 
-export function Builder({ value, onChange, readOnly, storageKey }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string }) {
+export function Builder({ value, onChange, readOnly, storageKey, diff = null }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string;
+  diff?: VersionDiff | null }) {
   const d = value;
   // Question edits go through a stable API that always applies to the latest draft and copies only the changed question,
   // so a 200-question bank stays responsive while typing. Checks run on a deferred copy of the draft.
@@ -49,6 +51,17 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
   const warnings = useMemo(() => humanize(check.warnings, checked), [check, checked]);
   const checkedActs = useMemo(() => checked.rounds.flatMap(r => r.activities), [checked]);
   const problemIds = useMemo(() => problemIdsFrom(problems.map(p => p.anchor), checkedActs), [problems, checkedActs]);
+  // duplicate checks compare every pair of questions, so they run once typing pauses instead of after every keystroke
+  const [dupActs, setDupActs] = useState(checkedActs);
+  useEffect(() => { const t = window.setTimeout(() => setDupActs(checkedActs), 600); return () => window.clearTimeout(t); }, [checkedActs]);
+  const dups = useMemo(() => findDuplicates(dupActs), [dupActs]);
+  // each pair of duplicates is reported once, at the earlier question (recomputed only when the duplicate check runs)
+  const dupWarnings = useMemo(() => {
+    const pos = new Map(dupActs.map((a, k) => [a.id, k + 1])), num = (id?: string) => (id ? pos.get(id) ?? 0 : 0);
+    return [...dups].flatMap(([id, l]) => l.filter(x => x.kind === 'answers' || num(x.with) > num(id)).map(x => ({
+      where: `Question ${num(id)}`, anchor: `q-${num(id)}`,
+      text: x.kind === 'answers' ? 'Two answers are the same.' : x.kind === 'same' ? `Same question as question ${num(x.with)}.` : `Very similar to question ${num(x.with)}.` })));
+  }, [dups, dupActs]);
   const scored = kind === 'quiz' || kind === 'score';
   // groups change rarely: keep the same object while the list of names and counts is unchanged, so question cards stay memoised
   const by = balanceOf(d), groupKey = by === 'dimension' ? 'dimension' as const : 'category' as const;
@@ -110,7 +123,7 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
 
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
-          <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} api={api} focus={focus} storageKey={storageKey} />
+          <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} dups={dups} diff={diff} api={api} focus={focus} storageKey={storageKey} />
           <CsvPanel d={d} apply={replaceDraft} readOnly={readOnly} />
           {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => addActs(add, x => !!(x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))))} />}
           {!readOnly && <div className="flex flex-wrap gap-2">{KINDS[kind].activity.map(t =>
@@ -163,7 +176,8 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
         <b className="text-lg">{problems.length ? `✏️ ${problems.length} thing${problems.length === 1 ? '' : 's'} to fix` : '✅ Ready to publish'}</b>
         {problems.length === 0 && <p className="text-sm text-ink-soft">Everything checks out. Preview it with simulated players, then publish.</p>}
         <ul className="grid gap-2">{problems.map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); goTo(p.anchor, true); }} className="block rounded-xl bg-coral-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
-        {warnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2">{warnings.map((p, i) => <li key={i} className="rounded-xl bg-sun-50 p-2 text-sm"><b>{p.where}:</b> {p.text}</li>)}</ul></>}
+        {warnings.length + dupWarnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2" data-testid="checker-warnings">{[...warnings, ...dupWarnings].slice(0, 30).map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); goTo(p.anchor, true); }} className="block rounded-xl bg-sun-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
+          {warnings.length + dupWarnings.length > 30 && <p className="text-xs text-ink-soft">…and {warnings.length + dupWarnings.length - 30} more. Use the question filters to see them all.</p>}</>}
       </aside>
       </div>
     </div>
