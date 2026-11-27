@@ -4,6 +4,7 @@ import type { ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
 import { BankPanel } from './BankPanel';
+import { CsvPanel } from './CsvPanel';
 import { balanceOf, groups, setArchived, setGroup } from './bankModel';
 import { Num, Select, Slider, Text, Toggle } from './fields';
 import { appendActivities, deleteActivity, duplicateActivity, moveActivity, patchActivity, problemIdsFrom, replaceActivity } from './listModel';
@@ -110,6 +111,7 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
           <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} api={api} focus={focus} storageKey={storageKey} />
+          <CsvPanel d={d} apply={replaceDraft} readOnly={readOnly} />
           {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => addActs(add, x => !!(x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))))} />}
           {!readOnly && <div className="flex flex-wrap gap-2">{KINDS[kind].activity.map(t =>
             <button type="button" key={t} className="btn-ghost" onClick={() => addActs([newActivity(t, kind)])} data-testid={`add-${t}`}>+ Add {ACTIVITY_LABEL[t].split(' (')[0].toLowerCase()}</button>)}</div>}
