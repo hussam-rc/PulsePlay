@@ -13,6 +13,8 @@ with sync_playwright() as pw:
     ok(h.is_disabled('[data-testid=len-15]') and h.is_disabled('[data-testid=len-20]'), 'setup: 15 and 20 not offered for a 10-question game')
     ok('Needs 5 more questions' in h.inner_text('[data-testid=len-15]') and 'Needs 10 more questions' in h.inner_text('[data-testid=len-20]'), 'setup: says exactly what is missing')
     ok('10 questions available' in h.inner_text('[data-testid=bank-size]'), 'setup: shows how many questions exist')
+    ok('Quick' in h.inner_text('[data-testid=len-10]') and 'Standard' in h.inner_text('[data-testid=len-15]') and 'Deep Dive' in h.inner_text('[data-testid=len-20]'), 'presets: Quick / Standard / Deep Dive')
+    ok(re.search(r'about \d+ min', h.inner_text('[data-testid=len-10-time]')) is not None, f'presets: each available preset shows its own duration ({h.inner_text("[data-testid=len-10-time]")})')
     opts = h.eval_on_selector_all('#selection option', 'os => os.map(o => o.value)')
     ok(opts == ['fixed', 'random'], f'setup: selection offers fixed or random for a game without a bank ({opts})')
     reads = h.eval_on_selector_all('#read option', 'os => os.map(o => +o.value)'); answers = h.eval_on_selector_all('#answer option', 'os => os.map(o => +o.value)')
@@ -25,7 +27,7 @@ with sync_playwright() as pw:
     h.screenshot(path=f'{SHOTS}/3a_setup_en.png', full_page=True)
     # Arabic, right to left, no overflow
     h.evaluate("localStorage.setItem('pp_lang','ar')"); h.reload(); h.wait_for_selector('[data-testid=lengths]')
-    ok(h.evaluate('document.documentElement.dir') == 'rtl' and 'لعبة سريعة' in h.inner_text('[data-testid=len-10]'), 'setup: Arabic labels, right to left')
+    ok(h.evaluate('document.documentElement.dir') == 'rtl' and 'سريعة' in h.inner_text('[data-testid=len-10]'), 'setup: Arabic labels, right to left')
     ok(h.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'setup: no horizontal overflow in Arabic')
     h.screenshot(path=f'{SHOTS}/3a_setup_ar.png', full_page=True)
     h.evaluate("localStorage.setItem('pp_lang','en')")
