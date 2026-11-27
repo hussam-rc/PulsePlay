@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { validateExperience, Experience } from '../engine/schema';
 import { Builder } from '../builder/Builder';
@@ -38,6 +38,13 @@ export function Editor() {
   const [json, setJson] = useState<string | null>(null);
   const [pub, setPub] = useState<{ version: number; content: Draft } | null>(null);
   const timer = useRef<number>();
+  // the unpublished-changes summary follows typing a moment later, so it never slows the editor down
+  const later = useDeferredValue(draft);
+  const { diff, settingsChanged } = useMemo(() => {
+    if (!pub || !later) return { diff: null, settingsChanged: false };
+    const flat = (e: Draft) => e.rounds.flatMap(r => r.activities);
+    return { diff: diffAgainstPublished(flat(later), flat(pub.content), pub.version), settingsChanged: !stableEqual({ ...later, rounds: [], status: '' }, { ...pub.content, rounds: [], status: '' }) };
+  }, [later, pub]);
   const load = useCallback(() => api.get(id).then(r => { setX(r); if (r?.versions.length) api.published(id).then(p => setPub(p ? { version: p.version, content: p.content as Draft } : null)).catch(() => setPub(null)); else setPub(null); if (r) { setDraft(r.draft as Draft); setVis(r.orgId ? 'org' : (r.visibility === 'unlisted' ? 'unlisted' : 'private')); } }).catch(e => { setErr(e.message); setX(null); }), [id]);
   useEffect(() => { if (auth) load(); }, [id, auth?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -59,9 +66,7 @@ export function Editor() {
   const publish = run(async () => { await flush(); const r = await api.publish(x.id, vis); setMsg(`Published version ${r.version}. New rooms use it; earlier sessions keep theirs.`); await load(); });
   const preview = run(async () => { await flush(); nav(`/workspace/preview/${x.id}`); });
   const latest = x.versions[0]?.version;
-  const flat = (e: Draft) => e.rounds.flatMap(r => r.activities);
-  const diff = pub ? diffAgainstPublished(flat(draft), flat(pub.content), pub.version) : null;
-  const settingsChanged = !!pub && !stableEqual({ ...draft, rounds: [], status: '' }, { ...pub.content, rounds: [], status: '' });
+
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 grid gap-5">
@@ -72,7 +77,7 @@ export function Editor() {
       <header className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-extrabold me-auto">{draft.emoji} {draft.title || 'Untitled game'}</h1>
         <Chip tone={x.status === 'published' ? 'teal' : 'sun'}>{x.status === 'published' ? 'published' : 'draft'}</Chip>{latest && <Chip tone="sky">live version v{latest}</Chip>}{!x.canEdit && <Chip tone="coral">view only</Chip>}</header>
 
-      <Builder value={draft} onChange={onChange} readOnly={!x.canEdit} storageKey={x.id} published={pub} />
+      <Builder value={draft} onChange={onChange} readOnly={!x.canEdit} storageKey={x.id} diff={diff} />
 
       <section className="card p-5 grid gap-3">
         <h2 className="text-xl font-extrabold">Try it and publish</h2>

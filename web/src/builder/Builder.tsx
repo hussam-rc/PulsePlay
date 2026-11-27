@@ -1,5 +1,5 @@
 // No-code game builder. Edits a schema v1 draft through forms only; the checker speaks plain language.
-import { ReactNode, useDeferredValue, useMemo, useRef, useState } from 'react';
+import { ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import type { ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
 import { AiDraft } from './AiDraft';
@@ -12,8 +12,7 @@ import { PhonePreview } from './PhonePreview';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, splitBands } from './model';
 import type { BankGroups, QuestionApi } from './QuestionEditor';
 import { QuestionList } from './QuestionList';
-import { diffAgainstPublished, findDuplicates } from './qualityModel';
-import type { Activity } from '../engine/schema';
+import { findDuplicates, type VersionDiff } from './qualityModel';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
   ['communication', 'Communication'], ['leadership', 'Leadership'], ['collaboration', 'Collaboration'], ['trivia', 'Trivia & quiz'], ['education', 'Education'], ['community', 'Community'],
@@ -22,8 +21,8 @@ const EMOJIS = ['🧠', '🪞', '📊', '💬', '🎯', '🧩', '🚀', '🌍', 
 const LANGS: [Draft['languages'][number], string][] = [['en', 'English'], ['ar', 'Arabic'], ['de', 'German'], ['fr', 'French']];
 const TONES: [ResultBand['tone'], string][] = [['great', '🟢 Great'], ['good', '🔵 Good'], ['watch', '🟡 Watch out'], ['grow', '🟠 Room to grow']];
 
-export function Builder({ value, onChange, readOnly, storageKey, published }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string;
-  published?: { version: number; content: Draft } | null }) {
+export function Builder({ value, onChange, readOnly, storageKey, diff = null }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string;
+  diff?: VersionDiff | null }) {
   const d = value;
   // Question edits go through a stable API that always applies to the latest draft and copies only the changed question,
   // so a 200-question bank stays responsive while typing. Checks run on a deferred copy of the draft.
@@ -52,14 +51,17 @@ export function Builder({ value, onChange, readOnly, storageKey, published }: { 
   const warnings = useMemo(() => humanize(check.warnings, checked), [check, checked]);
   const checkedActs = useMemo(() => checked.rounds.flatMap(r => r.activities), [checked]);
   const problemIds = useMemo(() => problemIdsFrom(problems.map(p => p.anchor), checkedActs), [problems, checkedActs]);
-  const dups = useMemo(() => findDuplicates(checkedActs), [checkedActs]);
-  const pubActs = useMemo<Activity[] | null>(() => published ? published.content.rounds.flatMap(r => r.activities) : null, [published]);
-  const diff = useMemo(() => diffAgainstPublished(checkedActs, pubActs, published?.version ?? 0), [checkedActs, pubActs, published?.version]);
-  const num = (id?: string) => (id ? checkedActs.findIndex(a => a.id === id) + 1 : 0);
-  // each pair of duplicates is reported once, at the earlier question
-  const dupWarnings = useMemo(() => [...dups].flatMap(([id, l]) => l.filter(x => x.kind === 'answers' || num(x.with) > num(id)).map(x => ({
-    where: `Question ${num(id)}`, anchor: `q-${num(id)}`,
-    text: x.kind === 'answers' ? 'Two answers are the same.' : x.kind === 'same' ? `Same question as question ${num(x.with)}.` : `Very similar to question ${num(x.with)}.` }))), [dups, checkedActs]); // eslint-disable-line react-hooks/exhaustive-deps
+  // duplicate checks compare every pair of questions, so they run once typing pauses instead of after every keystroke
+  const [dupActs, setDupActs] = useState(checkedActs);
+  useEffect(() => { const t = window.setTimeout(() => setDupActs(checkedActs), 600); return () => window.clearTimeout(t); }, [checkedActs]);
+  const dups = useMemo(() => findDuplicates(dupActs), [dupActs]);
+  // each pair of duplicates is reported once, at the earlier question (recomputed only when the duplicate check runs)
+  const dupWarnings = useMemo(() => {
+    const pos = new Map(dupActs.map((a, k) => [a.id, k + 1])), num = (id?: string) => (id ? pos.get(id) ?? 0 : 0);
+    return [...dups].flatMap(([id, l]) => l.filter(x => x.kind === 'answers' || num(x.with) > num(id)).map(x => ({
+      where: `Question ${num(id)}`, anchor: `q-${num(id)}`,
+      text: x.kind === 'answers' ? 'Two answers are the same.' : x.kind === 'same' ? `Same question as question ${num(x.with)}.` : `Very similar to question ${num(x.with)}.` })));
+  }, [dups, dupActs]);
   const scored = kind === 'quiz' || kind === 'score';
   // groups change rarely: keep the same object while the list of names and counts is unchanged, so question cards stay memoised
   const by = balanceOf(d), groupKey = by === 'dimension' ? 'dimension' as const : 'category' as const;

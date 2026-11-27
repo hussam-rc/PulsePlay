@@ -17,10 +17,17 @@ function dice(x: Map<string, number>, nx: number, y: Map<string, number>, ny: nu
  * - answers: two answers within one question are the same
  * Archived questions count too, so restoring one cannot silently create a duplicate.
  */
+// letter pairs are cached per question text, so re-checking 200 questions after a keystroke only re-reads the edited one
+const prepCache = new Map<string, { k: string; g: Map<string, number>; n: number }>();
+function prep(prompt: string, key: (s: string) => string) {
+  let p = prepCache.get(prompt);
+  if (!p) { const k = key(prompt); p = { k, g: bigrams(k), n: Math.max(0, k.length - 1) }; if (prepCache.size > 5000) prepCache.clear(); prepCache.set(prompt, p); }
+  return p;
+}
 export function findDuplicates(acts: Activity[]): Map<string, DupIssue[]> {
   const out = new Map<string, DupIssue[]>(), add = (id: string, x: DupIssue) => { const l = out.get(id) ?? []; if (!l.some(y => y.kind === x.kind && y.with === x.with)) l.push(x); out.set(id, l); };
   const key = (s: string) => normalize(s).replace(/[^\p{L}\p{N}]/gu, '');
-  const prepared = acts.map(a => { const k = key(a.prompt); return { a, k, g: bigrams(k), n: Math.max(0, k.length - 1) }; }).filter(x => x.k);
+  const prepared = acts.map(a => ({ a, ...prep(a.prompt, key) })).filter(x => x.k);
   const byKey = new Map<string, string>();
   for (const x of prepared) { const first = byKey.get(x.k); if (first) { add(x.a.id, { kind: 'same', with: first }); add(first, { kind: 'same', with: x.a.id }); } else byKey.set(x.k, x.a.id); }
   for (let i = 0; i < prepared.length; i++) for (let j = i + 1; j < prepared.length; j++) {
@@ -38,10 +45,13 @@ export type Change = 'new' | 'edited' | 'archived' | 'restored';
 export interface VersionDiff { version: number; changes: Map<string, Change>; deleted: { id: string; prompt: string }[]; counts: Record<Change | 'deleted', number>; total: number }
 
 /** Stable comparison of two questions, ignoring the internal version counter and key order. */
-function same(a: Activity, b: Activity): boolean {
-  const strip = (x: Activity) => { const { rev: _r, active: _a, ...rest } = x as Activity & { rev?: number }; return rest; };
-  return stable(strip(a)) === stable(strip(b));
+const keyCache = new WeakMap<Activity, string>();   // unchanged questions keep their object, so their key is computed once
+function contentKey(x: Activity): string {
+  let k = keyCache.get(x);
+  if (k == null) { const { rev: _r, active: _a, ...rest } = x as Activity & { rev?: number }; k = stable(rest); keyCache.set(x, k); }
+  return k;
 }
+function same(a: Activity, b: Activity): boolean { return contentKey(a) === contentKey(b); }
 /** Deep equality that ignores key order and undefined values (published content comes back from the database re-ordered). */
 export const stableEqual = (a: unknown, b: unknown) => stable(a) === stable(b);
 function stable(v: unknown): string {
