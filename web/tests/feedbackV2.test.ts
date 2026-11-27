@@ -100,6 +100,20 @@ describe('scoring with tied scores and variable maximum points', () => {
     const e = mini([q, choice('o1', [0, 0, 2, 3]), choice('o2', [0, 0, 2, 3])], { maxPoints: 3 });
     expect(personalResult(e, { n2: 'd', o1: 'a', o2: 'a' }).feedback!.reflection).toBeNull();
   });
+  it('real bank: question maximum and feedback level are separate scales', () => {
+    // a 2-max question's worst answer earns 100% of that question's points, yet reads as self-protective (level 2), never ego-driven (3)
+    const all = draft.rounds.flatMap(r => r.activities) as Q[];
+    const twoMax = all.filter(q => Math.max(...q.options.map(o => o.points ?? 0)) === 2);
+    expect(twoMax.length).toBe(12);
+    for (const q of twoMax) {
+      const worst = q.options.find(o => o.points === 2)!;
+      expect(levelOf(q, worst.id, pointScale(draft))).toBe(2);
+      const e = mini([q, q, q].map((x, i) => ({ ...x, id: `${x.id}-${i}` })), { maxPoints: 3 });
+      const r = personalResult(e, Object.fromEntries(e.rounds[0].activities.map(a => [a.id, worst.id])));
+      expect(r.score).toBe(100);
+      expect(r.feedback!.reflection?.kind ?? null).not.toBe('moment'); // never a "single ego-driven situation"
+    }
+  });
   it('the point scale defaults to the highest points in the content', () => {
     expect(pointScale(mini([choice('s1', [0, 1, 2]), choice('s2', [0, 5, 10])], { maxPoints: undefined }))).toBe(10);
     expect(pointScale(draft)).toBe(3);

@@ -72,6 +72,16 @@ describe('Who is in Control? v2 bank: no giveaways', () => {
     const FEEL = /\b(feel|feels|felt|upset|hurt|annoyed|disappointed|irritated|sting)\b/i;
     for (const o of high) expect(o.text).not.toMatch(FEEL);
   });
+  it('only observable reactions carry points: no thoughts, decisions-in-the-head or moods in 1-3 point answers', () => {
+    const INNER = /\b(decide|decides|assume|think|believe|forget|lose interest|wonder|hope|realise|resent|enjoy|wish|doubt|suspect|tell yourself|hear it as|feel|feels)\b/i;
+    const scored = BANK_EN.flatMap(q => q.options.filter(o => o.points > 0).map(o => `${q.id}: ${o.text}`));
+    expect(scored.filter(t => INNER.test(t))).toEqual([]);
+  });
+  it('em2: giving privacy (0) is distinguished from ignoring someone in distress (2)', () => {
+    const q = BANK_EN.find(x => x.id === 'em2')!;
+    expect(q.options.find(o => /privacy/.test(o.text))!.points).toBe(0);
+    expect(q.options.find(o => /as if nothing happened/.test(o.text))!.points).toBe(2);
+  });
   it('every answer in the bank is distinct', () => {
     const t = BANK_EN.flatMap(q => q.options.map(o => o.text.toLowerCase())); expect(new Set(t).size).toBe(t.length);
   });

@@ -1,4 +1,4 @@
-# Scoring v2: validation report (final testing, not activated)
+# Scoring v2: validation report (approved for continued testing, not activated)
 
 Status: **approved for final testing; not active in production.** v2 applies only to content with `scoring.version: 2`, and no published experience has it, so every live game still uses v1. Activation needs your separate approval. Full simulation output: `docs/EGO_BANK_SIMULATION.md`.
 
@@ -26,7 +26,7 @@ Compared over 1,000 random balanced selections per pattern:
 | Defensive | 58 ± 4 | 54 ± 3 | 59 ± 4 |
 | Strongly ego-driven | **99 ± 1** | 92 ± 3 | 99 ± 2 |
 
-- **A** penalises the bank for including 13 questions with no ego-driven option: a fully ego-driven player can never reach 100, and their score depends on which questions were drawn.
+- **A** penalises the bank for including 12 questions with no ego-driven option: a fully ego-driven player can never reach 100, and their score depends on which questions were drawn.
 - **B** gives a 2-max question the same weight as a 3-max one. A single self-protective answer on a 2-max question then counts as 100% ego for that question.
 - **Approved** sits between them. Its spread from random selection is ≤ ±11 points at 10 questions and ±8 at 20, so differences between selections are smaller than the width of a category band (25).
 - **Conclusion:** no material distortion. Keep the approved formula.
@@ -49,7 +49,7 @@ Compared over 1,000 random balanced selections per pattern:
 | ✨ What you're doing well | An area with ≥ 2 answers, every answer at level ≤ 1 and a mean ≤ 0.5. At most two. Open and assertive answers both qualify, so confidence is never penalised. |
 | 💡 Something to reflect on | **Pattern:** ≥ 2 answers in an area, ≥ 2 of them at level 2–3, and a clear majority (> 50%). Otherwise **one situation:** the first ego-driven answer. Otherwise nothing. |
 | 🎯 Your next challenge | One action, tied to the reflection; otherwise a general stretch. |
-| 📊 Your Ego Driving Score | Optional (`showScore`). "Just for fun… 0 = never, 100 = every time. It is not a measurement of you." |
+| 📊 Your Ego Driving Score | Optional (`showScore`). Described as "a game-based reflection score for this round only… It does not measure your ego or personality." |
 
 Safeguards:
 - A single question never makes a strength or a pattern.

@@ -1,6 +1,6 @@
 # Who is in Control? v2: final content review (for approval)
 
-Status: **awaiting your approval. Not published.** All 60 questions with their scores are in `docs/EGO_BANK_REVIEW.md`; the scoring validation is in `docs/EGO_BANK_SIMULATION.md`.
+Status: **reviewed 27 Nov: em7, cl8, sa9, hl4 and rc6 approved; em2 revised. The current state and all later corrections are in `docs/EGO_BANK_APPROVAL_REPORT.md`.** Not published. All 60 questions with their scores are in `docs/EGO_BANK_REVIEW.md`; the scoring validation is in `docs/EGO_BANK_SIMULATION.md`.
 
 ## What changed in this review
 - **Scores now describe behaviour, not an even spread.** The previous draft forced every question into 0/1/2/3. Now:

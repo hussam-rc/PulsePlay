@@ -7,7 +7,7 @@ Generated from `web/src/experiences/drafts/egoCheckV2.{de,fr,ar}.ts`. Answer ids
 | Language | Questions | Insights | Results | Longest prompt | Longest answer | Review status | Reviewer |
 |---|---:|---:|---:|---:|---:|---|---|
 | DE | 60/60 | 6/6 | 4/4 | 85 | 81 | draft | – |
-| FR | 60/60 | 6/6 | 4/4 | 89 | 72 | draft | – |
+| FR | 60/60 | 6/6 | 4/4 | 89 | 78 | draft | – |
 | AR | 60/60 | 6/6 | 4/4 | 72 | 53 | draft | – |
 
 Rule: a language is published only when it is complete **and** marked `reviewed` with a reviewer and date.
@@ -18,7 +18,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 
 | | EN | DE | FR | AR |
 |---|---|---|---|---|
-| Situation | Halfway through an argument, you realise you were wrong. | Mitten in einer Diskussion merkst du, dass du falsch liegst. | En pleine discussion, tu te rends compte que tu as tort. | في منتصف نقاش، تدرك أنك كنت مخطئًا. |
+| Situation | Halfway through an argument, you realise you were wrong. | Mitten in einer Diskussion merkst du, dass du falsch liegst. | En pleine discussion, tu te rends compte que tu as tort. | في منتصف نقاش، تدرك أن رأيك كان خاطئًا. |
 | 0 · open | Say so, and thank them for the push | Ich sage es und bedanke mich für den Anstoss | Je le dis et je remercie pour la remarque | أقول ذلك وأشكرهم على التنبيه |
 | 0 · assertive | Admit it briefly and move on | Ich gebe es kurz zu und mache weiter | Je le reconnais brièvement et je passe à la suite | أعترف بذلك باختصار وأكمل |
 | 2 · self-protective | Switch to a smaller point you're right about | Ich wechsle zu einem kleineren Punkt, bei dem ich recht habe | Je passe à un point plus petit où j’ai raison | أنتقل إلى نقطة أصغر أكون فيها على حق |
@@ -38,11 +38,11 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 
 | | EN | DE | FR | AR |
 |---|---|---|---|---|
-| Situation | You snapped at someone in a stressful meeting. | In einem stressigen Meeting hast du jemanden angefahren. | Dans une réunion stressante, tu as été sec avec quelqu’un. | في اجتماع متوتر، كنت حادًّا مع أحد الزملاء. |
+| Situation | You snapped at someone in a stressful meeting. | In einem stressigen Meeting hast du jemanden angefahren. | Dans une réunion stressante, tu as parlé sèchement à quelqu’un. | في اجتماع متوتر، تحدثت بحدّة مع أحد الزملاء. |
 | 0 · open | Apologise to them in person afterwards | Ich entschuldige mich danach persönlich | Je m’excuse en personne après la réunion | أعتذر له شخصيًا بعد الاجتماع |
 | 1 · assertive | Apologise, and mention the pressure you were under | Ich entschuldige mich und erwähne den Druck, unter dem ich stand | Je m’excuse et je mentionne la pression que je subissais | أعتذر وأذكر الضغط الذي كنت تحته |
-| 2 · self-protective | Act normal and hope it's forgotten | Ich tue normal und hoffe, dass es vergessen geht | Je fais comme si de rien n’était en espérant que ça s’oublie | أتصرف بشكل عادي وآمل أن يُنسى الأمر |
-| 3 · ego-driven | Decide they provoked it | Ich finde, die Person hat es provoziert | Je me dis que c’est cette personne qui m’a provoqué | أقرر أنه هو من استفزني |
+| 2 · self-protective | Say nothing and carry on | Ich sage nichts und mache weiter | Je ne dis rien et je continue | لا أقول شيئًا وأكمل |
+| 3 · ego-driven | Tell them they provoked it | Ich werfe der Person vor, mich provoziert zu haben | Je lui reproche de m’avoir provoqué | ألومه لأنه هو من استفزني |
 
 ### sa4
 
@@ -51,7 +51,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | You blamed a colleague for a delay, then realise it was yours. | Du hast einem Kollegen eine Verzögerung angelastet. Jetzt merkst du: Sie lag bei dir. | Tu as reproché un retard à un collègue, puis tu réalises qu’il venait de toi. | لُمت زميلًا على تأخير، ثم أدركت أن التأخير كان منك. |
 | 0 · open | Tell them, and say sorry for assuming | Ich sage es ihm und entschuldige mich für die Annahme | Je le lui dis et je m’excuse d’avoir supposé | أخبره بذلك وأعتذر عن افتراضي |
 | 0 · assertive | Fix your part and mention the mix-up | Ich erledige meinen Teil und erwähne das Missverständnis | Je règle ma partie et je mentionne le malentendu | أنجز الجزء الخاص بي وأذكر سوء الفهم |
-| 2 · self-protective | Fix it quietly and hope nobody noticed | Ich bringe es still in Ordnung und hoffe, niemand hat es bemerkt | Je corrige discrètement en espérant que personne n’ait vu | أصلحه بصمت وآمل ألا يلاحظ أحد |
+| 2 · self-protective | Fix it quietly, without clearing their name | Ich korrigiere es still, ohne die Schuld richtigzustellen | Je corrige discrètement, sans le disculper | أصلح الأمر بصمت دون أن أبرّئه |
 | 3 · ego-driven | Say they could have reminded you | Ich sage, er hätte mich ja erinnern können | Je dis qu’il aurait pu me le rappeler | أقول إنه كان بإمكانه تذكيري |
 
 ### sa5
@@ -79,8 +79,8 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | | EN | DE | FR | AR |
 |---|---|---|---|---|
 | Situation | One colleague irritates you every time they speak. | Ein Kollege nervt dich jedes Mal, wenn er spricht. | Un collègue t’agace chaque fois qu’il prend la parole. | زميل يزعجك في كل مرة يتكلم فيها. |
-| 0 · open | Work out what exactly sets you off | Ich finde heraus, was genau mich daran triggert | Je cherche ce qui déclenche exactement cette réaction | أبحث عمّا يستفزني فيه تحديدًا |
-| 0 · assertive | Stay professional and vent to a friend later | Ich bleibe professionell und lasse später bei einer Freundin Dampf ab | Je reste professionnel et je vide mon sac avec un ami plus tard | أبقى مهنيًا وأفضفض لصديق لاحقًا |
+| 0 · open | Talk to them to understand them better | Ich rede mit ihm, um ihn besser zu verstehen | Je discute avec lui pour mieux le comprendre | أتحدث معه لأفهمه بشكل أفضل |
+| 0 · assertive | Stay professional and vent to a friend later | Ich bleibe professionell und lasse später bei einer Freundin Dampf ab | Je garde une attitude professionnelle et je vide mon sac avec un ami plus tard | أحافظ على المهنية وأفضفض لصديق لاحقًا |
 | 2 · self-protective | Avoid working with them where you can | Ich arbeite mit ihm, wo es geht, nicht zusammen | J’évite de travailler avec lui dès que possible | أتجنب العمل معه كلما أمكن |
 | 3 · ego-driven | Let a few sharp remarks slip in meetings | Ich lasse in Meetings ein paar spitze Bemerkungen fallen | Je glisse quelques remarques piquantes en réunion | أُلقي بعض التعليقات اللاذعة في الاجتماعات |
 
@@ -142,7 +142,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 |---|---|---|---|---|
 | Situation | Your proposal is turned down with little explanation. | Dein Vorschlag wird ohne viel Erklärung abgelehnt. | Ta proposition est refusée sans vraie explication. | يُرفض اقتراحك دون تفسير يُذكر. |
 | 0 · open | Find out what would make it work next time | Ich finde heraus, was ihn beim nächsten Mal tragfähig macht | Je cherche ce qui la rendrait viable la prochaine fois | أبحث عمّا يجعله قابلًا للنجاح في المرة القادمة |
-| 0 · assertive | Say you're disappointed, and ask for the reasons | Ich sage, dass ich enttäuscht bin, und frage nach den Gründen | Je dis que je suis déçu et je demande les raisons | أقول إنني محبط وأسأل عن الأسباب |
+| 0 · assertive | Say you're disappointed, and ask for the reasons | Ich sage, dass ich enttäuscht bin, und frage nach den Gründen | Je dis que ça me déçoit et je demande les raisons | أقول إن هذا أحبطني وأسأل عن الأسباب |
 | 2 · self-protective | Stop sharing ideas for a while | Ich bringe eine Weile keine Ideen mehr ein | J’arrête de proposer des idées pendant un moment | أتوقف عن طرح الأفكار لفترة |
 | 3 · ego-driven | Get another manager to push it through, without telling them | Ich lasse ihn von einer anderen Führungsperson durchboxen, ohne es ihnen zu sagen | Je la fais passer par un autre responsable, sans les prévenir | أجعل مديرًا آخر يمرره دون إخبارهم |
 
@@ -154,7 +154,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | 0 · open | Ask which part they'd happily skip | Ich frage, welchen Teil sie gern übersprungen hätte | Je demande quelle partie elle aurait volontiers sautée | أسأل عن الجزء الذي كانت تفضل تجاوزه |
 | 0 · assertive | Agree to shorten it, but keep the key data | Ich kürze sie, behalte aber die wichtigsten Daten | J’accepte de la raccourcir, mais je garde les données clés | أوافق على اختصاره مع الإبقاء على البيانات الأساسية |
 | 1 · self-protective | Explain that the topic needs that detail | Ich erkläre, dass das Thema diese Details braucht | J’explique que le sujet demande ces détails | أوضح أن الموضوع يحتاج هذه التفاصيل |
-| 3 · ego-driven | Decide they just didn't get it | Ich denke, sie hat es einfach nicht verstanden | Je me dis qu’elle n’a simplement pas compris | أقرر أنها ببساطة لم تفهم |
+| 3 · ego-driven | Tell colleagues the client didn't get it | Ich sage im Team, die Kundin habe es nicht verstanden | Je dis à l’équipe que la cliente n’a pas compris | أقول لفريقي إن العميلة لم تفهم |
 
 ### fb5
 
@@ -203,7 +203,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | Your manager says your idea "needs more thinking". | Deine Chefin sagt, deine Idee «brauche noch etwas Denkarbeit». | Ta responsable dit que ton idée « mérite encore réflexion ». | مديرتك تقول إن فكرتك «تحتاج إلى مزيد من التفكير». |
 | 0 · open | Agree on what to rework, and by when | Wir vereinbaren, was ich überarbeite und bis wann | On fixe ensemble ce que je retravaille, et pour quand | نتفق على ما سأعيد العمل عليه ومتى |
 | 0 · assertive | Say you think it's ready, and ask what's missing | Ich sage, dass ich sie für bereit halte, und frage, was fehlt | Je dis que je la trouve prête, et je demande ce qui manque | أقول إنني أراها جاهزة وأسأل عمّا ينقصها |
-| 1 · self-protective | Hear it as a polite no and drop it | Ich verstehe es als höfliches Nein und lasse es fallen | Je l’entends comme un non poli et je laisse tomber | أفهمها رفضًا مهذبًا وأتخلى عنها |
+| 1 · self-protective | Drop the idea without asking more | Ich lasse die Idee fallen, ohne nachzufragen | J’abandonne l’idée sans poser de questions | أتخلى عن الفكرة دون أن أسأل أكثر |
 | 2 · ego-driven | Ask another manager to approve it instead | Ich lasse sie von einer anderen Führungsperson genehmigen | Je la fais valider par un autre responsable | أطلب من مدير آخر اعتمادها |
 
 ### fb10
@@ -213,7 +213,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | A peer gives you feedback that feels unfair. | Ein Kollege gibt dir Feedback, das sich unfair anfühlt. | Un collègue te fait un feedback qui te semble injuste. | زميل يقدم لك ملاحظة تشعر أنها غير منصفة. |
 | 0 · open | Find out what they saw that led them there | Ich finde heraus, was er beobachtet hat | Je cherche ce qu’il a observé pour en arriver là | أبحث عمّا لاحظه حتى وصل إلى ذلك |
 | 0 · assertive | Say you see it differently, and why | Ich sage, dass ich es anders sehe, und warum | Je dis que je vois les choses autrement, et pourquoi | أقول إنني أرى الأمر بشكل مختلف ولماذا |
-| 1 · self-protective | Thank them, then forget about it | Ich bedanke mich und vergesse es dann | Je le remercie, puis je l’oublie | أشكره ثم أنساها |
+| 1 · self-protective | Thank them, then change nothing | Ich bedanke mich und ändere nichts | Je le remercie, puis je ne change rien | أشكره ثم لا أغيّر شيئًا |
 | 3 · ego-driven | Tell others how unfair they are | Ich erzähle anderen, wie unfair er ist | Je raconte aux autres à quel point il est injuste | أخبر الآخرين كم هو غير منصف |
 
 ## Recognition
@@ -224,7 +224,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 |---|---|---|---|---|
 | Situation | A colleague presents your idea in a meeting without naming you. | Eine Kollegin präsentiert deine Idee im Meeting, ohne dich zu nennen. | Une collègue présente ton idée en réunion sans te citer. | زميلة تعرض فكرتك في اجتماع دون ذكر اسمك. |
 | 0 · open | Build on it and add what you know | Ich baue darauf auf und ergänze, was ich weiss | Je rebondis dessus et j’ajoute ce que je sais | أبني عليها وأضيف ما أعرفه |
-| 0 · assertive | Say with a smile: "Glad my idea is landing" | Ich sage lächelnd: «Schön, dass meine Idee ankommt» | Je dis en souriant : « Ravi que mon idée plaise » | أقول مبتسمًا: «يسعدني أن فكرتي أعجبتكم» |
+| 0 · assertive | Say with a smile: "Glad my idea is landing" | Ich sage lächelnd: «Schön, dass meine Idee ankommt» | Je dis en souriant : « Ça fait plaisir que mon idée plaise » | أقول بابتسامة: «يسعدني أن فكرتي أعجبتكم» |
 | 2 · self-protective | Share less with them from now on | Ich teile ab jetzt weniger mit ihr | Je partage moins avec elle à partir de maintenant | أشاركها أقل من الآن فصاعدًا |
 | 3 · ego-driven | Correct them sharply in front of everyone | Ich korrigiere sie scharf vor allen | Je la reprends sèchement devant tout le monde | أصحح لها بحدة أمام الجميع |
 
@@ -255,7 +255,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | You're praised in public for a team effort. | Du wirst öffentlich für eine Teamleistung gelobt. | On te félicite en public pour un effort d’équipe. | تُمدح علنًا على جهد قام به الفريق. |
 | 0 · open | Name the people who made it work | Ich nenne die Leute, die es möglich gemacht haben | Je nomme les personnes qui l’ont rendu possible | أذكر الأشخاص الذين صنعوا النجاح |
 | 0 · assertive | Thank them, and call it a team effort | Ich bedanke mich und nenne es eine Teamleistung | Je remercie et je parle d’un effort d’équipe | أشكرهم وأصف الأمر بأنه جهد جماعي |
-| 1 · self-protective | Just enjoy it; correcting people is awkward | Ich geniesse es einfach; Korrigieren ist peinlich | J’en profite ; corriger serait gênant | أستمتع بالمديح؛ فالتصحيح محرج |
+| 1 · self-protective | Accept the praise without mentioning the team | Ich nehme das Lob an, ohne das Team zu erwähnen | J’accepte les compliments sans mentionner l’équipe | أتقبل الثناء دون أن أذكر الفريق |
 | 2 · ego-driven | Add details about the parts you did | Ich erzähle ausführlich von meinem Anteil | J’ajoute des détails sur ce que j’ai fait | أضيف تفاصيل عن الأجزاء التي قمت بها |
 
 ### rc5
@@ -265,7 +265,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | A colleague gets the exciting assignment you hoped for. | Ein Kollege bekommt den spannenden Auftrag, den du dir erhofft hast. | Un collègue obtient la mission passionnante que tu espérais. | زميل يحصل على المهمة المثيرة التي كنت تتمناها. |
 | 0 · open | Offer to help them with it | Ich biete ihm meine Hilfe an | Je lui propose mon aide | أعرض عليه المساعدة |
 | 0 · assertive | Tell your manager you'd like the next one | Ich sage meiner Chefin, dass ich den nächsten gern hätte | Je dis à ma responsable que j’aimerais la prochaine | أخبر مديرتي أنني أرغب في المهمة القادمة |
-| 2 · self-protective | Lose interest in your own tasks for a while | Ich verliere eine Weile die Lust an meinen eigenen Aufgaben | Je perds un temps l’envie pour mes propres tâches | أفقد حماسي لمهامي الخاصة لفترة |
+| 2 · self-protective | Stop volunteering for new tasks for a while | Ich melde mich eine Weile für keine neuen Aufgaben | Je ne me porte plus volontaire pour rien pendant un temps | أتوقف عن التطوع لمهام جديدة لفترة |
 | 3 · ego-driven | Hint that they're not quite ready for it | Ich deute an, dass er noch nicht ganz so weit ist | Je laisse entendre qu’il n’est pas tout à fait prêt | ألمّح إلى أنه ليس مستعدًا تمامًا |
 
 ### rc6
@@ -468,8 +468,8 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 |---|---|---|---|---|
 | Situation | A peer suggests a training course for you. | Ein Kollege schlägt dir eine Weiterbildung vor. | Un collègue te suggère une formation. | زميل يقترح عليك دورة تدريبية. |
 | 0 · open | Ask which one helped them most | Ich frage, welche ihm am meisten gebracht hat | Je lui demande laquelle l’a le plus aidé | أسأله أي دورة أفادته أكثر |
-| 0 · assertive | Look into it, even though you feel experienced | Ich schaue sie mir an, auch wenn ich mich erfahren fühle | Je regarde, même si je me sens expérimenté | أطّلع عليها، رغم أنني أشعر بأنني صاحب خبرة |
-| 1 · self-protective | Say you're too busy right now | Ich sage, dass ich gerade keine Zeit habe | Je dis que je n’ai pas le temps en ce moment | أقول إنني مشغول الآن |
+| 0 · assertive | Look into it, despite your experience | Ich schaue sie mir an, trotz meiner Erfahrung | Je regarde, malgré mon expérience | أطّلع عليها رغم خبرتي |
+| 1 · self-protective | Say you're too busy right now | Ich sage, dass ich gerade keine Zeit habe | Je dis que je n’ai pas le temps en ce moment | أقول إن وقتي لا يسمح الآن |
 | 3 · ego-driven | Say you could teach that course | Ich sage, ich könnte diesen Kurs selbst geben | Je dis que je pourrais donner cette formation | أقول إنني أستطيع تدريس هذه الدورة |
 
 ### hl6
@@ -479,7 +479,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | You're the most senior person, and the team disagrees with you. | Du bist die erfahrenste Person, und das Team sieht es anders als du. | Tu es la personne la plus expérimentée, et l’équipe n’est pas d’accord avec toi. | أنت الأكثر خبرة، والفريق يختلف معك. |
 | 0 · open | Find out what they see that you don't | Ich finde heraus, was sie sehen, das ich nicht sehe | Je cherche ce qu’ils voient et que je ne vois pas | أبحث عمّا يرونه ولا أراه |
 | 0 · assertive | Explain your reasons, then listen | Ich erkläre meine Gründe und höre dann zu | J’explique mes raisons, puis j’écoute | أشرح أسبابي ثم أستمع |
-| 2 · self-protective | Let them try, and wait for it to fail | Ich lasse sie es versuchen und warte, bis es scheitert | Je les laisse essayer en attendant l’échec | أتركهم يجربون وأنتظر الفشل |
+| 2 · self-protective | Let them try, but offer no help | Ich lasse sie machen, biete aber keine Hilfe an | Je les laisse essayer, sans proposer d’aide | أتركهم يجربون دون أن أعرض المساعدة |
 | 3 · ego-driven | Remind them who has the most experience | Ich erinnere sie daran, wer die meiste Erfahrung hat | Je leur rappelle qui a le plus d’expérience | أذكّرهم بمن يملك الخبرة الأكبر |
 
 ### hl7
@@ -539,10 +539,10 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | | EN | DE | FR | AR |
 |---|---|---|---|---|
 | Situation | A teammate is in tears after a tough meeting. | Eine Teamkollegin weint nach einem schwierigen Meeting. | Une coéquipière pleure après une réunion difficile. | زميلة تبكي بعد اجتماع صعب. |
-| 0 · open | Quietly offer a chat, a coffee or some space | Ich biete leise ein Gespräch, einen Kaffee oder etwas Ruhe an | Je lui propose discrètement de parler, un café ou un moment seule | أعرض عليها بهدوء حديثًا أو قهوة أو بعض الخصوصية |
-| 1 · assertive | Tell them it happens to everyone | Ich sage ihr, das passiert allen mal | Je lui dis que ça arrive à tout le monde | أقول لها إن هذا يحدث للجميع |
-| 1 · self-protective | Look away and get back to your work | Ich schaue weg und arbeite weiter | Je détourne le regard et je reprends mon travail | أشيح بنظري وأعود إلى عملي |
-| 2 · ego-driven | Tell them they took it too personally | Ich sage ihr, sie habe es zu persönlich genommen | Je lui dis qu’elle l’a pris trop personnellement | أقول لها إنها أخذت الأمر بشكل شخصي جدًا |
+| 0 · open | Quietly ask if they'd like company or some space | Ich frage leise, ob sie Gesellschaft oder Ruhe möchte | Je lui demande doucement si elle veut de la compagnie ou être seule | أسألها بهدوء إن كانت تريد رفقة أو بعض الخصوصية |
+| 0 · assertive | Give them privacy, and check in later | Ich lasse ihr Raum und frage später nach | Je respecte son besoin d’être seule et je reviens vers elle plus tard | أمنحها خصوصيتها ثم أطمئن عليها لاحقًا |
+| 2 · self-protective | Look away and carry on as if nothing happened | Ich schaue weg und tue, als wäre nichts | Je détourne le regard et fais comme si de rien n’était | أشيح بنظري وأتصرف كأن شيئًا لم يحدث |
+| 3 · ego-driven | Tell them they took it too personally | Ich sage ihr, sie habe es zu persönlich genommen | Je lui dis qu’elle l’a pris trop personnellement | أقول لها إنها أخذت الأمر بشكل شخصي جدًا |
 
 ### em3
 
@@ -590,7 +590,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 |---|---|---|---|---|
 | Situation | Two colleagues are in conflict, and both complain to you. | Zwei Kollegen haben Streit, und beide beklagen sich bei dir. | Deux collègues sont en conflit, et chacun se plaint auprès de toi. | زميلان في خلاف، وكلاهما يشتكي إليك. |
 | 0 · open | Listen to both and suggest they talk | Ich höre beiden zu und schlage vor, dass sie miteinander reden | J’écoute les deux et je leur suggère de se parler | أستمع إليهما وأقترح أن يتحدثا معًا |
-| 0 · assertive | Stay neutral and keep out of it | Ich bleibe neutral und halte mich raus | Je reste neutre et je ne m’en mêle pas | أبقى محايدًا ولا أتدخل |
+| 0 · assertive | Stay neutral and keep out of it | Ich bleibe neutral und halte mich raus | Je reste neutre et je ne m’en mêle pas | ألتزم الحياد ولا أتدخل |
 | 2 · self-protective | Agree with whoever you're talking to | Ich gebe jeweils dem recht, mit dem ich gerade rede | Je donne raison à celui avec qui je parle | أوافق من أتحدث معه في كل مرة |
 | 3 · ego-driven | Pass the story on to others | Ich erzähle die Geschichte weiter | Je raconte l’histoire à d’autres | أنقل القصة إلى الآخرين |
 
@@ -620,7 +620,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 |---|---|---|---|---|
 | Situation | A colleague shares great news while you're having a bad day. | Ein Kollege erzählt tolle Neuigkeiten, während du einen schlechten Tag hast. | Un collègue partage une super nouvelle alors que tu passes une mauvaise journée. | زميل يشارك خبرًا رائعًا بينما تمر أنت بيوم سيئ. |
 | 0 · open | Celebrate with them | Ich freue mich mit ihm | Je me réjouis avec lui | أفرح معه |
-| 0 · assertive | Congratulate them, and say you're a bit flat today | Ich gratuliere und sage, dass ich heute etwas platt bin | Je le félicite, et je dis que je suis un peu à plat aujourd’hui | أهنئه وأقول إنني متعب قليلًا اليوم |
+| 0 · assertive | Congratulate them, and say you're a bit flat today | Ich gratuliere und sage, dass ich heute etwas platt bin | Je le félicite, et je dis que je suis un peu à plat aujourd’hui | أهنئه وأقول إن يومي متعب قليلًا |
 | 1 · self-protective | Say "nice" and change the subject | Ich sage «schön» und wechsle das Thema | Je dis « super » et je change de sujet | أقول «جميل» وأغيّر الموضوع |
 | 2 · ego-driven | Turn it into how hard your week has been | Ich mache daraus, wie hart meine Woche war | Je ramène ça à quel point ma semaine est dure | أحوّل الحديث إلى صعوبة أسبوعي |
 
