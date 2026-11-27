@@ -98,6 +98,9 @@ export const Experience = z.object({
     version: z.union([z.literal(1), z.literal(2)]).optional(),
     /** Show the numeric 0-100 game score on the personal result (v2). Default true. */
     showScore: z.boolean().optional(),
+    /** v2: the bank's point scale (highest points any answer can carry). Feedback levels use it, so a question whose
+     *  worst answer is only self-protective is not read as ego-driven. Defaults to the highest points in the content. */
+    maxPoints: z.number().int().min(1).max(10).optional(),
   }),
   results: z.array(ResultBand).optional(),
   insights: z.object({ themes: z.record(Theme), defaultHabit: text(200), defaultChallenge: text(200) }).optional(),

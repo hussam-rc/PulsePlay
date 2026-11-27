@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { egoCheckV2Draft as en, egoCheckV2For, LANGUAGE_PACKS } from '../src/experiences/drafts/egoCheckV2';
 import { TRANSLATION_STATUS } from '../src/experiences/drafts/translate';
-import { BANK_EN } from '../src/experiences/drafts/egoCheckV2.en';
+import { BANK_EN, AUTHORED } from '../src/experiences/drafts/egoCheckV2.en';
 import { validateExperience } from '../src/engine/schema';
 import { personalResult } from '../src/engine/scoring';
 import { sessionExperience } from '../src/engine/bank';
@@ -44,8 +44,10 @@ describe.each(LANGUAGE_PACKS.map(p => [p.lang, p] as const))('translation %s', (
   it('produces v2 feedback in its own language', () => {
     const s = sessionExperience(e, { n: 15, seed: lang });
     const q = s.rounds[0].activities as typeof BANK_EN;
-    const r = personalResult(s, Object.fromEntries(q.map((a, i) => [a.id, a.options.find(o => o.points === (i === 2 ? 3 : 0))!.id])));
-    expect(r.feedback!.challenge.text).toBe(pack.insights.themes[q[2].dimension].challenge);
+    const target = q.findIndex(a => a.options.some(o => o.points === 3));
+    const pick = (a: typeof q[number], pos: number) => a.options[AUTHORED[a.id].indexOf(pos)].id;
+    const r = personalResult(s, Object.fromEntries(q.map((a, i) => [a.id, pick(a, i === target ? 3 : 0)])));
+    expect(r.feedback!.challenge.text).toBe(pack.insights.themes[q[target].dimension].challenge);
     expect(Object.values(pack.insights.themes).map(t => t.strength)).toEqual(expect.arrayContaining(r.feedback!.strengths.map(x => x.text)));
   });
 });

@@ -2,7 +2,7 @@
 # Runs every browser suite against the isolated test environment (test-env/start.sh). Exit code 1 if any check fails.
 # Usage: BASE=http://localhost:8789/PulsePlay/app/ web/e2e/run_all.sh [suite ...]
 cd "$(dirname "$0")/.."
-SUITES=${*:-"e2e release_2a release_2b creator_c1 feedback2 live_multiplayer resilience results_keep i18n workspace release_3a creator_c3"}
+SUITES=${*:-"e2e release_2a release_2b creator_c1 feedback2 live_multiplayer resilience results_keep i18n workspace release_3a creator_c3 scoring_v2_acceptance"}
 export SHOTS=${SHOTS:-/tmp/pp-shots}; mkdir -p "$SHOTS"; status=0
 for s in $SUITES; do
   echo "::group::$s"; out=$(timeout 600 python3 "e2e/$s.py" 2>&1); code=$?; echo "$out"; echo "::endgroup::"

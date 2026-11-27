@@ -96,14 +96,14 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
     const g = v.group, band = g.average != null ? (e.results ?? []).find(b => g.average! >= b.min && g.average! <= b.max) : undefined;
     if (g.suppressed) return <div className={`${PAD} items-center text-center`}><div className="text-6xl" aria-hidden>🚗💨</div><h2 className="text-3xl font-extrabold">{t('stage.noGroup')}</h2>
       <p className="text-lg text-ink-soft max-w-xl">{t('stage.noGroupWhy', { min: e.privacy.groupMinimum, n: g.valid })}</p></div>;
-    const tone = band?.tone ?? 'good';
+    const tone = band?.tone ?? 'good', v2 = e.scoring?.version === 2;
     const grad = { great: 'from-teal-500 to-[#0E8370]', good: 'from-violet-600 to-sky-500', watch: 'from-sun-500 to-[#E2553A]', grow: 'from-coral-500 to-violet-600' }[tone];
     const barC = { great: '#14A38B', good: '#2F6FEB', watch: '#E59A1C', grow: '#E2553A' } as const;
     return (
       <div className={`${PAD} items-center text-center !gap-4`} data-testid="group">
         <div className={`relative overflow-hidden w-full max-w-3xl rounded-[2rem] bg-gradient-to-br ${grad} text-white px-6 py-8 grid gap-2 place-items-center shadow-soft`}>
           {(tone === 'great' || tone === 'good') && <Confetti />}
-          <Chip>{t('stage.groupResult')}</Chip>
+          <Chip>{v2 ? `🏢 ${t('g2.heading')}` : t('stage.groupResult')}</Chip>
           <div className="text-[7rem] leading-none anim-rise drop-shadow-lg" aria-hidden>{band?.emoji}</div>
           <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight" dir="auto">{band?.groupTitle ?? band?.title}</h2>
           {band?.groupMessage && <p className="text-2xl font-bold opacity-95" dir="auto">{band.groupMessage}</p>}
@@ -120,7 +120,8 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
               <span className="h-4 rounded-full bg-paper-line overflow-hidden"><span className="block h-full rounded-full transition-all duration-1000" style={{ width: `${p}%`, background: barC[b.tone] }} /></span></span>
             <span className="text-end text-2xl font-extrabold tabular-nums">{p}%</span></div>; })}</div>
           : <p className="text-sm text-ink-soft">{t('stage.breakdownLater', { n: 2 * e.privacy.groupMinimum })}</p>}
-        <p className="text-sm text-ink-soft">{t('stage.notMeasure')}</p>
+        {v2 && <p className="text-xl font-bold max-w-2xl" dir="auto" data-testid="group-reflect">💬 {t('g2.prompt')}</p>}
+        <p className="text-sm text-ink-soft">{v2 ? t('g2.note') : t('stage.notMeasure')}</p>
       </div>
     );
   }

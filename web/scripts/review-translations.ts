@@ -1,8 +1,8 @@
 // Side-by-side translation review sheet. Usage: npx tsx scripts/review-translations.ts > ../docs/EGO_BANK_TRANSLATIONS.md
-import { BANK_EN, DIMENSIONS, INSIGHTS_EN } from '../src/experiences/drafts/egoCheckV2.en';
+import { BANK_EN, DIMENSIONS, INSIGHTS_EN, AUTHORED, POINTS } from '../src/experiences/drafts/egoCheckV2.en';
 import { LANGUAGE_PACKS } from '../src/experiences/drafts/egoCheckV2';
 import { TRANSLATION_STATUS } from '../src/experiences/drafts/translate';
-const L = ['0 open', '1 confident', '2 self-protective', '3 ego'];
+const L = ['open', 'assertive', 'self-protective', 'ego-driven'];
 const out = ['# Who is in Control? v2: translations for native review', '',
   'Generated from `web/src/experiences/drafts/egoCheckV2.{de,fr,ar}.ts`. Answer ids and points come from the English master, so translators only change wording.', '',
   '## Status', '', '| Language | Questions | Insights | Results | Longest prompt | Longest answer | Review status | Reviewer |', '|---|---:|---:|---:|---:|---:|---|---|'];
@@ -16,7 +16,7 @@ for (const d of DIMENSIONS) {
   for (const q of BANK_EN.filter(x => x.dimension === d)) {
     out.push(`### ${q.id}`, '', '| | EN | DE | FR | AR |', '|---|---|---|---|---|',
       `| Situation | ${q.prompt} | ${LANGUAGE_PACKS.map(p => p.bank[q.id][0]).join(' | ')} |`);
-    for (let l = 0; l < 4; l++) out.push(`| ${L[l]} | ${q.options.find(o => o.points === l)!.text} | ${LANGUAGE_PACKS.map(p => p.bank[q.id][1][l]).join(' | ')} |`);
+    for (let l = 0; l < 4; l++) out.push(`| ${POINTS[q.id][l]} · ${L[l]} | ${q.options[AUTHORED[q.id].indexOf(l)].text} | ${LANGUAGE_PACKS.map(p => p.bank[q.id][1][l]).join(' | ')} |`);
     out.push('');
   }
 }

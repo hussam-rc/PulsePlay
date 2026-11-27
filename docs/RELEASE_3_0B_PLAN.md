@@ -1,4 +1,4 @@
-# Release 3.0B plan: Who is in Control? with 60 questions
+# PulsePlay Release 3.0B plan: Ego Check (“Who is in Control?”) with 60 questions
 
 Status: **English bank drafted for review** (`docs/EGO_BANK_REVIEW.md`, simulation in `docs/EGO_BANK_SIMULATION.md`). Nothing here changes production. Content and scoring changes ship as new immutable versions after review.
 

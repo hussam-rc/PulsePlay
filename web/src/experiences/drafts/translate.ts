@@ -1,10 +1,10 @@
-// Builds a language version of the v2 bank from the English master. Translators supply text per LEVEL (0-3);
-// option ids and points are copied from the master, so a translation can never move an answer to another score.
+// Builds a language version of the v2 bank from the English master. Translators supply the four answers in the master's
+// authored order; option ids and points are copied from the master, so a translation can never change an answer's score.
 import type { Experience } from '../../engine/schema';
-import { BANK_EN } from './egoCheckV2.en';
+import { BANK_EN, AUTHORED } from './egoCheckV2.en';
 
 export type Lang = 'de' | 'fr' | 'ar';
-/** id -> [prompt, [level-0 text, level-1 text, level-2 text, level-3 text]] */
+/** id -> [prompt, [four answers in the master's authored order: open, assertive, self-protective, ego]] */
 export type BankText = Record<string, [string, [string, string, string, string]]>;
 export interface LanguagePack {
   lang: Lang;
@@ -18,7 +18,7 @@ export function buildBank(pack: LanguagePack) {
   return BANK_EN.map(q => {
     const tr = pack.bank[q.id];
     if (!tr) throw new Error(`${pack.lang}: missing ${q.id}`);
-    return { ...q, prompt: tr[0], options: q.options.map(o => ({ ...o, text: tr[1][o.points] })) };
+    return { ...q, prompt: tr[0], options: q.options.map((o, k) => ({ ...o, text: tr[1][AUTHORED[q.id][k]] })) };
   });
 }
 

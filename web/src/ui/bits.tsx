@@ -113,7 +113,7 @@ function ResultCardV2({ r, disclaimer, footer, showScore }: { r: PersonalResult;
     <div className="card overflow-hidden grid text-center relative" data-testid="result-card" data-version="2">
       <div className={`bg-gradient-to-br ${tone.bg} text-white px-6 pt-6 pb-6 grid gap-2 relative overflow-hidden`}>
         {(b.tone === 'great' || b.tone === 'good') && <Confetti />}
-        <p className="text-sm font-bold uppercase tracking-wide opacity-90">{t('r2.heading')}</p>
+        <p className="text-base font-extrabold tracking-wide opacity-95" data-testid="r2-heading">🪞 {t('r2.heading')}</p>
         <div className="text-8xl anim-rise drop-shadow-lg" aria-hidden>{b.emoji}</div>
         <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight" dir="auto" data-testid="result-title">{b.title}</h2>
       </div>
@@ -121,9 +121,9 @@ function ResultCardV2({ r, disclaimer, footer, showScore }: { r: PersonalResult;
         <p className="text-lg font-bold" dir="auto">{b.message}</p>
         <p className="text-ink-soft" dir="auto">{b.explanation}</p>
         {f.strengths.length > 0 && section('✨', t('r2.well'), <ul className="grid gap-2">{f.strengths.map(x => (
-          <li key={x.theme} dir="auto"><span>{x.kind === 'open' ? x.text : t('r2.confident', { label: x.label })}</span>
+          <li key={x.theme} dir="auto"><span>{x.text}</span>
             <span className="block text-xs text-ink-soft">{t('r2.evidence', { n: x.evidence, label: x.label })}</span></li>))}</ul>, 'bg-teal-50', 'r2-well')}
-        {f.reflection && section('🪞', t('r2.reflect'), f.reflection.kind === 'pattern'
+        {f.reflection && section('💡', t('r2.reflect'), f.reflection.kind === 'pattern'
           ? <p dir="auto">{t('r2.pattern', { text: f.reflection.text })}<span className="block text-xs text-ink-soft">{t('r2.patternEvidence', { n: f.reflection.evidence, of: f.reflection.of, label: f.reflection.label })}</span></p>
           : <p dir="auto">{t('r2.moment', { prompt: f.reflection.prompt })}</p>, 'bg-sun-50', 'r2-reflect')}
         {section('🎯', t('r2.challenge'), <p className="font-bold" dir="auto">{f.challenge.text}</p>, 'bg-violet-50', 'r2-challenge')}
@@ -140,8 +140,8 @@ function ResultCardV2({ r, disclaimer, footer, showScore }: { r: PersonalResult;
 /** Share-safe: the habit and challenge only, never the score or result band. */
 export function takeawayText(title: string, r: PersonalResult): string {
   if (r.feedback) { const f = r.feedback; // v2: strengths, reflection and challenge; never the score or the category
-    return [t('r2.takeawayHead', { title }), ...f.strengths.map(x => `✨ ${x.kind === 'open' ? x.text : t('r2.confident', { label: x.label })}`),
-      f.reflection ? `🪞 ${f.reflection.kind === 'pattern' ? f.reflection.text : f.reflection.prompt}` : '', `🎯 ${f.challenge.text}`].filter(Boolean).join('\n'); }
+    return [t('r2.takeawayHead', { title }), ...f.strengths.map(x => `✨ ${x.text}`),
+      f.reflection ? `💡 ${f.reflection.kind === 'pattern' ? f.reflection.text : f.reflection.prompt}` : '', `🎯 ${f.challenge.text}`].filter(Boolean).join('\n'); }
   return [t('res.takeawayHead', { title }), r.habit ? `🔁 ${r.habit}` : '', r.challenge ? `🎯 ${r.challenge}` : ''].filter(Boolean).join('\n');
 }
 

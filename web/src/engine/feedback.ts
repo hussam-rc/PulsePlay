@@ -1,7 +1,7 @@
 // Scoring v2: evidence-based personal feedback. Pure, deterministic, language-neutral (texts come from content + i18n).
 // The 0-100 score formula is unchanged from v1 (points / maximum of the questions actually answered), so it is
 // already normalised for 10, 15 or 20 questions. What v2 adds is how feedback is chosen:
-//   strengths   only with evidence: >= 2 answers in a dimension, all open or confident
+//   strengths   only with evidence: >= 2 answers in a dimension, none above mild self-focus, mostly open/assertive
 //   reflection  a pattern needs >= 2 answers in a dimension, a clear majority self-protective or ego-driven;
 //               otherwise a single ego-driven answer becomes "a situation worth reflecting on"; otherwise nothing
 //   challenge   always exactly one practical action
@@ -14,7 +14,7 @@ export type Level = 0 | 1 | 2 | 3;
 
 export interface DimensionEvidence { theme: string; answered: number; levels: Level[]; mean: number }
 /** label/text are resolved from the content so a saved result can be shown again without the experience. */
-export type Strength = { kind: 'open' | 'confident'; theme: string; evidence: number; label: string; text: string };
+export type Strength = { theme: string; evidence: number; label: string; text: string };
 export type Reflection =
   | { kind: 'pattern'; theme: string; evidence: number; of: number; label: string; text: string }
   | { kind: 'moment'; theme: string; activityId: string; prompt: string; label: string };
@@ -26,21 +26,26 @@ export interface FeedbackV2 {
   dimensions: DimensionEvidence[];
 }
 
-/** Map an answer's points onto 0-3 whatever the question's point scale. */
-export function levelOf(a: Activity, optionId: unknown): Level | null {
+/** The bank's point scale: scoring.maxPoints, else the highest points any answer in the content carries. */
+export function pointScale(e: Pick<Experience, 'scoring' | 'rounds'>): number {
+  return e.scoring.maxPoints ?? Math.max(1, ...flatActivities(e).flatMap(a => (a.type === 'choice' ? a.options.map(o => o.points ?? 0) : [0])));
+}
+
+/** Map an answer's points onto 0-3 using the BANK's scale (not the question's own maximum), so on a question whose worst
+ *  answer is 2 of 3 points, that answer still reads as self-protective, not ego-driven. */
+export function levelOf(a: Activity, optionId: unknown, scale = 3): Level | null {
   if (a.type !== 'choice') return null;
   const o = a.options.find(x => x.id === optionId);
   if (!o) return null;
-  const max = Math.max(...a.options.map(x => x.points ?? 0));
-  return (max > 0 ? Math.round((3 * (o.points ?? 0)) / max) : 0) as Level;
+  return Math.min(3, Math.round((3 * (o.points ?? 0)) / Math.max(1, scale))) as Level;
 }
 
 const themeOf = (a: Activity) => a.dimension ?? a.theme;
 
 export function feedbackV2(e: Experience, responses: Record<string, unknown>): FeedbackV2 {
-  const themes = e.insights?.themes ?? {};
+  const themes = e.insights?.themes ?? {}, scale = pointScale(e);
   const answered = flatActivities(e).flatMap(a => {
-    const t = themeOf(a), l = levelOf(a, responses[a.id]);
+    const t = themeOf(a), l = levelOf(a, responses[a.id], scale);
     return t && l != null && themes[t] ? [{ a, t, l }] : [];
   });
   const byTheme = new Map<string, Level[]>();
@@ -49,12 +54,12 @@ export function feedbackV2(e: Experience, responses: Record<string, unknown>): F
     theme, levels, answered: levels.length, mean: levels.reduce((s: number, v) => s + v, 0) / levels.length,
   }));
 
-  // Strengths: at least two answers in the dimension and none of them self-protective or ego-driven.
+  // Strengths: at least two answers in the dimension, none above mild self-focus, and mostly open or assertive.
   const strengths: Strength[] = dimensions
-    .filter(d => d.answered >= 2 && d.levels.every(l => l <= 1))
+    .filter(d => d.answered >= 2 && d.levels.every(l => l <= 1) && d.mean <= 0.5)
     .sort((x, y) => y.answered - x.answered || x.mean - y.mean || x.theme.localeCompare(y.theme))
     .slice(0, 2)
-    .map(d => ({ kind: d.mean <= 0.5 ? 'open' : 'confident', theme: d.theme, evidence: d.answered, label: themes[d.theme].label, text: themes[d.theme].strength }));
+    .map(d => ({ theme: d.theme, evidence: d.answered, label: themes[d.theme].label, text: themes[d.theme].strength }));
 
   // Reflection: a consistent pattern first, else one notable ego-driven moment, else nothing.
   let reflection: Reflection | null = null;
