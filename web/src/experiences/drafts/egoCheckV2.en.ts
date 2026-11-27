@@ -32,7 +32,7 @@ const q = (id: string, dimension: Dimension, prompt: string, texts: [string, str
 
 /** Final scoring per question, in authored order. Ties mean "equally reasonable". See docs/EGO_BANK_FINAL_REVIEW.md. */
 export const POINTS: Record<string, [number, number, number, number]> = {
-  sa1: [0, 0, 2, 3], sa2: [0, 0, 2, 2], sa3: [0, 1, 2, 3], sa4: [0, 0, 2, 3], sa5: [0, 0, 1, 3],
+  sa1: [0, 0, 2, 3], sa2: [0, 0, 2, 2], sa3: [0, 1, 2, 3], sa4: [0, 0, 3, 3], sa5: [0, 0, 1, 3],
   sa6: [0, 0, 1, 2], sa7: [0, 0, 2, 3], sa8: [0, 0, 2, 3], sa9: [0, 0, 2, 3], sa10: [0, 0, 2, 3],
   fb1: [0, 0, 2, 1], fb2: [0, 0, 2, 3], fb3: [0, 0, 2, 3], fb4: [0, 0, 1, 3], fb5: [0, 0, 1, 2],
   fb6: [0, 0, 1, 3], fb7: [0, 0, 2, 3], fb8: [0, 0, 2, 3], fb9: [0, 0, 1, 2], fb10: [0, 0, 1, 3],

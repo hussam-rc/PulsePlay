@@ -1,4 +1,4 @@
-# Scoring v2: validation report (approved for continued testing, not activated)
+# Ego Check v2 scoring: validation report (approved for staged acceptance testing, not activated)
 
 Status: **approved for final testing; not active in production.** v2 applies only to content with `scoring.version: 2`, and no published experience has it, so every live game still uses v1. Activation needs your separate approval. Full simulation output: `docs/EGO_BANK_SIMULATION.md`.
 
@@ -23,7 +23,7 @@ Compared over 1,000 random balanced selections per pattern:
 |---|---|---|---|
 | Healthy confidence | 1 | 1 | 1 |
 | Realistic mix | 22 ± 8 | 21 ± 8 | 22 ± 8 |
-| Defensive | 58 ± 4 | 54 ± 3 | 59 ± 4 |
+| Defensive | 59 ± 4 | 55 ± 3 | 60 ± 4 |
 | Strongly ego-driven | **99 ± 1** | 92 ± 3 | 99 ± 2 |
 
 - **A** penalises the bank for including 12 questions with no ego-driven option: a fully ego-driven player can never reach 100, and their score depends on which questions were drawn.
@@ -36,7 +36,7 @@ Compared over 1,000 random balanced selections per pattern:
 |---|---|---|
 | Always assertive/neutral/boundary answer | ~33 → 😎 | ~1 → 🧘 |
 | Realistic mix (35% open, 35% assertive, 20% self-protective, 10% ego) | ~38 | ~22 (🧘 63–70%, 😎 30–35%) |
-| Always self-protective | ~67 | ~58 (🦙 88–99%) |
+| Always self-protective | ~67 | ~59 (🦙 90–99%) |
 | Always ego-driven | 100 | 99 (👑 100%) |
 
 - **Category bands are unchanged** (0–25 / 26–50 / 51–75 / 76–100). Results now lean calmer because healthy behaviour is no longer scored as mild ego.

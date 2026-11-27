@@ -1,6 +1,6 @@
-# Who is in Control? v2: final approval report
+# Ego Check v2 (“Who is in Control?”, a PulsePlay game): final approval report
 
-Status: **for your final approval. Draft, not published, scoring v2 not active.** PR #12 stays a draft until you approve.
+Status: **English bank approved 27 Nov, with sa4 raised to 3 (applied). Not published. Scoring v2 is approved for staged acceptance testing only.** PR #12 stays a draft. Translations stay draft until native review.
 
 ## Decisions applied
 - **Approved as proposed:** em7, cl8, sa9, hl4 and rc6. Their wording and scores are unchanged.
@@ -17,7 +17,7 @@ Answers are in authored order (open · assertive · self-protective · ego-drive
 | `sa3` | You snapped at someone in a stressful meeting. | Apologise to them in person afterwards **0**<br>Apologise, and mention the pressure you were under **1**<br>Say nothing and carry on **2**<br>Tell them they provoked it **3** |
 | `fb4` | A client says your presentation was "too long". | Ask which part they'd happily skip **0**<br>Agree to shorten it, but keep the key data **0**<br>Explain that the topic needs that detail **1**<br>Tell colleagues the client didn't get it **3** |
 | `rc5` | A colleague gets the exciting assignment you hoped for. | Offer to help them with it **0**<br>Tell your manager you'd like the next one **0**<br>Stop volunteering for new tasks for a while **2**<br>Hint that they're not quite ready for it **3** |
-| `sa4` | You blamed a colleague for a delay, then realise it was yours. | Tell them, and say sorry for assuming **0**<br>Fix your part and mention the mix-up **0**<br>Fix it quietly, without clearing their name **2**<br>Say they could have reminded you **3** |
+| `sa4` | You blamed a colleague for a delay, then realise it was yours. | Tell them, and say sorry for assuming **0**<br>Fix your part and mention the mix-up **0**<br>Fix it quietly, without clearing their name **3**<br>Say they could have reminded you **3** |
 | `sa7` | One colleague irritates you every time they speak. | Talk to them to understand them better **0**<br>Stay professional and vent to a friend later **0**<br>Avoid working with them where you can **2**<br>Let a few sharp remarks slip in meetings **3** |
 | `fb9` | Your manager says your idea "needs more thinking". | Agree on what to rework, and by when **0**<br>Say you think it's ready, and ask what's missing **0**<br>Drop the idea without asking more **1**<br>Ask another manager to approve it instead **2** |
 | `fb10` | A peer gives you feedback that feels unfair. | Find out what they saw that led them there **0**<br>Say you see it differently, and why **0**<br>Thank them, then change nothing **1**<br>Tell others how unfair they are **3** |
@@ -32,7 +32,7 @@ Answers are in authored order (open · assertive · self-protective · ego-drive
 | sa3 | "Decide they provoked it" · "Act normal and hope it's forgotten" | "Decide" is a judgement in the head; "hope" is a wish. Both are replaced by what you say or do. |
 | fb4 | "Decide they just didn't get it" | A judgement → saying it to colleagues, which is observable. |
 | rc5 | "Lose interest in your own tasks for a while" | A mood → withdrawing effort. Scored **2**, consistent with fb3 ("Stop sharing ideas for a while"). |
-| sa4 | "Fix it quietly and hope nobody noticed" | A wish → the observable consequence: the colleague keeps the blame. |
+| sa4 | "Fix it quietly and hope nobody noticed" **2** | A wish → the observable consequence: the colleague keeps the blame. Raised to **3** on your decision: knowingly leaving someone with false blame costs them, so it is more than self-protection. sa4 now has two 3-point answers. |
 | sa7 | "Work out what exactly sets you off" (0) | An internal process → a conversation. |
 | fb9 | "Hear it as a polite no and drop it" | An interpretation → the action only. |
 | fb10 | "Thank them, then forget about it" | Forgetting is not observable → "change nothing". |
@@ -40,12 +40,14 @@ Answers are in authored order (open · assertive · self-protective · ego-drive
 | hl5 | "…even though you feel experienced" (0) | Removes "feel"; the meaning is unchanged. |
 | hl6 | "Let them try, and wait for it to fail" | An intention → withholding help. |
 
-Points changed only for em2. Every other change is wording with the same points.
+Points changed for em2 and sa4. Every other change is wording with the same points.
 
 ## Translations
 - **German, French and Arabic were updated for every change above** and all stay **draft**. The review packages were rebuilt (`docs/review/`). No reviewer names or approvals have been added.
 - **Arabic:**
   - "الأنا" is now always grammatically masculine; two new strings that used the feminine were corrected.
+  - Ego "taking the wheel" reads more naturally: «الأنا يحاول انتزاع المقود!», «الأنا تولّى القيادة!», «من يقود اليوم: أنت أم الأنا؟» (the awkward «الأنا لديك» is gone), and the score is «مؤشر قيادة الأنا».
+  - Convention, as decided: prompts use the standard masculine generic «أنت»; descriptions of the player stay gender-neutral.
   - Player-facing adjectives are gender-neutral: «تحدثت بحدّة», «أحافظ على المهنية», «ألتزم الحياد», «أقول بابتسامة», «رغم خبرتي».
   - The result titles "ممسك/ممسكون" became «المقود بين يديك/أيدينا».
 - **French:** the player-facing adjectives in fb3 and rc1 were made neutral ("ça me déçoit", "Ça fait plaisir").
@@ -53,7 +55,7 @@ Points changed only for em2. Every other change is wording with the same points.
 ## Remaining ambiguities for you or the reviewers
 1. **Arabic second person.** Prompts address the player in the masculine generic, because Arabic has no neutral "you". Colleagues alternate between female and male across questions, consistently within each question, as in German and French. Native reviewers should confirm this convention.
 2. **Wording in 0-point answers.** A few 0-point answers state a view or a feeling out loud: em1 "Tell them calmly it didn't feel good", fb9 "Say you think it's ready". I kept them because they are spoken, observable and unpenalised.
-3. **sa4 ("without clearing their name") at 2.** It could be argued as 3, because the colleague keeps the blame. I kept 2 because it is passive, not an active move against them.
+3. ~~sa4 at 2~~ **Resolved:** 3, as decided.
 4. **rc4 ("Add details about the parts you did") at 2.** This is the highest option in that question, so rc4 has no ego-driven answer (one of the 12 questions without one).
 5. **em2 now reaches 3.** The number of questions whose top score is 2 drops from 13 to 12.
 
@@ -61,13 +63,13 @@ Points changed only for em2. Every other change is wording with the same points.
 - **Scoring formula unchanged** (Σ points ÷ Σ maximum of the questions answered). The simulation after these corrections, over 1,000 selections per pattern:
   - Healthy confidence ≈ 1.
   - Realistic mix ≈ 22: 🧘 64–71%, 😎 29–35%.
-  - Defensive ≈ 58.
+  - Defensive ≈ 59.
   - Strongly ego-driven 99.
   - **0 incoherent feedback results** in 30 pattern × length combinations.
   - The weak spot is unchanged: a defensive pattern in feedback and collaboration is found 42% of the time at 10 questions and 84% at 20.
 - **Score wording** (all four languages): *"A game-based reflection score for this round only… It does not measure your ego or personality."*
 - **Question maximum vs feedback level:** a new test runs on the real bank. On each of the 12 questions whose top score is 2, the worst answer earns 100% of that question's points, is read as self-protective (level 2), and never as a single ego-driven situation.
-- **Unit tests:** 144/144 (3 new: observable answers only, the em2 privacy distinction, and the scale-separation test above).
+- **Unit tests:** 145/145 (4 new: observable answers only, the em2 privacy distinction, sa4 false blame = 3, and the scale-separation test above).
 - **SQL:** 180/180 checks in 10 suites on a fresh database, including published-version immutability, scoring-version tagging, and the existing live-engine and privacy suites.
 - **Browser:** all 11 suites passed against the local test environment (e2e, release 2A/2B, creator C1, feedback, live multiplayer, resilience, results, i18n, workspace, release 3A).
 - **Historical versions:** v1 games score exactly as before (a unit test covers this). Summaries of v2 rooms would be tagged `scoring_version = 2` by the planned migration, which is not applied.

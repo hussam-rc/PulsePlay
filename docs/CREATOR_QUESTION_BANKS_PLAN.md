@@ -1,4 +1,4 @@
-# Creator Studio: question banks (Release 3.0C plan)
+# PulsePlay Creator Studio: question banks (Release 3.0C plan)
 
 Status: **plan.** It builds on what already exists. Nothing here is built yet.
 

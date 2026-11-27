@@ -82,6 +82,10 @@ describe('Who is in Control? v2 bank: no giveaways', () => {
     expect(q.options.find(o => /privacy/.test(o.text))!.points).toBe(0);
     expect(q.options.find(o => /as if nothing happened/.test(o.text))!.points).toBe(2);
   });
+  it('sa4: knowingly leaving a colleague with false blame is ego-driven (3), not merely self-protective', () => {
+    const q = BANK_EN.find(x => x.id === 'sa4')!;
+    expect(q.options.find(o => /without clearing their name/.test(o.text))!.points).toBe(3);
+  });
   it('every answer in the bank is distinct', () => {
     const t = BANK_EN.flatMap(q => q.options.map(o => o.text.toLowerCase())); expect(new Set(t).size).toBe(t.length);
   });

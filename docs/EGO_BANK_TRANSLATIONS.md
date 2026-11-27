@@ -51,7 +51,7 @@ Rule: a language is published only when it is complete **and** marked `reviewed`
 | Situation | You blamed a colleague for a delay, then realise it was yours. | Du hast einem Kollegen eine Verzögerung angelastet. Jetzt merkst du: Sie lag bei dir. | Tu as reproché un retard à un collègue, puis tu réalises qu’il venait de toi. | لُمت زميلًا على تأخير، ثم أدركت أن التأخير كان منك. |
 | 0 · open | Tell them, and say sorry for assuming | Ich sage es ihm und entschuldige mich für die Annahme | Je le lui dis et je m’excuse d’avoir supposé | أخبره بذلك وأعتذر عن افتراضي |
 | 0 · assertive | Fix your part and mention the mix-up | Ich erledige meinen Teil und erwähne das Missverständnis | Je règle ma partie et je mentionne le malentendu | أنجز الجزء الخاص بي وأذكر سوء الفهم |
-| 2 · self-protective | Fix it quietly, without clearing their name | Ich korrigiere es still, ohne die Schuld richtigzustellen | Je corrige discrètement, sans le disculper | أصلح الأمر بصمت دون أن أبرّئه |
+| 3 · self-protective | Fix it quietly, without clearing their name | Ich korrigiere es still, ohne die Schuld richtigzustellen | Je corrige discrètement, sans le disculper | أصلح الأمر بصمت دون أن أبرّئه |
 | 3 · ego-driven | Say they could have reminded you | Ich sage, er hätte mich ja erinnern können | Je dis qu’il aurait pu me le rappeler | أقول إنه كان بإمكانه تذكيري |
 
 ### sa5

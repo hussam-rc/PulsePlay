@@ -1,4 +1,4 @@
-# Native-language review packages (Who is in Control? v2)
+# Native-language review packages: Ego Check v2 (“Who is in Control?”)
 
 One file per language: `ego-bank-review-de.html`, `ego-bank-review-fr.html`, `ego-bank-review-ar.html`. Each one works offline: open it in any browser, with no login and no server.
 
@@ -16,6 +16,6 @@ One file per language: `ego-bank-review-de.html`, `ego-bank-review-fr.html`, `eg
 - **Rebuild after any content change:** `cd web && npx tsx scripts/build-review-packages.ts`. The package shows its build date, so an export can be matched to the version that was reviewed.
 
 **Known points to check**
-- **Arabic:** Player-facing adjectives were made gender-neutral (e.g. «تحدثت بحدّة», «ألتزم الحياد»). Prompts still address the player with the masculine generic (Arabic has no neutral second person), and colleagues alternate between female and male across questions, consistently within each question, as in German and French. Please confirm this convention.
+- **Arabic:** Player-facing adjectives were made gender-neutral (e.g. «تحدثت بحدّة», «ألتزم الحياد»). Prompts still address the player with the masculine generic (Arabic has no neutral second person), and colleagues alternate between female and male across questions, consistently within each question, as in German and French. This convention is decided; please review the wording.
 - **German:** du-form and Swiss spelling.
 - **French:** tu-form, and the length of answers on phones.
