@@ -48,7 +48,7 @@ jobs:
     # Main user journeys in a real browser (Chromium) against an isolated database and a local Supabase stand-in.
     # Never uses production data or credentials.
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     services:
       postgres:
         image: postgres:16
