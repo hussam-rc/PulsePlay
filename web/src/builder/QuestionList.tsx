@@ -6,6 +6,7 @@ import { tagLabel } from './bankModel';
 import { ACTIVITY_LABEL, GameKind, KINDS } from './model';
 import { QuestionEditor, type BankGroups, type QuestionApi } from './QuestionEditor';
 import { NO_FILTER, NO_GROUP, filterActivities, highlight, isFiltered, searchText, topScore, type ListFilter, type StatusFilter } from './listModel';
+import { CHANGE_LABEL, summaryText, type Change, type DupIssue, type VersionDiff } from './qualityModel';
 
 export const COMPACT_FROM = 16;       // banks this size or larger open in the compact view
 const PAGE = 40;                      // "Show all" renders this many full cards at a time
@@ -16,9 +17,9 @@ interface UiState { view: View | null; filter: ListFilter; open: string | null }
 const textCache = new WeakMap<Activity, string>();
 const cachedText = (a: Activity) => { let t = textCache.get(a); if (t == null) { t = searchText(a); textCache.set(a, t); } return t; };
 
-export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problemIds, api, focus, storageKey }: {
+export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problemIds, dups, diff, api, focus, storageKey }: {
   acts: Activity[]; kind: GameKind; bank: BankGroups | null; groupOptions: { tag: string; label: string }[]; groupKey: 'category' | 'dimension';
-  problemIds: Set<string>; api: QuestionApi; focus: number; storageKey?: string;
+  problemIds: Set<string>; dups: Map<string, DupIssue[]>; diff: VersionDiff | null; api: QuestionApi; focus: number; storageKey?: string;
 }) {
   const key = storageKey ? `pp_qlist:${storageKey}` : null;
   const [ui, setUi] = useState<UiState>(() => {
@@ -35,7 +36,9 @@ export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problem
 
   const index = useMemo(() => new Map(acts.map(a => [a.id, cachedText(a)])), [acts]);
   const pos = useMemo(() => new Map(acts.map((a, i) => [a.id, i])), [acts]);
-  const shown = useMemo(() => filterActivities(acts, { ...f, query, groupKey }, problemIds, index), [acts, f, query, groupKey, problemIds, index]);
+  const dupIds = useMemo(() => new Set(dups.keys()), [dups]);
+  const changedIds = useMemo(() => new Set(diff?.changes.keys() ?? []), [diff]);
+  const shown = useMemo(() => filterActivities(acts, { ...f, query, groupKey }, { problems: problemIds, duplicates: dupIds, changed: changedIds }, index), [acts, f, query, groupKey, problemIds, dupIds, changedIds, index]);
   const filtered = isFiltered({ ...f, query });
 
   // open the question a creator just added or duplicated, so they can type straight away
@@ -100,7 +103,7 @@ export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problem
             <option value="">All {groupWord === 'area' ? 'areas' : 'categories'}</option>
             {groupOptions.map(g => <option key={g.tag} value={g.tag}>{g.label}</option>)}<option value={NO_GROUP}>No {groupWord}</option></select>}
           <select className="field !min-h-[40px] !w-auto !text-sm" aria-label="Filter by status" value={f.status} onChange={e => setF({ status: e.target.value as StatusFilter })} data-testid="f-status">
-            <option value="all">All statuses</option><option value="active">In use</option><option value="archived">Archived ({nArchived})</option><option value="problems">Needs fixing ({nProblems})</option></select>
+            <option value="all">All statuses</option><option value="active">In use</option><option value="archived">Archived ({nArchived})</option><option value="problems">Needs fixing ({nProblems})</option><option value="duplicates">Possible duplicates ({dupIds.size})</option>{diff && <option value="changed">Changed since v{diff.version} ({changedIds.size})</option>}</select>
           {types.length > 1 && <select className="field !min-h-[40px] !w-auto !text-sm" aria-label="Filter by question type" value={f.type} onChange={e => setF({ type: e.target.value as ListFilter['type'] })} data-testid="f-type">
             <option value="all">All types</option>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t].split(' (')[0]}</option>)}</select>}
           <span className="text-sm text-ink-soft ms-auto" aria-live="polite" data-testid="q-count">{filtered ? `${shown.length} of ${acts.length} questions` : `${acts.length} question${acts.length === 1 ? '' : 's'}`}</span>
@@ -108,6 +111,11 @@ export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problem
         </div>
       </div>
 
+      {diff && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-2 text-sm" data-testid="q-changes">
+        <span className="me-auto" aria-live="polite">{summaryText(diff)}</span>
+        {changedIds.size > 0 && f.status !== 'changed' && <button type="button" className="btn-ghost !min-h-[32px] !px-3 text-sm" onClick={() => setF({ status: 'changed' })} data-testid="q-show-changes">Show changed</button>}
+        {diff.deleted.length > 0 && <details className="w-full"><summary className="cursor-pointer font-bold">Deleted since version {diff.version} ({diff.deleted.length})</summary>
+          <ul className="list-disc ps-5">{diff.deleted.map(x => <li key={x.id} dir="auto">{x.prompt || x.id}</li>)}</ul></details>}</div>}
       {shown.length === 0 && <p className="rounded-xl bg-paper p-4 text-sm text-ink-soft" data-testid="q-empty">No question matches. Try fewer words or clear the filters.</p>}
 
       {view === 'compact'
@@ -115,7 +123,7 @@ export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problem
             const i = pos.get(a.id)!;
             return <li key={a.id}>{ui.open === a.id
               ? <div ref={editorRef}><QuestionEditor a={a} i={i} total={acts.length} kind={kind} bank={bank} api={api} focused={i === focus} nav={nav(a.id)} /></div>
-              : <Row a={a} i={i} query={query} groupKey={groupKey} groupOptions={groupOptions} problem={problemIds.has(a.id)} focused={i === focus}
+              : <Row a={a} i={i} query={query} groupKey={groupKey} groupOptions={groupOptions} problem={problemIds.has(a.id)} focused={i === focus} dup={dups.get(a.id)?.[0]?.kind} change={diff?.changes.get(a.id)}
                   refFn={refFor(a.id)} onOpen={stableOpen} onKey={stableKey} />}</li>;
           })}</ul>
         : <div className="grid gap-3">
@@ -127,8 +135,9 @@ export function QuestionList({ acts, kind, bank, groupOptions, groupKey, problem
   );
 }
 
-const Row = memo(function Row({ a, i, query, groupKey, groupOptions, problem, focused, refFn, onOpen, onKey }: {
+const Row = memo(function Row({ a, i, query, groupKey, groupOptions, problem, focused, dup, change, refFn, onOpen, onKey }: {
   a: Activity; i: number; query: string; groupKey: 'category' | 'dimension'; groupOptions: { tag: string; label: string }[]; problem: boolean; focused: boolean;
+  dup?: DupIssue['kind']; change?: Change;
   refFn: (el: HTMLButtonElement | null) => void; onOpen: (id: string) => void; onKey: (e: React.KeyboardEvent, id: string) => void;
 }) {
   const archived = a.active === false, tag = a[groupKey], top = topScore(a);
@@ -146,6 +155,8 @@ const Row = memo(function Row({ a, i, query, groupKey, groupOptions, problem, fo
           {label && <span className="rounded-full bg-violet-50 px-2 py-0.5 font-bold">{label}</span>}
           {archived && <span className="rounded-full bg-sun-50 px-2 py-0.5 font-bold">Archived</span>}
           {problem && <span className="rounded-full bg-coral-50 px-2 py-0.5 font-bold" data-testid="q-row-problem">⚠ Needs fixing</span>}
+          {change && <span className="rounded-full bg-sky-50 px-2 py-0.5 font-bold" data-testid="q-row-change" data-change={change}>{CHANGE_LABEL[change]}</span>}
+          {dup && <span className="rounded-full bg-sun-50 px-2 py-0.5 font-bold" data-testid="q-row-dup">{dup === 'answers' ? 'Repeated answer' : dup === 'same' ? 'Duplicate' : 'Very similar'}</span>}
           {top != null && <span className="rounded-full bg-paper px-2 py-0.5">up to {top} pts</span>}
           {a.type !== 'choice' && <span className="rounded-full bg-paper px-2 py-0.5">{ACTIVITY_LABEL[a.type].split(' (')[0]}</span>}
           {'options' in a && <span className="text-ink-soft">{a.options.length} answers</span>}

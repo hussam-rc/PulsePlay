@@ -12,6 +12,8 @@ import { PhonePreview } from './PhonePreview';
 import { ACTIVITY_LABEL, changeKind, Draft, GameKind, humanize, KINDS, kindOf, newActivity, newId, splitBands } from './model';
 import type { BankGroups, QuestionApi } from './QuestionEditor';
 import { QuestionList } from './QuestionList';
+import { diffAgainstPublished, findDuplicates } from './qualityModel';
+import type { Activity } from '../engine/schema';
 
 const CATEGORIES: [Draft['category'], string][] = [['icebreaker', 'Icebreaker'], ['team-building', 'Team building'], ['reflection', 'Reflection'], ['workplace-culture', 'Workplace culture'],
   ['communication', 'Communication'], ['leadership', 'Leadership'], ['collaboration', 'Collaboration'], ['trivia', 'Trivia & quiz'], ['education', 'Education'], ['community', 'Community'],
@@ -20,7 +22,8 @@ const EMOJIS = ['🧠', '🪞', '📊', '💬', '🎯', '🧩', '🚀', '🌍', 
 const LANGS: [Draft['languages'][number], string][] = [['en', 'English'], ['ar', 'Arabic'], ['de', 'German'], ['fr', 'French']];
 const TONES: [ResultBand['tone'], string][] = [['great', '🟢 Great'], ['good', '🔵 Good'], ['watch', '🟡 Watch out'], ['grow', '🟠 Room to grow']];
 
-export function Builder({ value, onChange, readOnly, storageKey }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string }) {
+export function Builder({ value, onChange, readOnly, storageKey, published }: { value: Draft; onChange: (d: Draft) => void; readOnly?: boolean; storageKey?: string;
+  published?: { version: number; content: Draft } | null }) {
   const d = value;
   // Question edits go through a stable API that always applies to the latest draft and copies only the changed question,
   // so a 200-question bank stays responsive while typing. Checks run on a deferred copy of the draft.
@@ -49,6 +52,14 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
   const warnings = useMemo(() => humanize(check.warnings, checked), [check, checked]);
   const checkedActs = useMemo(() => checked.rounds.flatMap(r => r.activities), [checked]);
   const problemIds = useMemo(() => problemIdsFrom(problems.map(p => p.anchor), checkedActs), [problems, checkedActs]);
+  const dups = useMemo(() => findDuplicates(checkedActs), [checkedActs]);
+  const pubActs = useMemo<Activity[] | null>(() => published ? published.content.rounds.flatMap(r => r.activities) : null, [published]);
+  const diff = useMemo(() => diffAgainstPublished(checkedActs, pubActs, published?.version ?? 0), [checkedActs, pubActs, published?.version]);
+  const num = (id?: string) => (id ? checkedActs.findIndex(a => a.id === id) + 1 : 0);
+  // each pair of duplicates is reported once, at the earlier question
+  const dupWarnings = useMemo(() => [...dups].flatMap(([id, l]) => l.filter(x => x.kind === 'answers' || num(x.with) > num(id)).map(x => ({
+    where: `Question ${num(id)}`, anchor: `q-${num(id)}`,
+    text: x.kind === 'answers' ? 'Two answers are the same.' : x.kind === 'same' ? `Same question as question ${num(x.with)}.` : `Very similar to question ${num(x.with)}.` }))), [dups, checkedActs]); // eslint-disable-line react-hooks/exhaustive-deps
   const scored = kind === 'quiz' || kind === 'score';
   // groups change rarely: keep the same object while the list of names and counts is unchanged, so question cards stay memoised
   const by = balanceOf(d), groupKey = by === 'dimension' ? 'dimension' as const : 'category' as const;
@@ -110,7 +121,7 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
 
         {/* ---------- questions ---------- */}
         <Section id="questions" n={3} title={`Questions (${acts.length})`}>
-          <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} api={api} focus={focus} storageKey={storageKey} />
+          <QuestionList acts={acts} kind={kind} bank={bankGroups} groupOptions={groupOptions} groupKey={groupKey} problemIds={problemIds} dups={dups} diff={diff} api={api} focus={focus} storageKey={storageKey} />
           <CsvPanel d={d} apply={replaceDraft} readOnly={readOnly} />
           {!readOnly && <AiDraft kind={kind} language={d.languages[0] ?? 'en'} onAdd={add => addActs(add, x => !!(x.prompt.trim() || ('options' in x && x.options.some(o => o.text.trim()))))} />}
           {!readOnly && <div className="flex flex-wrap gap-2">{KINDS[kind].activity.map(t =>
@@ -163,7 +174,8 @@ export function Builder({ value, onChange, readOnly, storageKey }: { value: Draf
         <b className="text-lg">{problems.length ? `✏️ ${problems.length} thing${problems.length === 1 ? '' : 's'} to fix` : '✅ Ready to publish'}</b>
         {problems.length === 0 && <p className="text-sm text-ink-soft">Everything checks out. Preview it with simulated players, then publish.</p>}
         <ul className="grid gap-2">{problems.map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); goTo(p.anchor, true); }} className="block rounded-xl bg-coral-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
-        {warnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2">{warnings.map((p, i) => <li key={i} className="rounded-xl bg-sun-50 p-2 text-sm"><b>{p.where}:</b> {p.text}</li>)}</ul></>}
+        {warnings.length + dupWarnings.length > 0 && <><b className="text-sm">Worth a look</b><ul className="grid gap-2" data-testid="checker-warnings">{[...warnings, ...dupWarnings].slice(0, 30).map((p, i) => <li key={i}><a href={`#${p.anchor}`} onClick={e => { e.preventDefault(); goTo(p.anchor, true); }} className="block rounded-xl bg-sun-50 p-2 text-sm hover:underline"><b>{p.where}:</b> {p.text}</a></li>)}</ul>
+          {warnings.length + dupWarnings.length > 30 && <p className="text-xs text-ink-soft">…and {warnings.length + dupWarnings.length - 30} more. Use the question filters to see them all.</p>}</>}
       </aside>
       </div>
     </div>
