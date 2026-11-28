@@ -151,7 +151,7 @@ function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus,
       <div className="flex flex-wrap items-center gap-2">
         <b className="me-auto">Question {i + 1}{archived && <span className="ms-2 rounded-full bg-sun-50 px-2 py-0.5 text-xs font-bold" data-testid="q-archived">Archived: not used in games</span>}</b>
         <button type="button" className="btn-ghost !min-h-[36px] !px-3 text-sm" onClick={() => onArchive(!archived)} data-testid="q-archive">{archived ? '↩ Restore' : '🗄 Archive'}</button>
-        {types.length > 1 && <select className="field !min-h-[36px] !w-auto !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
+        {types.length > 1 && <select className="field !min-h-[36px] !w-auto max-w-full !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
         <IconBtn label="Move up" disabled={i === 0} onClick={() => move(-1)}>↑</IconBtn>
         <IconBtn label="Move down" disabled={i === total - 1} onClick={() => move(1)}>↓</IconBtn>
         <IconBtn label="Duplicate" onClick={dup}>⧉</IconBtn>

@@ -12,7 +12,7 @@ export const KINDS: Record<GameKind, { emoji: string; label: string; blurb: stri
   score: { emoji: '🪞', label: 'Self-reflection', blurb: 'Each answer carries 0–3 points. Everyone gets a private result; the group sees only an anonymous average.', activity: ['choice', 'open'] },
   talk:  { emoji: '💬', label: 'Conversation starter', blurb: 'Prompts, polls and scales to spark discussion. No scores at all.', activity: ['poll', 'scale', 'open', 'reflection'] },
 };
-export const ACTIVITY_LABEL: Record<Activity['type'], string> = { choice: 'Multiple choice', poll: 'Poll (everyone votes)', scale: 'Scale (1 to N)', open: 'Open answer (people type their own words)', reflection: 'Open reflection (nothing is collected)' };
+export const ACTIVITY_LABEL: Record<Activity['type'], string> = { choice: 'Multiple choice', poll: 'Poll (everyone votes)', scale: 'Scale (1 to N)', open: 'Open answer (typed words)', reflection: 'Open reflection (nothing is collected)' };
 
 export function kindOf(d: Draft): GameKind {
   if (d.scoring.kind === 'correct') return 'quiz';
