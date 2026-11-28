@@ -5,13 +5,14 @@ import { SUPABASE_URL, SUPABASE_KEY } from './config';
 import { accessToken } from './auth';
 import { sessionView, View, MyState } from './view';
 
-export type Cmd = 'next' | 'pause' | 'resume' | 'end' | 'kick';
+export type OpenCmd = 'open_approve' | 'open_hide' | 'open_close' | 'open_reveal' | 'open_clear';
+export type Cmd = 'next' | 'pause' | 'resume' | 'end' | 'kick' | OpenCmd;
 export interface Controller {
   view: View | null;
   offset: number;                          // server clock - local clock (ms)
   error: string | null;
   subscribe(fn: () => void): () => void;
-  command(cmd: Cmd): Promise<void>;
+  command(cmd: Cmd, args?: Record<string, unknown>): Promise<void>;
   stop(): void;
 }
 
@@ -92,7 +93,7 @@ class Poller extends Base {
     this.onView(v);
     if (off) this.offset = off;
     if (v.ended) { if (!this.view?.ended) { this.view = this.view ? { ...this.view, ended: true } : null; this.error = this.view ? null : 'This game has ended.'; this.emit(); } this.stop(); return; }
-    if (!this.view || v.seq !== this.view.seq || v.answered !== this.view.answered || v.joined !== this.view.joined || v.ended) { this.view = v; this.emit(); } }
+    if (!this.view || v.seq !== this.view.seq || v.answered !== this.view.answered || v.joined !== this.view.joined || v.open?.rev !== this.view.open?.rev || v.ended) { this.view = v; this.emit(); } }
   private nextDelay() {
     if (this.fails) return Math.min(8000, 1000 * 2 ** (this.fails - 1));
     const v = this.view, push = this.nudge?.healthy;
@@ -118,7 +119,7 @@ class Poller extends Base {
   }
   /** Fetch now (coalesced: at most about 3 reads per second however many ticks arrive). */
   refresh() { if (this.stopped) return; if (this.inflight) { this.again = true; return; } const wait = 300 - (Date.now() - this.last); if (this.timer) clearTimeout(this.timer); this.timer = setTimeout(() => this.loop(), Math.max(0, wait)); }
-  async command(_: Cmd) {}
+  async command(_: Cmd, _args?: Record<string, unknown>) {}
   stop() { this.stopped = true; if (this.timer) clearTimeout(this.timer); this.nudge?.close(); if (typeof window !== 'undefined') { document.removeEventListener('visibilitychange', this.wake); window.removeEventListener('online', this.wake); } }
 }
 
@@ -166,13 +167,41 @@ export class LivePlayer extends Poller {
       this.drop(activityId, (e as Error).message); return 'error';
     }
   }
+  /**
+   * Open answers: sent as typed text, never optimistic on screen (the server decides). Network failures are retried; a retry
+   * that the server already stored comes back as 'duplicate' with an id we have not seen, which counts as success.
+   */
+  async openSend(activityId: string, text: string, editId?: string, attempt = 0): Promise<string> {
+    const known = new Set((this.my.open?.[activityId] ?? []).map(x => x.id));
+    try {
+      const { data } = await rpc<{ status: string; id?: string; editUntil?: number }>('pp_open_submit', { p_token: this.token, p_activity: activityId, p_text: text, p_id: editId ?? null });
+      let st = data.status;
+      if (st === 'duplicate' && attempt > 0 && data.id && !known.has(data.id)) st = 'ok';
+      if (st === 'ok' && data.id) {
+        const list = (this.my.open?.[activityId] ?? []).filter(x => x.id !== data.id);
+        const prev = this.my.open?.[activityId]?.find(x => x.id === data.id);
+        list.push({ id: data.id, t: text, at: prev?.at ?? Date.now() + this.offset, editUntil: data.editUntil ?? 0 });
+        const before = this.my.openUsed?.[activityId] ?? known.size, used = prev ? before : before + 1;   // an edit does not use a new answer
+        this.my = { ...this.my, open: { ...this.my.open, [activityId]: list }, openUsed: { ...this.my.openUsed, [activityId]: used } };
+        if (this.error) this.error = null; this.emit();
+      }
+      return st;
+    } catch (e) {
+      if (/connection/i.test((e as Error).message) && attempt < 8 && !this.view?.ended) {
+        this.error = 'Connection lost. Sending your answer again…'; this.emit();
+        await new Promise(r => setTimeout(r, Math.min(4000, 700 * (attempt + 1))));
+        return this.openSend(activityId, text, editId, attempt + 1);
+      }
+      return 'error';
+    }
+  }
 }
 
 /** Practice: the in-memory engine exposed through the same interface. Never touches the network. */
 export class PracticeHost extends Base {
   private unsub: () => void;
   constructor(public session: Session) { super(); this.view = sessionView(session, true); this.unsub = session.subscribe(() => { this.view = sessionView(session, true); this.emit(); }); }
-  async command(cmd: Cmd) { if (cmd === 'next') this.session.next(); if (cmd === 'pause') this.session.pause(); if (cmd === 'resume') this.session.resume(); if (cmd === 'end') this.session.end(); }
+  async command(cmd: Cmd, args?: Record<string, unknown>) { if (cmd.startsWith('open_')) { this.session.openCommand(cmd as OpenCmd, args as { ids?: string[]; all?: boolean }); return; } if (cmd === 'next') this.session.next(); if (cmd === 'pause') this.session.pause(); if (cmd === 'resume') this.session.resume(); if (cmd === 'end') this.session.end(); }
   stop() { this.unsub(); this.session.end(); }
 }
 

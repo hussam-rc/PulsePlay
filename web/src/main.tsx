@@ -20,6 +20,7 @@ const Create = lazyNamed(() => import('./pages/Create'), 'Create');
 const TryTemplate = lazyNamed(() => import('./pages/Create'), 'TryTemplate');
 const Workspace = lazyNamed(() => import('./pages/Workspace'), 'Workspace');
 const HostLive = lazyNamed(() => import('./pages/HostLive'), 'HostLive');
+const Screen = lazyNamed(() => import('./pages/Screen'), 'Screen');
 const Editor = lazyNamed(() => import('./pages/Editor'), 'Editor');
 const Preview = lazyNamed(() => import('./pages/Editor'), 'Preview');
 const Guide = lazyNamed(() => import('./pages/Guide'), 'Guide');
@@ -81,6 +82,7 @@ function App() {
       <Routes>
         <Route path="/practice/:id" element={<React.Suspense fallback={<Loading />}><Practice /></React.Suspense>} />
         <Route path="/create/try/:id" element={<React.Suspense fallback={<Loading />}><TryTemplate /></React.Suspense>} />
+        <Route path="/screen" element={<React.Suspense fallback={<Loading />}><Screen /></React.Suspense>} />
         <Route path="/host/:id" element={<React.Suspense fallback={<Loading />}><HostLive /></React.Suspense>} />
         <Route path="/workspace/preview/:id" element={<React.Suspense fallback={<Loading />}><Preview /></React.Suspense>} />
         <Route path="/j" element={<JoinLive />} />

@@ -2,6 +2,7 @@
 import { ReactNode, useMemo, useState } from 'react';
 import type { Activity, ResultBand } from '../engine/schema';
 import { validateExperience } from '../engine/schema';
+import { OPEN_DEFAULTS } from '../engine/openAnswer';
 import { AiDraft } from './AiDraft';
 import { BankPanel } from './BankPanel';
 import { balanceOf, groups, setArchived, setGroup, type BalanceBy, type GroupCount } from './bankModel';
@@ -150,7 +151,7 @@ function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus,
       <div className="flex flex-wrap items-center gap-2">
         <b className="me-auto">Question {i + 1}{archived && <span className="ms-2 rounded-full bg-sun-50 px-2 py-0.5 text-xs font-bold" data-testid="q-archived">Archived: not used in games</span>}</b>
         <button type="button" className="btn-ghost !min-h-[36px] !px-3 text-sm" onClick={() => onArchive(!archived)} data-testid="q-archive">{archived ? '↩ Restore' : '🗄 Archive'}</button>
-        {types.length > 1 && <select className="field !min-h-[36px] !w-auto !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
+        {types.length > 1 && <select className="field !min-h-[36px] !w-auto max-w-full !text-sm" aria-label={`Type of question ${i + 1}`} value={a.type} onChange={e => replace({ ...newActivity(e.target.value as Activity['type'], kind), id: a.id, prompt: a.prompt })}>{types.map(t => <option key={t} value={t}>{ACTIVITY_LABEL[t]}</option>)}</select>}
         <IconBtn label="Move up" disabled={i === 0} onClick={() => move(-1)}>↑</IconBtn>
         <IconBtn label="Move down" disabled={i === total - 1} onClick={() => move(1)}>↓</IconBtn>
         <IconBtn label="Duplicate" onClick={dup}>⧉</IconBtn>
@@ -178,7 +179,30 @@ function Question({ a, i, total, kind, change, replace, move, dup, del, onFocus,
         <Text label="Label at 1" value={a.minLabel} max={40} onChange={v => change(x => { if (x.type === 'scale') x.minLabel = v; })} />
         <Text label={`Label at ${a.max}`} value={a.maxLabel} max={40} onChange={v => change(x => { if (x.type === 'scale') x.maxLabel = v; })} />
       </div>}
-      {a.type !== 'reflection' && <Toggle label="Own timing for this question" checked={!!a.timing} onChange={v => change(x => { x.timing = v ? { readSec: 3, answerSec: 20 } : undefined; })} />}
+      {a.type === 'open' && <div className="grid gap-3" data-testid="q-open">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Select label="Show answers as" value={a.display} options={[['cloud', 'Live word cloud'], ['wall', 'Answer wall (cards)'], ['list', 'Live list']]}
+            onChange={v => change(x => { if (x.type === 'open') { const d = OPEN_DEFAULTS[v]; Object.assign(x, { display: v, maxChars: d.maxChars, maxWords: d.maxWords, maxResponses: d.maxResponses }); } })} />
+          <Select label="Before answers appear on screen" value={a.moderation} options={[['approve', 'I approve each answer (recommended)'], ['live', 'Show at once (flagged answers still wait)']]}
+            onChange={v => change(x => { if (x.type === 'open') x.moderation = v; })} />
+        </div>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <Num label="Characters per answer" value={a.maxChars} min={1} max={140} onChange={v => change(x => { if (x.type === 'open') x.maxChars = v; })} />
+          <Num label="Words per answer (0 = no limit)" value={a.maxWords ?? 0} min={0} max={30} onChange={v => change(x => { if (x.type === 'open') x.maxWords = v || undefined; })} />
+          <Num label="Answers per person" value={a.maxResponses} min={1} max={5} onChange={v => change(x => { if (x.type === 'open') x.maxResponses = v; })} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Slider label="Time to answer (0 = until I close it)" unit="s" value={a.submitSec} min={0} max={600} onChange={v => change(x => { if (x.type === 'open') x.submitSec = v; })} />
+          <Slider label="Time to change an answer after sending" unit="s" value={a.editSec} min={0} max={120} onChange={v => change(x => { if (x.type === 'open') x.editSec = v; })} />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <Select label="On the big screen" value={a.showAnswers} options={[['live', 'Show answers while people type'], ['closed', 'Show answers when I close submissions']]}
+            onChange={v => change(x => { if (x.type === 'open') x.showAnswers = v; })} />
+          <Text label="Hint in the answer box (optional)" value={a.placeholder ?? ''} max={60} onChange={v => change(x => { if (x.type === 'open') x.placeholder = v || undefined; })} />
+        </div>
+        <p className="text-xs text-ink-soft">🔒 Answers are anonymous, never scored, and deleted when the room ends. Links, @handles and common offensive words are held back automatically.</p>
+      </div>}
+      {a.type !== 'reflection' && a.type !== 'open' && <Toggle label="Own timing for this question" checked={!!a.timing} onChange={v => change(x => { x.timing = v ? { readSec: 3, answerSec: 20 } : undefined; })} />}
       {a.timing && <div className="grid sm:grid-cols-2 gap-4">
         <Slider label="Reading time" unit="s" value={a.timing.readSec} min={0} max={30} onChange={v => change(x => { x.timing!.readSec = v; })} />
         <Slider label="Answer time" unit="s" value={a.timing.answerSec} min={3} max={120} onChange={v => change(x => { x.timing!.answerSec = v; })} />

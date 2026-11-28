@@ -23,6 +23,10 @@ export function PhonePreview({ acts, index, onIndex, title }: { acts: Activity[]
               <span className="w-5 h-5 shrink-0 rounded-md bg-violet-50 text-violet-700 grid place-items-center text-[11px]">{'ABCDEF'[j]}</span>
               <span className="min-w-0">{'emoji' in o && o.emoji ? `${o.emoji} ` : ''}{o.text.trim() || <span className="text-ink-soft">Answer {j + 1}</span>}</span>
             </div>))}
+          {a.type === 'open' && <div className="grid gap-1.5" data-testid="preview-open">
+            <div className="rounded-xl bg-white border border-paper-line px-2.5 py-2 text-sm text-ink-soft" dir="auto">{a.placeholder || 'Type your answer'}</div>
+            <div className="flex justify-between text-[10px] text-ink-soft"><span>0/{a.maxChars}{a.maxWords ? ` · ${a.maxWords === 1 ? 'one word' : `up to ${a.maxWords} words`}` : ''}</span><span className="rounded-md bg-violet-600 text-white px-2 py-0.5 font-bold">Send</span></div>
+            <p className="text-[10px] text-ink-soft">🔒 Anonymous{a.maxResponses > 1 ? ` · ${a.maxResponses} answers each` : ''}</p></div>}
           {a.type === 'reflection' && <p className="rounded-xl bg-white border border-paper-line p-3 text-sm text-ink-soft">🤔 Players think about this privately. Nothing is collected.</p>}
           {a.type === 'scale' && <div className="grid gap-1">
             <div className="flex justify-between gap-1">{Array.from({ length: a.max - a.min + 1 }, (_, k) => <span key={k} className="flex-1 rounded-lg bg-white border border-paper-line py-2 text-center text-sm font-bold">{a.min + k}</span>)}</div>
