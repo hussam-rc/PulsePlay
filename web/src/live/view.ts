@@ -6,7 +6,12 @@ import { Session } from '../engine/session';
 import type { ResponseValue } from '../engine/scoring';
 
 export interface PublicOption { id: string; text: string; emoji?: string }
-export interface PublicActivity { id: string; type: Activity['type']; prompt: string; theme?: string; shuffle: boolean; options?: PublicOption[]; min?: number; max?: number; minLabel?: string; maxLabel?: string }
+export interface OpenSettings { display: 'cloud' | 'wall' | 'list'; maxChars: number; maxWords?: number; maxResponses: number; editSec: number; moderation: 'approve' | 'live'; showAnswers: 'live' | 'closed'; placeholder?: string }
+export interface PublicActivity { id: string; type: Activity['type']; prompt: string; theme?: string; shuffle: boolean; options?: PublicOption[]; min?: number; max?: number; minLabel?: string; maxLabel?: string; open?: OpenSettings }
+/** Host-only answer as moderated and displayed (anonymous: no nickname or player link). */
+export interface OpenViewItem { id: string; t: string; k: string; s: 'pending' | 'shown' | 'hidden'; f: boolean; at: number }
+export interface OpenView { n: number; people: number; pending: number; closed: boolean; visible: boolean; clearedAt?: number; rev: number; items?: OpenViewItem[] }
+export interface MyOpenAnswer { id: string; t: string; at: number; editUntil: number }
 export interface Distribution { n: number; counts: Record<string, number>; suppressed: boolean }
 export interface GroupView { joined: number; valid: number; average: number | null; bands: number[] | null; suppressed: boolean }
 export interface View {
@@ -20,18 +25,21 @@ export interface View {
   reveal?: { distribution: Distribution; correct?: string; explanation?: string };
   group?: GroupView;
   leaderboard?: { name: string; correct: number }[];
+  open?: OpenView;
   snapshot?: Experience;
   names?: { n: string; a: string; i?: string }[];
   kicked?: string[];
   ended?: boolean;
 }
-export interface MyState { answers: Record<string, ResponseValue>; boardName?: string | null }
+export interface MyState { answers: Record<string, ResponseValue>; boardName?: string | null; open?: Record<string, MyOpenAnswer[]>; openUsed?: Record<string, number> }
 
 export function publicActivity(a: Activity): PublicActivity {
   return {
     id: a.id, type: a.type, prompt: a.prompt, theme: a.theme, shuffle: a.type === 'choice' ? a.shuffle : false,
     options: a.type === 'choice' || a.type === 'poll' ? a.options.map(o => ({ id: o.id, text: o.text, ...('emoji' in o && o.emoji ? { emoji: o.emoji } : {}) })) : undefined,
     ...(a.type === 'scale' ? { min: a.min, max: a.max, minLabel: a.minLabel, maxLabel: a.maxLabel } : {}),
+    ...(a.type === 'open' ? { open: { display: a.display, maxChars: a.maxChars, maxWords: a.maxWords, maxResponses: a.maxResponses, editSec: a.editSec,
+      moderation: a.moderation, showAnswers: a.showAnswers, placeholder: a.placeholder } } : {}),
   };
 }
 
@@ -50,6 +58,13 @@ export function sessionView(s: Session, forHost: boolean): View {
   };
   if (a) {
     v.activity = publicActivity(a); v.answered = s.answeredCount(); v.timing = timingOf(e, a);
+    if (a.type === 'open') {
+      const list = s.open[a.id] ?? [], fl = s.openFlags[a.id] ?? {};
+      v.open = { n: list.filter(x => x.status !== 'hidden').length, people: new Set(list.map(x => x.player)).size, pending: list.filter(x => x.status === 'pending').length,
+        closed: st.phase === 'reveal', visible: a.showAnswers !== 'closed' || st.phase === 'reveal' || !!fl.revealed, clearedAt: fl.clearedAt,
+        rev: list.length + list.reduce((m, x) => m + x.text.length + x.status.length, 0) + (fl.clearedAt ?? 0) % 997,
+        items: forHost ? list.map(x => ({ id: x.id, t: x.text, k: x.key, s: x.status, f: x.flagged, at: x.at })) : undefined };
+    }
     if (st.phase === 'reveal' && e.reveal !== 'none') {
       v.reveal = { distribution: s.distributionFor(a) };
       if (e.reveal === 'correct' && a.type === 'choice') { v.reveal.correct = a.options.find(o => o.correct)?.id; v.reveal.explanation = a.explanation; }

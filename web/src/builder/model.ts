@@ -1,17 +1,18 @@
 // No-code builder model: game types, blank drafts, safe edits and plain-language checker messages.
 // Everything here produces the same schema v1 the engine, the server and the publish function validate.
 import type { Activity, Experience, ResultBand } from '../engine/schema';
+import { OPEN_DEFAULTS } from '../engine/openAnswer';
 
 export type Draft = Experience;           // drafts use the published shape; status stays 'draft'
 export type GameKind = 'quiz' | 'poll' | 'score' | 'talk';
 
 export const KINDS: Record<GameKind, { emoji: string; label: string; blurb: string; activity: Activity['type'][] }> = {
-  quiz:  { emoji: '🧠', label: 'Quiz', blurb: 'Questions with one right answer. Players see their score and an explanation; optional nickname leaderboard.', activity: ['choice'] },
-  poll:  { emoji: '📊', label: 'Opinion poll', blurb: 'No right answers. The room sees how everyone voted, anonymously (like Would You Rather?).', activity: ['poll', 'scale'] },
-  score: { emoji: '🪞', label: 'Self-reflection', blurb: 'Each answer carries 0–3 points. Everyone gets a private result; the group sees only an anonymous average.', activity: ['choice'] },
-  talk:  { emoji: '💬', label: 'Conversation starter', blurb: 'Prompts, polls and scales to spark discussion. No scores at all.', activity: ['poll', 'scale', 'reflection'] },
+  quiz:  { emoji: '🧠', label: 'Quiz', blurb: 'Questions with one right answer. Players see their score and an explanation; optional nickname leaderboard.', activity: ['choice', 'open'] },
+  poll:  { emoji: '📊', label: 'Opinion poll', blurb: 'No right answers. The room sees how everyone voted, anonymously (like Would You Rather?).', activity: ['poll', 'scale', 'open'] },
+  score: { emoji: '🪞', label: 'Self-reflection', blurb: 'Each answer carries 0–3 points. Everyone gets a private result; the group sees only an anonymous average.', activity: ['choice', 'open'] },
+  talk:  { emoji: '💬', label: 'Conversation starter', blurb: 'Prompts, polls and scales to spark discussion. No scores at all.', activity: ['poll', 'scale', 'open', 'reflection'] },
 };
-export const ACTIVITY_LABEL: Record<Activity['type'], string> = { choice: 'Multiple choice', poll: 'Poll (everyone votes)', scale: 'Scale (1 to N)', reflection: 'Open reflection (nothing is collected)' };
+export const ACTIVITY_LABEL: Record<Activity['type'], string> = { choice: 'Multiple choice', poll: 'Poll (everyone votes)', scale: 'Scale (1 to N)', open: 'Open answer (people type their own words)', reflection: 'Open reflection (nothing is collected)' };
 
 export function kindOf(d: Draft): GameKind {
   if (d.scoring.kind === 'correct') return 'quiz';
@@ -30,7 +31,8 @@ export function newActivity(type: Activity['type'], kind: GameKind): Activity {
     options: kind === 'quiz' ? [{ id: 'a', text: '', correct: true }, { id: 'b', text: '', correct: false }] : [{ id: 'a', text: '', points: 0 }, { id: 'b', text: '', points: 3 }] };
   if (type === 'poll') return { id, type, prompt: '', options: [{ id: 'a', text: '' }, { id: 'b', text: '' }] };
   if (type === 'scale') return { id, type, prompt: '', min: 1, max: 5, minLabel: 'Not at all', maxLabel: 'Completely' };
-  return { id, type, prompt: '' };
+  if (type === 'open') return { id, type, prompt: '', display: 'cloud', ...OPEN_DEFAULTS.cloud, submitSec: 60, editSec: 15, moderation: 'approve', showAnswers: 'live' };
+  return { id, type: 'reflection', prompt: '' };
 }
 
 export function nextOptionId(opts: { id: string }[]) { return LETTERS.split('').find(l => !opts.some(o => o.id === l)) ?? newId('o'); }

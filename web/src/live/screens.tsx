@@ -1,5 +1,6 @@
 // The projector and phone screens. They render a View, whether it came from the server or from practice mode.
 import { useEffect, useState } from 'react';
+import { OpenPhone, OpenStage } from './open';
 import type { View, MyState } from './view';
 import type { ResponseValue } from '../engine/scoring';
 import { personalResult } from '../engine/scoring';
@@ -51,6 +52,17 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
       <p className="text-sm text-ink-soft max-w-xl">{e.disclaimer}</p></div>); }
   if (v.stage === 'activity' && v.activity) {
     const a = v.activity, answered = v.answered ?? 0, pct = n ? Math.round((100 * answered) / n) : 0;
+    if (a.type === 'open') { const timed = v.phase === 'answer' && local(v.deadline) - Date.now() < 3600_000; return (
+      <>
+        <div className="px-6 sm:px-12 pt-6"><Bar pct={(100 * (v.index + (v.phase === 'reveal' ? 1 : 0))) / v.total} tone="teal" /></div>
+        <div className="flex-1 flex flex-col gap-4 p-6 sm:p-10 min-h-0">
+          <div className="flex flex-wrap items-center gap-2"><Chip>{t('stage.q', { i: v.index + 1, n: v.total })}</Chip>{v.paused && <Chip tone="coral">{t('stage.paused')}</Chip>}
+            {v.phase === 'read' && <span className="text-lg font-bold text-ink-soft">{t('stage.readOpen')} <Countdown until={local(v.phaseAt) + (v.timing?.readSec ?? 5) * 1000} /> {t('stage.s')}</span>}
+            {timed && <span className="ms-auto text-5xl font-extrabold text-violet-600 tabular-nums" data-testid="countdown">{v.paused ? '⏸' : <Countdown until={local(v.deadline)} alarm />}</span>}</div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.1] max-w-[26ch]" dir="auto" data-testid="prompt" data-idx={v.index}>{a.prompt}</h2>
+          {v.phase !== 'read' && <OpenStage v={v} />}
+        </div>
+      </>); }
     const showOptions = v.phase !== 'reveal' && (a.type === 'poll' || (a.type === 'choice' && !a.shuffle)) && a.options;
     const d = v.reveal?.distribution;
     return (
@@ -133,8 +145,9 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
 
 
 /** Phone, after joining. */
-export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
+export function PhoneView({ v, off, my, seed, nickname, avatar, onPick, onOpen }: {
   v: View; off: number; my: MyState; seed: string; nickname: string; avatar: string; onPick: (activityId: string, value: ResponseValue) => void;
+  onOpen?: (activityId: string, text: string, editId?: string) => Promise<string>;
 }) {
   const now = useNow(250);
   const [revealed, setRevealed] = useState(false);
@@ -143,6 +156,19 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
   if (v.stage === 'lobby' || v.stage === 'intro') return <div className="text-center grid gap-3 py-10"><div className="text-6xl anim-pop" aria-hidden>{avatar}</div><h3 className="text-xl font-extrabold">{t('phone.in', { name: nickname })}</h3><p className="text-ink-soft">{v.stage === 'intro' ? t('phone.getReady') : t('phone.watch')}</p></div>;
   if (v.stage === 'activity' && v.activity) {
     const a = v.activity, mine = my.answers[a.id], deadline = (v.deadline ?? 0) - off - 150;
+    if (a.type === 'open' && a.open) { const canSend = v.phase === 'answer' && !v.paused && deadline > now && !v.open?.closed, timed = deadline - now < 3600_000;
+      return (
+        <div className="grid gap-3">
+          <div className="flex justify-between"><Chip>Q{v.index + 1}/{v.total}</Chip><span className="text-sm text-ink-soft">{avatar} {nickname}</span></div>
+          <p className="text-xl font-extrabold leading-tight" dir="auto" data-testid="phone-prompt">{a.prompt}</p>
+          <div className="flex justify-between items-center font-extrabold min-h-[32px]" aria-live="polite">
+            {v.phase === 'read' && <span>{t('phone.read')} <span className="text-ink-soft text-sm">{t('phone.openSoon')}</span></span>}
+            {canSend && timed && <span className="ms-auto text-3xl text-violet-600 tabular-nums"><Countdown until={deadline} alarm /></span>}
+            {v.paused && <span>{t('phone.paused')}</span>}
+          </div>
+          {v.phase !== 'read' && <OpenPhone a={a} mine={my.open?.[a.id] ?? []} used={my.openUsed?.[a.id]} canSend={canSend && !!onOpen} now={now + off}
+            onSend={(text, editId) => onOpen ? onOpen(a.id, text, editId) : Promise.resolve('not_open')} />}
+        </div>); }
     const open = v.phase === 'answer' && !v.paused && deadline > now && mine == null;
     return (
       <div className="grid gap-3">
@@ -170,11 +196,13 @@ export function HostBar({ v, busy, onCmd, onFs, extra, onEnd }: { v: View; busy?
   const label = v.stage === 'lobby' ? t('host.start') : v.stage === 'intro' ? t('host.first') : v.stage === 'activity'
     ? (v.phase === 'read' ? t('host.open') : v.phase === 'answer' ? t('host.waiting') : v.index < v.total - 1 ? t('host.next') : t('host.results'))
     : v.stage === 'results' ? (v.experience.scoringKind === 'aggregate' || v.experience.scoringKind === 'none' ? t('host.wrap') : t('host.group')) : v.stage === 'group' ? t('host.reflect') : t('host.done');
-  const waiting = v.stage === 'activity' && v.phase === 'answer' && (v.answered ?? 0) < v.joined;
+  const isOpen = v.activity?.type === 'open';
+  const waiting = v.stage === 'activity' && v.phase === 'answer' && !isOpen && (v.answered ?? 0) < v.joined;
+  const shown = isOpen && v.stage === 'activity' && v.phase === 'answer' ? t('oa.mod.close') : label;
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-paper-line bg-paper px-4 py-3">
       {v.stage === 'closing' && onEnd ? <button className="btn-primary" onClick={onEnd} data-testid="end-insights">{t('host.endInsights')}</button>
-        : <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{label}</button>}
+        : <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{shown}</button>}
       {v.stage === 'activity' && (v.phase === 'answer' || v.phase === 'read') && <button className="btn-ghost" onClick={() => onCmd(v.paused ? 'resume' : 'pause')} data-testid="pause">{v.paused ? t('host.resume') : t('host.pause')}</button>}
       <button className="btn-ghost" onClick={onFs}>{t('host.fs')}</button>
       <LangSwitch />

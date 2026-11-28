@@ -7,5 +7,7 @@ export function flatActivities(e: Pick<Experience, 'rounds'>): Activity[] {
 }
 
 export function timingOf(e: Experience, a: Activity): Timing {
-  return a.timing ?? e.defaultTiming;
+  const t = a.timing ?? e.defaultTiming;
+  // open answers have their own submission window; 0 = open until the host closes it
+  return a.type === 'open' ? { readSec: t.readSec, answerSec: a.submitSec || 86400 } : t;
 }

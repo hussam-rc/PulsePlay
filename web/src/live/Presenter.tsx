@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef, useState, ReactNode } from 'react';
 import type { Controller } from './controllers';
 import { StageView, HostBar } from './screens';
+import { OpenModeration } from './open';
 import { t } from '../i18n';
 
 export function useController(c: Controller | null) {
@@ -29,11 +30,14 @@ export function Presenter({ c, joinUrl, practice, extra, onEnd, onKick }: { c: C
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey);
   });
   if (!v) return <div className="card p-10 text-center text-ink-soft" role="status">{t('join.connecting')}</div>;
-  return (
+  const mod = v.stage === 'activity' && v.activity?.type === 'open' && !fs;
+  return (<>
     <div ref={ref} className={`bg-white border border-paper-line shadow-soft flex flex-col overflow-hidden ${fs ? 'min-h-screen' : 'rounded-3xl min-h-[540px]'}`} data-testid="stage">
       {c.error && <div className="bg-coral-50 text-coral-500 font-bold text-sm px-4 py-2" role="alert">⚠️ {c.error} {t('host.retrying')}</div>}
       <StageView v={v} off={c.offset} joinUrl={joinUrl} practice={practice} onKick={onKick} />
       <HostBar v={v} busy={busy} onCmd={cmd} onFs={toggleFs} extra={extra} onEnd={onEnd} />
     </div>
-  );
+    {/* Moderation lives on the host's screen, never inside the projected (full-screen) frame. */}
+    {mod && <OpenModeration v={v} onCmd={(k, args) => c.command(k, args)} />}
+  </>);
 }

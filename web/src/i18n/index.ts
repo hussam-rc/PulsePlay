@@ -3,6 +3,7 @@
 import { V2_EN, V2_DE, V2_FR, V2_AR } from './v2';
 import { V2B_EN, V2B_DE, V2B_FR, V2B_AR } from './v2b';
 import { V3_EN, V3_DE, V3_FR, V3_AR } from './v3';
+import { OPEN_EN, OPEN_DE, OPEN_FR, OPEN_AR } from './open';
 
 const enBase = {
   'host.endInsights': 'End & see insights 📊',
@@ -126,7 +127,7 @@ const enBase = {
   'host.results': 'Show results 🪞', 'host.wrap': 'Wrap up ▶', 'host.group': 'Reveal group result 🏢', 'host.reflect': 'Reflection ▶', 'host.done': 'Finished 💜',
   'host.resume': '▶ Resume', 'host.pause': '⏸ Pause', 'host.fs': '⛶ Full screen', 'host.keys': 'Space/→ next · P pause · F full screen', 'host.retrying': 'Retrying…',
 };
-const en = { ...enBase, ...V2_EN, ...V2B_EN, ...V3_EN };
+const en = { ...enBase, ...V2_EN, ...V2B_EN, ...V3_EN, ...OPEN_EN };
 export type Key = keyof typeof en;
 type Dict = Record<Key, string>;
 
@@ -484,9 +485,9 @@ const arBase = {
   'host.resume': '◀ استئناف', 'host.pause': '⏸ إيقاف مؤقت', 'host.fs': '⛶ ملء الشاشة', 'host.keys': 'مسافة/← التالي · P إيقاف · F ملء الشاشة', 'host.retrying': 'إعادة المحاولة…',
 };
 
-const de: Dict = { ...deBase, ...V2_DE, ...V2B_DE, ...V3_DE };
-const fr: Dict = { ...frBase, ...V2_FR, ...V2B_FR, ...V3_FR };
-const ar: Dict = { ...arBase, ...V2_AR, ...V2B_AR, ...V3_AR };
+const de: Dict = { ...deBase, ...V2_DE, ...V2B_DE, ...V3_DE, ...OPEN_DE };
+const fr: Dict = { ...frBase, ...V2_FR, ...V2B_FR, ...V3_FR, ...OPEN_FR };
+const ar: Dict = { ...arBase, ...V2_AR, ...V2B_AR, ...V3_AR, ...OPEN_AR };
 
 export const LOCALES = {
   en: { dir: 'ltr' as const, label: 'English', strings: en as Dict },
