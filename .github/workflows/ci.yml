@@ -48,7 +48,7 @@ jobs:
     # Main user journeys in a real browser (Chromium) against an isolated database and a local Supabase stand-in.
     # Never uses production data or credentials.
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16
@@ -77,6 +77,10 @@ jobs:
         run: SITE=/tmp/ppsite test-env/start.sh
       - name: Browser journeys (desktop + 375 px phones, EN/DE/FR/AR, direct links, multiplayer)
         run: web/e2e/run_all.sh
+      - name: Open Answer in Firefox and WebKit (Safari's engine)
+        run: |
+          python -m playwright install --with-deps firefox webkit
+          for b in firefox webkit; do BROWSER=$b python3 web/e2e/open_answer_xb.py 2>&1 | tee /tmp/pp-xb-$b.log; ! grep -q '^FAIL\|Traceback' /tmp/pp-xb-$b.log || exit 1; done
       - name: Screenshots and logs on failure
         if: failure()
         uses: actions/upload-artifact@v4

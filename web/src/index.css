@@ -26,3 +26,8 @@
 .anim-pulse { animation: pulse-num 1s infinite }
 .confetti i { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: fall 2.6s ease-in forwards }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important } }
+
+/* Open Answer: new words fade in softly; no motion for people who asked for less */
+@keyframes oa-in { from { opacity: 0; } to { opacity: 1; } }
+.oa-word-in { animation: oa-in 500ms ease-out both; }
+@media (prefers-reduced-motion: reduce) { .oa-word-in { animation: none; } }

@@ -122,7 +122,7 @@ function HostLiveFor({ e, expKey, practiceTo }: { e: Experience; expKey: string;
         <span className="ms-auto"><button className="btn-ghost !min-h-[38px] !px-3 text-sm" onClick={() => setConfirmEnd(true)} data-testid="end">{t('hl.end')}</button></span>
       </div>
       <RoomBrandBar code={c.code} />
-      <Presenter c={c} joinUrl={joinUrlFor(c.code)} onEnd={() => setConfirmEnd(true)} onKick={(seat, name) => { if (confirm(t('stage.kickQ', { name }))) c.kick(seat); }} />
+      <Presenter c={c} joinUrl={joinUrlFor(c.code)} extra={<button className="btn-ghost" onClick={() => window.open(`${location.pathname}#/screen`, 'pp-projector', 'popup,width=1280,height=760')} data-testid="open-screen">🖥 {t('oa.screen.open')}</button>} onEnd={() => setConfirmEnd(true)} onKick={(seat, name) => { if (confirm(t('stage.kickQ', { name }))) c.kick(seat); }} />
       {confirmEnd && <div className="fixed inset-0 z-50 bg-black/40 grid place-items-center p-4" role="dialog" aria-modal="true" aria-labelledby="end-title">
         <div className="card p-6 max-w-md grid gap-3"><h2 id="end-title" className="text-xl font-extrabold">{t('hl.endQ')}</h2>
           <p className="text-ink-soft">{t('hl.endText')}</p>
