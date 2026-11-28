@@ -154,13 +154,15 @@ export class Session {
       const x = mine.find(y => y.id === editId); if (!x) return { status: 'invalid' };
       if (!a.editSec || now > until(x)) return { status: 'edit_closed' };
       if (mine.some(y => y.key === key && y.id !== editId)) return { status: 'duplicate' };
-      Object.assign(x, { text: c.text, key, flagged: c.flagged, status: initialStatus(a, c.flagged) });
+      const st = initialStatus(a, c.flagged);
+      Object.assign(x, { text: c.text, key, flagged: c.flagged, reason: c.reason, status: st, shownAt: st === 'shown' ? now : undefined });
       this.open = { ...this.open, [a.id]: [...list] }; this.emit(); return { status: 'ok', id: x.id, editUntil: until(x) };
     }
     const same = list.find(y => y.player === playerId && y.key === key);
     if (same) return { status: 'duplicate', id: same.id, editUntil: until(same) };
     if (list.filter(y => y.player === playerId).length >= a.maxResponses) return { status: 'limit' };
-    const e: OpenEntry = { id: randomId(), player: playerId, text: c.text, key, flagged: c.flagged, status: initialStatus(a, c.flagged), at: now };
+    const st = initialStatus(a, c.flagged);
+    const e: OpenEntry = { id: randomId(), player: playerId, text: c.text, key, flagged: c.flagged, reason: c.reason, status: st, at: now, shownAt: st === 'shown' ? now : undefined };
     this.open = { ...this.open, [a.id]: [...list, e] }; this.emit();
     return { status: 'ok', id: e.id, editUntil: until(e) };
   }
@@ -175,7 +177,8 @@ export class Session {
   openCommand(cmd: 'open_approve' | 'open_hide' | 'open_close' | 'open_reveal' | 'open_clear', args: { ids?: string[]; all?: boolean } = {}) {
     const a = this.activity; if (!a || a.type !== 'open') return;
     const list = this.open[a.id] ?? [], ids = new Set(args.ids ?? []);
-    if (cmd === 'open_approve') list.forEach(x => { if (args.all ? x.status === 'pending' && !x.flagged : ids.has(x.id)) x.status = 'shown'; });
+    // show all: only the ids the host had on screen, never flagged ones, never answers that arrived later (mirrors pp._open_command)
+    if (cmd === 'open_approve') list.forEach(x => { if (ids.has(x.id) && x.status !== 'shown' && !(args.all && (x.flagged || x.status !== 'pending'))) { x.status = 'shown'; x.shownAt = this.clock.now(); } });
     if (cmd === 'open_hide') list.forEach(x => { if (ids.has(x.id)) x.status = 'hidden'; });
     if (cmd === 'open_close') { if (this.state.phase === 'answer' && !this.state.paused) this.lock(); return; }
     if (cmd === 'open_reveal') this.openFlags = { ...this.openFlags, [a.id]: { ...this.openFlags[a.id], revealed: true } };

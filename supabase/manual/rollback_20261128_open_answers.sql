@@ -1,4 +1,5 @@
 -- Rollback for 20261128_0200_pp_open_answers.sql: restores the previous functions and removes open answers (their words are deleted).
+-- The restored pp._state keeps the scoring v2 line (inert without scoring v2), so this is safe whether or not #12 is deployed.
 -- Unpublish experiences with open questions first; their rooms would otherwise reject those questions.
 drop function if exists public.pp_open_submit(text, text, text, uuid);
 drop function if exists pp.open_submit(text, text, text, uuid);
@@ -29,6 +30,9 @@ begin
   end if;
   meta := jsonb_build_object('id', s.snapshot->'id', 'title', s.snapshot->'title', 'tagline', s.snapshot->'tagline', 'emoji', s.snapshot->'emoji',
     'disclaimer', s.snapshot->'disclaimer', 'privacy', s.snapshot->'privacy', 'reveal', rv, 'scoringKind', kind,
+    -- identical to scoring v2 (#12, 20261128_0100): inert until a snapshot carries scoring.version; kept here so that
+    -- deploying this migration after scoring v2 preserves it (see docs/open-answer-release.md)
+    'scoring', case when s.snapshot->'scoring' ? 'version' then jsonb_build_object('version', s.snapshot->'scoring'->'version') end,
     'defaultTiming', s.snapshot->'defaultTiming', 'transitions', s.snapshot->'transitions', 'closing', s.snapshot->'closing',
     'results', s.snapshot->'results', 'insights', case when s.stage in ('results','group','closing') then s.snapshot->'insights' end);
   return jsonb_strip_nulls(jsonb_build_object(
@@ -145,6 +149,8 @@ create or replace function pp._public_activity(a jsonb) returns jsonb language s
 $$;
 drop function if exists pp._open_command(pp.sessions, text, jsonb);
 drop function if exists pp._open_view(pp.sessions, jsonb, boolean);
+drop function if exists pp._open_reason(text);
+drop function if exists pp._open_markup(text);
 drop function if exists pp._open_flag(text);
 drop function if exists pp._open_fold(text);
 drop function if exists pp._open_link(text);

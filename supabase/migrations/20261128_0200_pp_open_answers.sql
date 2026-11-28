@@ -13,7 +13,9 @@ create table pp.open_answers (
   body        text not null check (char_length(body) between 1 and 140),
   key         text not null,                         -- grouping key: case-insensitive, no surrounding punctuation
   status      text not null check (status in ('pending', 'shown', 'hidden')),
-  flagged     boolean not null default false,        -- caught by the basic filter: always waits for the host
+  flagged     boolean not null default false,        -- caught by the checks below: always waits for the host
+  reason      text check (reason in ('word', 'markup')),   -- why it was held: offensive-looking word or code-like text
+  shown_at    timestamptz,                           -- when the host (or live mode) put it on screen; "clear" hides everything shown before
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -52,6 +54,16 @@ create or replace function pp._open_flag(t text) returns boolean language sql im
   select exists(select 1 from words join bl on bl.w = words.w or bl.w = regexp_replace(words.w, '(.)\1+', '\1', 'g'))
 $$;
 
+-- Code-like text (tags, entities, script URLs, template syntax) is never shown automatically. The screens render
+-- answers as plain text anyway; this only keeps odd-looking input in front of the host.
+create or replace function pp._open_markup(t text) returns boolean language sql immutable set search_path = '' as $$
+  select t ~* '(<[[:alpha:]/!?]|&#?[[:alnum:]]+;|javascript:|data:[[:alpha:]]+/|\{\{|\$\{|\]\()'
+$$;
+-- 'word' | 'markup' | null
+create or replace function pp._open_reason(t text) returns text language sql immutable set search_path = pp as $$
+  select case when _open_flag(t) then 'word' when _open_markup(t) then 'markup' end
+$$;
+
 create or replace function pp._timing(s jsonb, settings jsonb, a jsonb, part text) returns int language sql immutable set search_path = '' as $$
   select case
     -- open answers keep their own submission window (0 = open until the host closes it); host presets do not shorten it
@@ -76,14 +88,18 @@ create or replace function pp._open_view(s pp.sessions, a jsonb, p_host boolean)
   with st as (select coalesce(s.settings->'open'->(a->>'id'), '{}'::jsonb) o),
   rws as (select * from open_answers where session_id = s.id and activity_id = a->>'id')
   select jsonb_strip_nulls(jsonb_build_object(
-    'n', (select count(*) from rws where status <> 'hidden'),
-    'people', (select count(distinct player_id) from rws),
+    -- n: every valid answer received; shown: approved; pending: waiting for the host; removed: taken off by the host
+    'n', (select count(*) from rws),
+    'shown', (select count(*) from rws where status = 'shown'),
     'pending', (select count(*) from rws where status = 'pending'),
+    'removed', (select count(*) from rws where status = 'hidden'),
+    'people', (select count(distinct player_id) from rws),
     'closed', s.phase = 'reveal',
-    'visible', (a->>'showAnswers') is distinct from 'closed' or s.phase = 'reveal' or coalesce((st.o->>'revealed')::boolean, false),
+    -- "show when I reveal": nothing reaches the screen until the host presses Reveal (also after closing)
+    'visible', (a->>'showAnswers') is distinct from 'closed' or coalesce((st.o->>'revealed')::boolean, false),
     'clearedAt', (st.o->>'clearedAt')::bigint,
     'rev', (select coalesce(sum(_ms(updated_at) % 1000003), 0) + count(*) from rws) + coalesce((st.o->>'clearedAt')::bigint % 997, 0),
-    'items', case when p_host then (select coalesce(jsonb_agg(jsonb_build_object('id', id, 't', body, 'k', key, 's', status, 'f', flagged, 'at', _ms(created_at))
+    'items', case when p_host then (select coalesce(jsonb_agg(jsonb_strip_nulls(jsonb_build_object('id', id, 't', body, 'k', key, 's', status, 'f', flagged, 'r', reason, 'at', _ms(created_at), 'sa', _ms(shown_at)))
                    order by created_at), '[]'::jsonb) from (select * from rws order by created_at desc limit 600) r) end))
   from st
 $$;
@@ -97,9 +113,11 @@ begin
     select coalesce(array_agg(x::uuid), '{}') into ids from jsonb_array_elements_text(p_args->'ids') x where x ~ '^[0-9a-f-]{36}$';
   end if;
   if p_cmd = 'open_approve' then
-    if coalesce((p_args->>'all')::boolean, false) then      -- "approve all" never approves flagged answers
-      update open_answers set status = 'shown', updated_at = now() where session_id = s.id and activity_id = aid and status = 'pending' and not flagged;
-    else update open_answers set status = 'shown', updated_at = now() where session_id = s.id and activity_id = aid and id = any(ids); end if;
+    -- "show all" approves only the answers the host actually had on their list (ids), never flagged ones, and never
+    -- answers that arrived after the host looked; a single "show" may approve a flagged answer after the host read it.
+    update open_answers set status = 'shown', shown_at = now(), updated_at = now()
+      where session_id = s.id and activity_id = aid and id = any(ids) and status <> 'shown'
+        and not (coalesce((p_args->>'all')::boolean, false) and (flagged or status <> 'pending'));
   elsif p_cmd = 'open_hide' then
     update open_answers set status = 'hidden', updated_at = now() where session_id = s.id and activity_id = aid and id = any(ids);
   elsif p_cmd = 'open_close' then
@@ -117,7 +135,7 @@ end $$;
 create or replace function pp.open_submit(p_token text, p_activity text, p_text text, p_id uuid default null) returns jsonb
 language plpgsql set search_path = pp as $$
 declare pl players; s sessions; a jsonb; txt text; k text; fl boolean; st text; cnt int; row_id uuid; created timestamptz; n int;
-        edit_s int; w timestamptz := date_trunc('minute', now());
+        edit_s int; rs text; w timestamptz := date_trunc('minute', now());
 begin
   select * into pl from players where token_hash = _hash(coalesce(p_token, ''));
   if not found then return jsonb_build_object('status', 'unknown_player'); end if;
@@ -137,7 +155,7 @@ begin
   if char_length(txt) > coalesce((a->>'maxChars')::int, 25) then return jsonb_build_object('status', 'too_long'); end if;
   if a ? 'maxWords' and array_length(regexp_split_to_array(txt, ' '), 1) > (a->>'maxWords')::int then return jsonb_build_object('status', 'too_many_words'); end if;
   if _open_link(txt) then return jsonb_build_object('status', 'link'); end if;
-  k := _open_key(txt); fl := _open_flag(txt); edit_s := coalesce((a->>'editSec')::int, 15);
+  k := _open_key(txt); rs := _open_reason(txt); fl := rs is not null; edit_s := coalesce((a->>'editSec')::int, 15);
   if k = '' then return jsonb_build_object('status', 'empty'); end if;
   st := case when a->>'moderation' = 'live' and not fl then 'shown' else 'pending' end;
   if p_id is not null then
@@ -146,7 +164,8 @@ begin
     if edit_s = 0 or now() > created + make_interval(secs => edit_s) then return jsonb_build_object('status', 'edit_closed'); end if;
     if exists(select 1 from open_answers where player_id = pl.id and activity_id = p_activity and key = k and id <> p_id) then
       return jsonb_build_object('status', 'duplicate'); end if;
-    update open_answers set body = txt, key = k, flagged = fl, status = st, updated_at = now() where id = p_id;
+    update open_answers set body = txt, key = k, flagged = fl, reason = rs, status = st,
+      shown_at = case when st = 'shown' then now() end, updated_at = now() where id = p_id;
   else
     select id, created_at into row_id, created from open_answers where player_id = pl.id and activity_id = p_activity and key = k;
     if row_id is not null then   -- the same answer again (double tap, retry after a lost connection): nothing new is stored
@@ -154,7 +173,8 @@ begin
     end if;
     select count(*) into cnt from open_answers where player_id = pl.id and activity_id = p_activity;
     if cnt >= coalesce((a->>'maxResponses')::int, 1) then return jsonb_build_object('status', 'limit'); end if;
-    insert into open_answers(session_id, player_id, activity_id, body, key, status, flagged) values (s.id, pl.id, p_activity, txt, k, st, fl)
+    insert into open_answers(session_id, player_id, activity_id, body, key, status, flagged, reason, shown_at)
+      values (s.id, pl.id, p_activity, txt, k, st, fl, rs, case when st = 'shown' then now() end)
       returning id, created_at into row_id, created;
   end if;
   return jsonb_build_object('status', 'ok', 'id', row_id, 'editUntil', _ms(created + make_interval(secs => edit_s)));
@@ -191,8 +211,12 @@ begin
   end if;
   meta := jsonb_build_object('id', s.snapshot->'id', 'title', s.snapshot->'title', 'tagline', s.snapshot->'tagline', 'emoji', s.snapshot->'emoji',
     'disclaimer', s.snapshot->'disclaimer', 'privacy', s.snapshot->'privacy', 'reveal', rv, 'scoringKind', kind,
+    -- identical to scoring v2 (#12, 20261128_0100): inert until a snapshot carries scoring.version; kept here so that
+    -- deploying this migration after scoring v2 preserves it (see docs/open-answer-release.md)
+    'scoring', case when s.snapshot->'scoring' ? 'version' then jsonb_build_object('version', s.snapshot->'scoring'->'version') end,
     'defaultTiming', s.snapshot->'defaultTiming', 'transitions', s.snapshot->'transitions', 'closing', s.snapshot->'closing',
-    'results', s.snapshot->'results', 'insights', case when s.stage in ('results','group','closing') then s.snapshot->'insights' end);
+    'results', s.snapshot->'results', 'insights', case when s.stage in ('results','group','closing') then s.snapshot->'insights' end,
+    'languages', s.snapshot->'languages');   -- the language the creator wrote the questions in (phones say so when it differs)
   return jsonb_strip_nulls(jsonb_build_object(
     'now', _ms(now()), 'code', s.code, 'stage', s.stage, 'index', s.idx, 'phase', s.phase,
     'phaseAt', _ms(s.phase_started_at), 'deadline', _ms(s.deadline), 'paused', s.paused, 'pausedRemaining', s.paused_remaining_ms,

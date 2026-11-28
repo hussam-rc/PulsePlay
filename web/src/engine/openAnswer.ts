@@ -5,7 +5,8 @@ import type { Activity } from './schema';
 export type OpenActivity = Extract<Activity, { type: 'open' }>;
 export type OpenStatus = 'pending' | 'shown' | 'hidden';
 /** One answer as the host sees it. `key` groups identical answers; nobody, including the host, sees who wrote it. */
-export interface OpenItem { id: string; text: string; key: string; status: OpenStatus; flagged: boolean; at: number }
+export type FlagReason = 'word' | 'markup';
+export interface OpenItem { id: string; text: string; key: string; status: OpenStatus; flagged: boolean; reason?: FlagReason; at: number; shownAt?: number }
 export interface CloudWord { key: string; text: string; count: number; first: number }
 
 /** Invisible and control characters (incl. bidi overrides and zero-width) are removed; whitespace collapsed. */
@@ -54,15 +55,22 @@ export function isFlagged(text: string): boolean {
   return words.some(w => BLOCKSET.has(w) || BLOCKFOLD.has(fold(w)) || BLOCKFOLD.has(fold(w).replace(/(.)\1+/g, '$1')));
 }
 
+/** Code-like text (tags, entities, script URLs, template syntax). Same pattern as pp._open_markup: held for the host. */
+const MARKUP = /(<[a-z/!?]|&#?[a-z0-9]+;|javascript:|data:[a-z]+\/|\{\{|\$\{|\]\()/i;
+export const looksLikeMarkup = (s: string) => MARKUP.test(s);
+/** Why an answer is held back for the host, if at all (mirrors pp._open_reason). */
+export const flagReason = (text: string): FlagReason | undefined => (isFlagged(text) ? 'word' : looksLikeMarkup(text) ? 'markup' : undefined);
+
 export type OpenError = 'empty' | 'too_long' | 'too_many_words' | 'link' | 'limit' | 'duplicate';
 /** Checks one answer against the question's limits. Returns the cleaned text or why it cannot be sent. */
-export function checkAnswer(a: OpenActivity, raw: string): { ok: true; text: string; flagged: boolean } | { ok: false; error: OpenError } {
+export function checkAnswer(a: OpenActivity, raw: string): { ok: true; text: string; flagged: boolean; reason?: FlagReason } | { ok: false; error: OpenError } {
   const text = cleanAnswer(raw);
   if (!text) return { ok: false, error: 'empty' };
   if ([...text].length > a.maxChars) return { ok: false, error: 'too_long' };
   if (a.maxWords && wordCount(text) > a.maxWords) return { ok: false, error: 'too_many_words' };
   if (looksLikeLink(text)) return { ok: false, error: 'link' };
-  return { ok: true, text, flagged: isFlagged(text) };
+  const reason = flagReason(text);
+  return { ok: true, text, flagged: !!reason, reason };
 }
 
 /** Status a new answer gets: flagged answers always wait for the host, even when the game shows answers live. */

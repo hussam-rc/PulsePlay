@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import migration from '../../supabase/migrations/20261128_0200_pp_open_answers.sql?raw';
 import clientRules from '../src/engine/openAnswer.ts?raw';
 import { Experience, OpenActivity as OpenSchema, validateExperience, timingOf } from '../src/engine/schema';
-import { answerKey, checkAnswer, cleanAnswer, cloud, cloudSize, isFlagged, looksLikeLink, OPEN_DEFAULTS, type OpenActivity } from '../src/engine/openAnswer';
+import { answerKey, checkAnswer, cleanAnswer, cloud, cloudSize, flagReason, isFlagged, looksLikeLink, looksLikeMarkup, OPEN_DEFAULTS, type OpenActivity } from '../src/engine/openAnswer';
 import { personalResult } from '../src/engine/scoring';
 import { Session, Clock } from '../src/engine/session';
 import { sessionView } from '../src/live/view';
@@ -44,6 +44,17 @@ describe('open answer rules (shared by phone, practice engine and server)', () =
   it('keeps HTML as plain text (rendering escapes it)', () => {
     const c = checkAnswer(act({ maxChars: 60, maxWords: undefined }), '<img src=x onerror=alert(1)>');
     expect(c.ok).toBe(true);
+  });
+  it('detects markup-like text without catching ordinary punctuation', () => {
+    for (const m of ['<b>x', '</p>', '&lt;', '&#60;', 'javascript:alert', '{{x}}', '${x}', '[a](b)']) expect(looksLikeMarkup(m), m).toBe(true);
+    for (const m of ['5 < 6', 'R&D', 'Q&A', 'a > b', 'C++', '100%']) expect(looksLikeMarkup(m), m).toBe(false);
+    expect(flagReason('sh1t')).toBe('word'); expect(flagReason('<i>')).toBe('markup'); expect(flagReason('calm')).toBeUndefined();
+  });
+  it('uses the same markup pattern as the database', () => {
+    const sqlPat = migration.match(/_open_markup\(t text\)[\s\S]*?t ~\* '([^']+)'/)![1];
+    const ts = clientRules.match(/const MARKUP = \/(.+)\/i;/)![1];
+    expect(ts.replace(/\\\//g, '/').replace(/a-z/g, '[:alpha:]').length).toBeGreaterThan(10);
+    for (const m of ['<b>x', '&lt;', 'javascript:x', '{{x}}', '${x}', '5 < 6', 'R&D']) expect(looksLikeMarkup(m), m).toBe(new RegExp(sqlPat.replace(/\[:alpha:\]/g, 'a-z').replace(/\[:alnum:\]/g, 'a-z0-9'), 'i').test(m));
   });
   it('flags common offensive words in EN/DE/FR/AR, including leetspeak, without false positives', () => {
     for (const w of ['sh1t', 'F U C K'.replace(/ /g, ''), 'Arschloch', 'putain', 'شرموط']) expect(isFlagged(w), w).toBe(true);
@@ -105,7 +116,10 @@ describe('open questions in experiences', () => {
     let v = sessionView(s, true);
     expect(v.open!.pending).toBe(4); expect(visibleItems(v.open)).toEqual([]);  // host approval by default
     s.openCommand('open_approve', { all: true });
+    expect(visibleItems(sessionView(s, true).open)).toEqual([]);              // "show all" without the host's list approves nothing
+    s.openCommand('open_approve', { all: true, ids: v.open!.items!.map(x => x.id) });
     v = sessionView(s, true);
+    expect(v.open!.n).toBe(v.open!.shown + v.open!.pending + v.open!.removed);
     expect(cloud(visibleItems(v.open).map(x => ({ text: x.t, key: x.k, status: 'shown' as const, at: x.at })))[0]).toMatchObject({ key: 'calm', count: 2 });
     expect(s.openSubmit(p.id, 'w1', 'Busier', third.id).status).toBe('ok');   // edit inside the window
     clock.advance(11_000);
@@ -118,7 +132,7 @@ describe('open questions in experiences', () => {
     s.openSubmit(p.id, 'w1', 'great'); s.openSubmit(q.id, 'w1', 'sh1t');
     let v = sessionView(s, true);
     expect(visibleItems(v.open).map(x => x.t)).toEqual(['great']);
-    s.openCommand('open_approve', { all: true }); v = sessionView(s, true);
+    s.openCommand('open_approve', { all: true, ids: v.open!.items!.map(x => x.id) }); v = sessionView(s, true);
     expect(v.open!.items!.find(x => x.t === 'sh1t')!.s).toBe('pending');
     s.openCommand('open_hide', { ids: [v.open!.items![0].id] }); v = sessionView(s, true);
     expect(visibleItems(v.open)).toEqual([]);
@@ -131,10 +145,34 @@ describe('open questions in experiences', () => {
     const host = JSON.stringify(sessionView(s, true).open);
     expect(host).toContain('secretword'); expect(host).not.toContain(p.id);
   });
-  it('clear and reveal: clear hides earlier answers, closed-mode waits for reveal', () => {
-    const { s, clock, p, q } = run({ moderation: 'live', showAnswers: 'closed' });
+  it('clear and reveal: clear hides earlier answers, closed-mode waits for the host to reveal (also after closing)', () => {
+    const { s, p } = run({ moderation: 'live', showAnswers: 'closed', maxResponses: 3 });
     s.openSubmit(p.id, 'w1', 'one');
     expect(sessionView(s, true).open!.visible).toBe(false);
+    s.openCommand('open_close'); expect(sessionView(s, true).open!.closed).toBe(true); expect(sessionView(s, true).open!.visible).toBe(false);
+    s.openCommand('open_reveal'); expect(sessionView(s, true).open!.visible).toBe(true);
+    expect(visibleItems(sessionView(s, true).open).map(x => x.t)).toEqual(['one']);
+  });
+  it('clear: earlier answers stay off screen; an older answer approved after the clear appears', () => {
+    const { s, clock, p, q } = run({ maxResponses: 3 });
+    s.openSubmit(p.id, 'w1', 'early'); const old = s.openSubmit(q.id, 'w1', 'older');
+    let v = sessionView(s, true);
+    s.openCommand('open_approve', { ids: [v.open!.items![0].id] });
+    clock.advance(5); s.openCommand('open_clear'); clock.advance(5);
+    s.openCommand('open_approve', { ids: [old.id!] });
+    v = sessionView(s, true);
+    expect(visibleItems(v.open).map(x => x.t)).toEqual(['older']);
+  });
+  it('markup-like answers are held for review in every mode', () => {
+    const { s, p, q } = run({ moderation: 'live', maxChars: 60, maxWords: undefined });
+    s.openSubmit(p.id, 'w1', '<b>hi</b>'); s.openSubmit(q.id, 'w1', 'hello');
+    const v = sessionView(s, true);
+    expect(v.open!.items!.find(x => x.t === '<b>hi</b>')).toMatchObject({ s: 'pending', f: true, r: 'markup' });
+    expect(visibleItems(v.open).map(x => x.t)).toEqual(['hello']);
+  });
+  it('clear and reveal (practice clock)', () => {
+    const { s, clock, p, q } = run({ moderation: 'live', showAnswers: 'closed' });
+    s.openSubmit(p.id, 'w1', 'one');
     s.openCommand('open_reveal'); expect(sessionView(s, true).open!.visible).toBe(true);
     clock.advance(5); s.openCommand('open_clear'); clock.advance(5);
     s.openSubmit(q.id, 'w1', 'two');
@@ -162,6 +200,21 @@ describe('word cloud layout', () => {
     for (const n of [30, 60, 120]) { const r = layoutCloud(words.slice(0, n), 1200, 600, prev, sc); second = r.placed; sc = r.scale; prev = new Map(second.map(p => [p.key, p])); expect(second.length).toBe(n); }
     const moved = first.filter(p => { const q = second.find(x => x.key === p.key)!; return q.x !== p.x || q.y !== p.y; });
     expect(moved.length).toBe(0);
+  });
+  it('mixed Arabic/Latin, very long and very repeated words fit without overlap and without one word taking over', () => {
+    const mix = [
+      { key: 'calm', text: 'Calm', count: 40, first: 1 }, { key: 'هادئ', text: 'هادئ', count: 12, first: 2 },
+      { key: 'long', text: 'Extraordinarilylongwordxyz', count: 1, first: 3 }, { key: 'ar-long', text: 'المسؤولية المشتركة', count: 3, first: 4 },
+      ...Array.from({ length: 50 }, (_, i) => ({ key: `m${i}`, text: i % 2 ? `كلمة${i}` : `word${i}`, count: 1 + (i % 4), first: 5 + i })),
+    ];
+    for (const [W, H] of [[1280, 520], [800, 420], [360, 360]]) {
+      const l = layoutCloud(mix, W, H, new Map()).placed;
+      expect(l.length, `${W}x${H}`).toBe(mix.length);
+      for (let i = 0; i < l.length; i++) for (let j = i + 1; j < l.length; j++) expect(overlap(l[i], l[j])).toBe(false);
+      const big = l.find(p => p.key === 'calm')!;
+      expect(big.w).toBeLessThanOrEqual(W * 0.62); expect(big.size).toBeLessThanOrEqual(H * 0.22 + 0.01);
+      for (const p of l) { expect(p.x + p.w / 2).toBeLessThanOrEqual(W); expect(p.x - p.w / 2).toBeGreaterThanOrEqual(0); }
+    }
   });
   it('works on a phone-sized box', () => { expect(layoutCloud(words.slice(0, 40), 340, 360, new Map()).placed.length).toBe(40); });
 });

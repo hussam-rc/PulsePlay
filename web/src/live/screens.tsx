@@ -166,7 +166,7 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick, onOpen }
             {canSend && timed && <span className="ms-auto text-3xl text-violet-600 tabular-nums"><Countdown until={deadline} alarm /></span>}
             {v.paused && <span>{t('phone.paused')}</span>}
           </div>
-          {v.phase !== 'read' && <OpenPhone a={a} mine={my.open?.[a.id] ?? []} used={my.openUsed?.[a.id]} canSend={canSend && !!onOpen} now={now + off}
+          {v.phase !== 'read' && <OpenPhone a={a} mine={my.open?.[a.id] ?? []} used={my.openUsed?.[a.id]} contentLangs={e.languages} canSend={canSend && !!onOpen} now={now + off}
             onSend={(text, editId) => onOpen ? onOpen(a.id, text, editId) : Promise.resolve('not_open')} />}
         </div>); }
     const open = v.phase === 'answer' && !v.paused && deadline > now && mine == null;

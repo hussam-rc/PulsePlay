@@ -9,8 +9,9 @@ export interface PublicOption { id: string; text: string; emoji?: string }
 export interface OpenSettings { display: 'cloud' | 'wall' | 'list'; maxChars: number; maxWords?: number; maxResponses: number; editSec: number; moderation: 'approve' | 'live'; showAnswers: 'live' | 'closed'; placeholder?: string }
 export interface PublicActivity { id: string; type: Activity['type']; prompt: string; theme?: string; shuffle: boolean; options?: PublicOption[]; min?: number; max?: number; minLabel?: string; maxLabel?: string; open?: OpenSettings }
 /** Host-only answer as moderated and displayed (anonymous: no nickname or player link). */
-export interface OpenViewItem { id: string; t: string; k: string; s: 'pending' | 'shown' | 'hidden'; f: boolean; at: number }
-export interface OpenView { n: number; people: number; pending: number; closed: boolean; visible: boolean; clearedAt?: number; rev: number; items?: OpenViewItem[] }
+export interface OpenViewItem { id: string; t: string; k: string; s: 'pending' | 'shown' | 'hidden'; f: boolean; r?: 'word' | 'markup'; at: number; sa?: number }
+/** n: valid answers received; shown: approved; pending: waiting for the host; removed: taken off by the host. */
+export interface OpenView { n: number; shown: number; removed: number; people: number; pending: number; closed: boolean; visible: boolean; clearedAt?: number; rev: number; items?: OpenViewItem[] }
 export interface MyOpenAnswer { id: string; t: string; at: number; editUntil: number }
 export interface Distribution { n: number; counts: Record<string, number>; suppressed: boolean }
 export interface GroupView { joined: number; valid: number; average: number | null; bands: number[] | null; suppressed: boolean }
@@ -20,7 +21,7 @@ export interface View {
   seq: number; total: number; joined: number; answered?: number; timing?: { readSec: number; answerSec: number };
   settings: { leaderboard: boolean; autoAdvanceSec?: number; readSec?: number; answerSec?: number };
   selection?: { strategy: string; count: number; bankSize: number };
-  experience: Pick<Experience, 'id' | 'title' | 'tagline' | 'emoji' | 'disclaimer' | 'privacy' | 'reveal' | 'defaultTiming' | 'transitions' | 'closing' | 'results' | 'insights'> & { scoringKind: Experience['scoring']['kind'] };
+  experience: Pick<Experience, 'id' | 'title' | 'tagline' | 'emoji' | 'disclaimer' | 'privacy' | 'reveal' | 'defaultTiming' | 'transitions' | 'closing' | 'results' | 'insights'> & { scoringKind: Experience['scoring']['kind']; languages?: string[] };
   activity?: PublicActivity;
   reveal?: { distribution: Distribution; correct?: string; explanation?: string };
   group?: GroupView;
@@ -45,7 +46,7 @@ export function publicActivity(a: Activity): PublicActivity {
 
 function meta(e: Experience): View['experience'] {
   return { id: e.id, title: e.title, tagline: e.tagline, emoji: e.emoji, disclaimer: e.disclaimer, privacy: e.privacy, reveal: e.reveal, scoringKind: e.scoring.kind,
-    defaultTiming: e.defaultTiming, transitions: e.transitions, closing: e.closing, results: e.results, insights: e.insights };
+    defaultTiming: e.defaultTiming, transitions: e.transitions, closing: e.closing, results: e.results, insights: e.insights, languages: e.languages };
 }
 
 /** Practice mode → View, mirroring the server's visibility rules exactly. */
@@ -60,10 +61,11 @@ export function sessionView(s: Session, forHost: boolean): View {
     v.activity = publicActivity(a); v.answered = s.answeredCount(); v.timing = timingOf(e, a);
     if (a.type === 'open') {
       const list = s.open[a.id] ?? [], fl = s.openFlags[a.id] ?? {};
-      v.open = { n: list.filter(x => x.status !== 'hidden').length, people: new Set(list.map(x => x.player)).size, pending: list.filter(x => x.status === 'pending').length,
-        closed: st.phase === 'reveal', visible: a.showAnswers !== 'closed' || st.phase === 'reveal' || !!fl.revealed, clearedAt: fl.clearedAt,
+      v.open = { n: list.length, shown: list.filter(x => x.status === 'shown').length, removed: list.filter(x => x.status === 'hidden').length,
+        people: new Set(list.map(x => x.player)).size, pending: list.filter(x => x.status === 'pending').length,
+        closed: st.phase === 'reveal', visible: a.showAnswers !== 'closed' || !!fl.revealed, clearedAt: fl.clearedAt,
         rev: list.length + list.reduce((m, x) => m + x.text.length + x.status.length, 0) + (fl.clearedAt ?? 0) % 997,
-        items: forHost ? list.map(x => ({ id: x.id, t: x.text, k: x.key, s: x.status, f: x.flagged, at: x.at })) : undefined };
+        items: forHost ? list.map(x => ({ id: x.id, t: x.text, k: x.key, s: x.status, f: x.flagged, r: x.reason, at: x.at, sa: x.shownAt })) : undefined };
     }
     if (st.phase === 'reveal' && e.reveal !== 'none') {
       v.reveal = { distribution: s.distributionFor(a) };
