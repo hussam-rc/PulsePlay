@@ -55,9 +55,23 @@ export const ScaleActivity = z.object({
   maxLabel: text(40),
 });
 export const ReflectionActivity = z.object({ ...base, type: z.literal('reflection') });
+/** Open answer: participants type their own words. Never scored; moderated before display by default. */
+export const OpenActivity = z.object({
+  ...base,
+  type: z.literal('open'),
+  display: z.enum(['cloud', 'wall', 'list']).default('cloud'),   // word cloud | answer cards | readable list
+  maxChars: z.number().int().min(1).max(140).default(25),
+  maxWords: z.number().int().min(1).max(30).optional(),         // e.g. 1 for "one word"
+  maxResponses: z.number().int().min(1).max(5).default(1),      // answers per participant
+  submitSec: z.number().int().min(0).max(600).default(60),      // submission window; 0 = open until the host closes it
+  editSec: z.number().int().min(0).max(120).default(15),        // how long a participant may change an answer
+  moderation: z.enum(['approve', 'live']).default('approve'),   // host approves each answer | shown at once unless flagged
+  showAnswers: z.enum(['live', 'closed']).default('live'),      // on screen while answering | only once submissions close
+  placeholder: z.string().max(60).optional(),
+});
 
-export const Activity = z.discriminatedUnion('type', [ChoiceActivity, PollActivity, ScaleActivity, ReflectionActivity]);
-export const KNOWN_ACTIVITY_TYPES = ['choice', 'poll', 'scale', 'reflection'] as const;
+export const Activity = z.discriminatedUnion('type', [ChoiceActivity, PollActivity, ScaleActivity, ReflectionActivity, OpenActivity]);
+export const KNOWN_ACTIVITY_TYPES = ['choice', 'poll', 'scale', 'reflection', 'open'] as const;
 
 export const ResultBand = z.object({
   min: z.number().int().min(0).max(100),
@@ -92,7 +106,16 @@ export const Experience = z.object({
   defaultTiming: Timing,
   reveal: z.enum(['none', 'distribution', 'correct']),
   privacy: z.object({ individualResults: z.boolean(), groupMinimum: z.number().int().min(3).max(50), retainResponses: z.boolean() }),
-  scoring: z.object({ kind: z.enum(['behaviour', 'correct', 'aggregate', 'none']), minAnsweredRatio: z.number().min(0).max(1).default(0.7) }),
+  scoring: z.object({
+    kind: z.enum(['behaviour', 'correct', 'aggregate', 'none']), minAnsweredRatio: z.number().min(0).max(1).default(0.7),
+    /** 1 = original results. 2 = evidence-based feedback (strengths, reflection, one challenge). Scores of different versions are never compared. */
+    version: z.union([z.literal(1), z.literal(2)]).optional(),
+    /** Show the numeric 0-100 game score on the personal result (v2). Default true. */
+    showScore: z.boolean().optional(),
+    /** v2: the bank's point scale (highest points any answer can carry). Feedback levels use it, so a question whose
+     *  worst answer is only self-protective is not read as ego-driven. Defaults to the highest points in the content. */
+    maxPoints: z.number().int().min(1).max(10).optional(),
+  }),
   results: z.array(ResultBand).optional(),
   insights: z.object({ themes: z.record(Theme), defaultHabit: text(200), defaultChallenge: text(200) }).optional(),
   transitions: z.array(text(120)).optional(),
@@ -148,6 +171,11 @@ export function validateExperience(input: unknown): ValidationResult {
       if (n !== 1) errors.push(`${a.id}: needs exactly one correct option (has ${n})`);
     }
   }
+  for (const a of acts) {
+    if (a.type !== 'open') continue;
+    if (a.moderation === 'live') warnings.push(`${a.id}: open answers appear on screen without your approval (links and basic offensive words are still held back)`);
+    if (a.maxWords && a.maxWords * 2 > a.maxChars) warnings.push(`${a.id}: ${a.maxWords} words rarely fit in ${a.maxChars} characters`);
+  }
   if (e.scoring.kind === 'behaviour' || e.scoring.kind === 'correct') {
     const bandErr = validateBands(e.results ?? []);
     errors.push(...bandErr);
@@ -196,5 +224,7 @@ export function flatActivities(e: Pick<Experience, 'rounds'>): Activity[] {
 }
 
 export function timingOf(e: Experience, a: Activity): Timing {
-  return a.timing ?? e.defaultTiming;
+  const t = a.timing ?? e.defaultTiming;
+  // open answers have their own submission window; 0 = open until the host closes it
+  return a.type === 'open' ? { readSec: t.readSec, answerSec: a.submitSec || 86400 } : t;
 }

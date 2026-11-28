@@ -57,11 +57,11 @@ export function Meter({ value }: { value: number }) {
   </div>;
 }
 
-export function ResultCard({ r, disclaimer, onCopy, onDelete, onTakeaway }: { r: PersonalResult; disclaimer: string; onCopy?: () => void; onDelete?: () => void; onTakeaway?: () => void }) {
+export function ResultCard({ r, disclaimer, onCopy, onDelete, onTakeaway, showScore = true }: { r: PersonalResult; disclaimer: string; onCopy?: () => void; onDelete?: () => void; onTakeaway?: () => void; showScore?: boolean }) {
   const [copied, setCopied] = useState('');
   const footer = (onCopy || onDelete || onTakeaway) && <div className="grid gap-2 justify-items-center">
     <div className="flex flex-wrap gap-2 justify-center">
-      {onTakeaway && r.habit && <button className="btn-primary" data-testid="copy-takeaway" onClick={() => { try { onTakeaway(); setCopied(t('res.takeawayCopied')); } catch { setCopied(t('res.copyBlocked')); } }}>📋 {t('res.takeaway')}</button>}
+      {onTakeaway && (r.habit || r.feedback) && <button className="btn-primary" data-testid="copy-takeaway" onClick={() => { try { onTakeaway(); setCopied(t('res.takeawayCopied')); } catch { setCopied(t('res.copyBlocked')); } }}>📋 {r.feedback ? t('r2.takeaway') : t('res.takeaway')}</button>}
       {onCopy && <button className="btn-ghost" onClick={() => { try { onCopy(); setCopied(t('res.copied')); } catch { setCopied(t('res.copyBlocked')); } }}>{t('res.copy')}</button>}
       {onDelete && <button className="btn-ghost" onClick={() => { if (confirm(t('keep.confirm'))) onDelete(); }} data-testid="delete-result">{t('keep.delete')}</button>}
     </div>
@@ -75,6 +75,7 @@ export function ResultCard({ r, disclaimer, onCopy, onDelete, onTakeaway }: { r:
       <p className="text-ink-soft">{t('res.again')}</p>{footer}
     </div>;
   }
+  if (r.feedback) return <ResultCardV2 r={r} disclaimer={disclaimer} footer={footer} showScore={showScore} />;
   const b: ResultBand = r.band, tone = TONE[b.tone];
   const tip = (icon: string, label: string, text: string, bg: string) => <li className={`rounded-2xl p-3 flex gap-3 items-start ${bg}`}><span className="text-2xl" aria-hidden>{icon}</span><span><b className="block text-xs uppercase tracking-wide text-ink-soft">{label}</b><span dir="auto">{text}</span></span></li>;
   return (
@@ -102,8 +103,45 @@ export function ResultCard({ r, disclaimer, onCopy, onDelete, onTakeaway }: { r:
   );
 }
 
+/** Scoring v2: result, evidence-based strengths, one reflection (only with evidence), one challenge, optional labelled score. */
+function ResultCardV2({ r, disclaimer, footer, showScore }: { r: PersonalResult; disclaimer: string; footer: React.ReactNode; showScore: boolean }) {
+  const b = r.band!, tone = TONE[b.tone], f = r.feedback!;
+  const section = (icon: string, title: string, body: React.ReactNode, bg: string, id: string) => (
+    <section className={`rounded-2xl p-4 grid gap-1 text-start ${bg}`} data-testid={id}>
+      <h3 className="font-extrabold flex items-center gap-2"><span aria-hidden>{icon}</span>{title}</h3>{body}</section>);
+  return (
+    <div className="card overflow-hidden grid text-center relative" data-testid="result-card" data-version="2">
+      <div className={`bg-gradient-to-br ${tone.bg} text-white px-6 pt-6 pb-6 grid gap-2 relative overflow-hidden`}>
+        {(b.tone === 'great' || b.tone === 'good') && <Confetti />}
+        <p className="text-base font-extrabold tracking-wide opacity-95" data-testid="r2-heading">🪞 {t('r2.heading')}</p>
+        <div className="text-8xl anim-rise drop-shadow-lg" aria-hidden>{b.emoji}</div>
+        <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight" dir="auto" data-testid="result-title">{b.title}</h2>
+      </div>
+      <div className="p-5 sm:p-6 grid gap-3">
+        <p className="text-lg font-bold" dir="auto">{b.message}</p>
+        <p className="text-ink-soft" dir="auto">{b.explanation}</p>
+        {f.strengths.length > 0 && section('✨', t('r2.well'), <ul className="grid gap-2">{f.strengths.map(x => (
+          <li key={x.theme} dir="auto"><span>{x.text}</span>
+            <span className="block text-xs text-ink-soft">{t('r2.evidence', { n: x.evidence, label: x.label })}</span></li>))}</ul>, 'bg-teal-50', 'r2-well')}
+        {f.reflection && section('💡', t('r2.reflect'), f.reflection.kind === 'pattern'
+          ? <p dir="auto">{t('r2.pattern', { text: f.reflection.text })}<span className="block text-xs text-ink-soft">{t('r2.patternEvidence', { n: f.reflection.evidence, of: f.reflection.of, label: f.reflection.label })}</span></p>
+          : <p dir="auto">{t('r2.moment', { prompt: f.reflection.prompt })}</p>, 'bg-sun-50', 'r2-reflect')}
+        {section('🎯', t('r2.challenge'), <p className="font-bold" dir="auto">{f.challenge.text}</p>, 'bg-violet-50', 'r2-challenge')}
+        {showScore && r.score != null && section('📊', t('r2.score'), <div className="grid gap-2">
+          <div className={`text-4xl font-extrabold leading-none ${tone.ink}`} data-testid="score">{r.score}<span className="text-base text-ink-soft font-bold"> / 100</span></div>
+          <Meter value={r.score} /><p className="text-xs text-ink-soft">{t('r2.scoreNote')}</p></div>, 'bg-paper', 'r2-score')}
+        <p className="text-xs text-ink-soft">{disclaimer || t('r2.playful')}</p>
+        {footer}
+      </div>
+    </div>
+  );
+}
+
 /** Share-safe: the habit and challenge only, never the score or result band. */
 export function takeawayText(title: string, r: PersonalResult): string {
+  if (r.feedback) { const f = r.feedback; // v2: strengths, reflection and challenge; never the score or the category
+    return [t('r2.takeawayHead', { title }), ...f.strengths.map(x => `✨ ${x.text}`),
+      f.reflection ? `💡 ${f.reflection.kind === 'pattern' ? f.reflection.text : f.reflection.prompt}` : '', `🎯 ${f.challenge.text}`].filter(Boolean).join('\n'); }
   return [t('res.takeawayHead', { title }), r.habit ? `🔁 ${r.habit}` : '', r.challenge ? `🎯 ${r.challenge}` : ''].filter(Boolean).join('\n');
 }
 

@@ -4,6 +4,7 @@ import type { Experience, Activity } from './schema';
 import { flatActivities, timingOf } from './util';
 import { Responses, ResponseValue, personalResult, PersonalResult, groupSummary, distribution } from './scoring';
 import { randomId } from './random';
+import { answerKey, checkAnswer, initialStatus, type OpenItem, type OpenError } from './openAnswer';
 
 export type Stage = 'lobby' | 'intro' | 'activity' | 'results' | 'group' | 'closing' | 'ended';
 export type Phase = 'read' | 'answer' | 'reveal';
@@ -20,6 +21,10 @@ export const realClock: Clock = { now: () => Date.now(), setTimeout: (f, ms) => 
 const AVATARS = ['🦊', '🐼', '🐙', '🦉', '🐢', '🦁', '🐧', '🦄', '🐝', '🐳', '🦜', '🐨', '🦔', '🐯', '🐸', '🦩', '🐬', '🦦', '🐞', '🦋'];
 const SIM_NAMES = ['Lina', 'Omar', 'Sara', 'Youssef', 'Mona', 'Karim', 'Nour', 'Hana', 'Tarek', 'Rania', 'Ziad', 'Layla', 'Fadi', 'Dina', 'Samir', 'Mariam', 'Adam', 'Salma', 'Jonas', 'Elena'];
 export const MAX_SIMULATED = 20;
+/** Generic words simulated players type in practice mode (nothing is ever sent anywhere). */
+const SIM_WORDS = ['Curious', 'Kind', 'Creative', 'Helpful', 'Bold', 'Calm', 'Open', 'Fun', 'Curious', 'Kind', 'Reliable', 'Fast', 'Friendly', 'Creative', 'Brave'];
+export type OpenStatusCode = 'ok' | 'duplicate' | 'not_open' | 'late' | 'unknown_player' | 'invalid' | 'edit_closed' | OpenError;
+export interface OpenEntry extends OpenItem { player: string }
 
 export class Session {
   readonly experience: Experience;
@@ -31,6 +36,9 @@ export class Session {
   private simTimers: unknown[] = [];
   private listeners = new Set<() => void>();
   autoSim = true;
+  /** Open answers per activity (practice only, in memory). The player id stays inside the engine, never in a view. */
+  open: Record<string, OpenEntry[]> = {};
+  openFlags: Record<string, { revealed?: boolean; clearedAt?: number }> = {};
 
   constructor(e: Experience, private clock: Clock = realClock, private rand: () => number = Math.random) {
     this.experience = e;
@@ -83,7 +91,10 @@ export class Session {
     if (s.stage === 'intro') { this.set({ stage: 'activity', index: 0, phase: 'read', deadline: null }); return true; }
     if (s.stage === 'activity') {
       if (s.phase === 'read') { this.set({ phase: 'answer', deadline: this.clock.now() + timingOf(this.experience, this.activity!).answerSec * 1000 }); return true; }
-      if (s.phase === 'answer') { if (this.answeredCount() >= this.players.length && this.players.length) { this.lock(); return true; } return false; }
+      if (s.phase === 'answer') {
+        if (this.activity?.type === 'open') { this.lock(); return true; }   // open answers: Next closes submissions at any time
+        if (this.answeredCount() >= this.players.length && this.players.length) { this.lock(); return true; } return false;
+      }
       if (s.index < this.activities.length - 1) { this.set({ index: s.index + 1, phase: 'read', deadline: null }); return true; }
       this.set({ stage: 'results', phase: null, deadline: null }); return true;
     }
@@ -123,7 +134,58 @@ export class Session {
     return 'ok';
   }
 
-  answeredCount(): number { const a = this.activity; return a ? this.players.filter(p => p.responses[a.id] != null).length : 0; }
+  answeredCount(): number {
+    const a = this.activity; if (!a) return 0;
+    if (a.type === 'open') return new Set((this.open[a.id] ?? []).map(x => x.player)).size;
+    return this.players.filter(p => p.responses[a.id] != null).length;
+  }
+
+  /** Same rules as pp.open_submit: limits, duplicates, edit window, links, basic filter, moderation. */
+  openSubmit(playerId: string, activityId: string, raw: string, editId?: string): { status: OpenStatusCode; id?: string; editUntil?: number } {
+    const p = this.players.find(x => x.id === playerId); if (!p) return { status: 'unknown_player' };
+    const s = this.state, a = this.activity;
+    if (!a || a.id !== activityId || a.type !== 'open' || s.phase !== 'answer' || s.paused) return { status: 'not_open' };
+    if (s.deadline && this.clock.now() > s.deadline + 400) return { status: 'late' };
+    const c = checkAnswer(a, raw); if (!c.ok) return { status: c.error };
+    const key = answerKey(c.text); if (!key) return { status: 'empty' };
+    const list = (this.open[a.id] ??= []), mine = list.filter(x => x.player === playerId && x.status !== 'hidden'), now = this.clock.now();
+    const until = (x: OpenEntry) => x.at + a.editSec * 1000;
+    if (editId) {
+      const x = mine.find(y => y.id === editId); if (!x) return { status: 'invalid' };
+      if (!a.editSec || now > until(x)) return { status: 'edit_closed' };
+      if (mine.some(y => y.key === key && y.id !== editId)) return { status: 'duplicate' };
+      const st = initialStatus(a, c.flagged);
+      Object.assign(x, { text: c.text, key, flagged: c.flagged, reason: c.reason, status: st, shownAt: st === 'shown' ? now : undefined });
+      this.open = { ...this.open, [a.id]: [...list] }; this.emit(); return { status: 'ok', id: x.id, editUntil: until(x) };
+    }
+    const same = list.find(y => y.player === playerId && y.key === key);
+    if (same) return { status: 'duplicate', id: same.id, editUntil: until(same) };
+    if (list.filter(y => y.player === playerId).length >= a.maxResponses) return { status: 'limit' };
+    const st = initialStatus(a, c.flagged);
+    const e: OpenEntry = { id: randomId(), player: playerId, text: c.text, key, flagged: c.flagged, reason: c.reason, status: st, at: now, shownAt: st === 'shown' ? now : undefined };
+    this.open = { ...this.open, [a.id]: [...list, e] }; this.emit();
+    return { status: 'ok', id: e.id, editUntil: until(e) };
+  }
+
+  /** A participant's own visible answers, as the phone shows them (mirrors pp.my_state). */
+  myOpen(playerId: string, activityId: string) {
+    const a = this.experience && this.activity;
+    const sec = a && a.type === 'open' && a.id === activityId ? a.editSec : 0;
+    return (this.open[activityId] ?? []).filter(x => x.player === playerId && x.status !== 'hidden').map(x => ({ id: x.id, t: x.text, at: x.at, editUntil: x.at + sec * 1000 }));
+  }
+  /** Host moderation, mirroring pp._open_command. */
+  openCommand(cmd: 'open_approve' | 'open_hide' | 'open_close' | 'open_reveal' | 'open_clear', args: { ids?: string[]; all?: boolean } = {}) {
+    const a = this.activity; if (!a || a.type !== 'open') return;
+    const list = this.open[a.id] ?? [], ids = new Set(args.ids ?? []);
+    // show all: only the ids the host had on screen, never flagged ones, never answers that arrived later (mirrors pp._open_command)
+    if (cmd === 'open_approve') list.forEach(x => { if (ids.has(x.id) && x.status !== 'shown' && !(args.all && (x.flagged || x.status !== 'pending'))) { x.status = 'shown'; x.shownAt = this.clock.now(); } });
+    if (cmd === 'open_hide') list.forEach(x => { if (ids.has(x.id)) x.status = 'hidden'; });
+    if (cmd === 'open_close') { if (this.state.phase === 'answer' && !this.state.paused) this.lock(); return; }
+    if (cmd === 'open_reveal') this.openFlags = { ...this.openFlags, [a.id]: { ...this.openFlags[a.id], revealed: true } };
+    if (cmd === 'open_clear') this.openFlags = { ...this.openFlags, [a.id]: { ...this.openFlags[a.id], clearedAt: this.clock.now() } };
+    this.open = { ...this.open, [a.id]: [...list] };
+    this.state = { ...this.state, seq: this.state.seq + 1 }; this.emit();
+  }
   resultFor(playerId: string): PersonalResult | null { const p = this.players.find(x => x.id === playerId); return p ? personalResult(this.experience, p.responses, p.id) : null; }
   group() { return groupSummary(this.experience, this.players.map(p => personalResult(this.experience, p.responses, p.id)), this.players.length); }
   distributionFor(a: Activity) { return distribution(this.experience, a, this.players.map(p => p.responses)); }
@@ -132,7 +194,18 @@ export class Session {
   private simulate() {
     const s = this.state, a = this.activity;
     if (!this.autoSim || !a || s.phase !== 'answer' || !s.deadline) return;
-    const win = s.deadline - this.clock.now();
+    const win = Math.min(s.deadline - this.clock.now(), 25000);
+    if (a.type === 'open') {                     // simulated players type one or two generic words
+      for (const p of this.players.filter(x => x.simulated)) {
+        if (this.rand() < 0.15) continue;
+        const n = Math.min(a.maxResponses, this.rand() < 0.3 ? 2 : 1);
+        for (let k = 0; k < n; k++) {
+          const word = SIM_WORDS[Math.floor(this.rand() * SIM_WORDS.length)];
+          this.simTimers.push(this.clock.setTimeout(() => this.openSubmit(p.id, a.id, word), 400 + this.rand() * Math.max(300, win - 600)));
+        }
+      }
+      return;
+    }
     for (const p of this.players.filter(x => x.simulated)) {
       if (this.rand() < 0.05) continue; // some people miss a question
       const at = 300 + this.rand() * Math.max(200, win - 500);

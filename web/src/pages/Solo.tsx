@@ -61,7 +61,7 @@ export function Solo() {
       {done && (
         <div className="grid gap-4">
           {e.privacy.individualResults
-            ? <ResultCard r={personalResult(e, resp, seed)} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, personalResult(e, resp, seed)))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, personalResult(e, resp, seed)))} />
+            ? <ResultCard r={personalResult(e, resp, seed)} disclaimer={e.disclaimer} showScore={e.scoring.showScore ?? true} onCopy={() => navigator.clipboard.writeText(resultText(e.title, personalResult(e, resp, seed)))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, personalResult(e, resp, seed)))} />
             : <div className="card p-6 grid gap-3"><div className="text-5xl text-center" aria-hidden>🎉</div><h2 className="text-2xl font-extrabold text-center">{t('solo.picks')}</h2>
                 <ul className="grid gap-2">{acts.map(x => x.type === 'poll' && <li key={x.id} className="rounded-xl bg-paper p-3">{x.options.find(o => o.id === resp[x.id])?.emoji} {x.options.find(o => o.id === resp[x.id])?.text ?? t('solo.skipped')}</li>)}</ul></div>}
           {e.closing && <div className="card p-5 grid gap-2"><h3 className="font-extrabold">{t('solo.take')}</h3>{e.closing.questions.map((q, k) => <p key={k}>{k + 1}. {q}</p>)}<p className="font-extrabold text-violet-600">{e.closing.message}</p></div>}

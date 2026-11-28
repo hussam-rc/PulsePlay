@@ -53,7 +53,8 @@ export function PracticeRun({ e, exitTo }: { e: Experience; exitTo?: string }) {
             <div className="rounded-[2.5rem] border-[10px] border-ink bg-paper min-h-[680px] overflow-hidden relative" data-testid="phone">
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 rounded-full bg-ink" aria-hidden />
               <div className="pt-10 px-4 pb-6">
-                {mine ? <PhoneView v={v} off={0} my={{ answers: mine.responses }} seed={mine.id} nickname={mine.nickname} avatar={mine.avatar} onPick={(id, val) => s.answer(mine.id, id, val)} />
+                {mine ? <PhoneView v={v} off={0} my={{ answers: mine.responses, open: v.activity?.type === 'open' ? { [v.activity.id]: s.myOpen(mine.id, v.activity.id) } : undefined, openUsed: v.activity?.type === 'open' ? { [v.activity.id]: (s.open[v.activity.id] ?? []).filter(x => x.player === mine.id).length } : undefined }} seed={mine.id} nickname={mine.nickname} avatar={mine.avatar} onPick={(id, val) => s.answer(mine.id, id, val)}
+                    onOpen={async (id, text, editId) => s.openSubmit(mine.id, id, text, editId).status} />
                   : <JoinForm title={e.title} privacyIndividual={e.privacy.individualResults} leaderboard={false} disabled={!pre} defaultName="You"
                       onJoin={async ({ nickname, avatar }) => { setMe(s.join(nickname, { avatar })); }} />}
               </div>

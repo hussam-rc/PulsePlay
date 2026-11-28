@@ -1,5 +1,6 @@
 // The projector and phone screens. They render a View, whether it came from the server or from practice mode.
 import { useEffect, useState } from 'react';
+import { OpenPhone, OpenStage } from './open';
 import type { View, MyState } from './view';
 import type { ResponseValue } from '../engine/scoring';
 import { personalResult } from '../engine/scoring';
@@ -51,6 +52,17 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
       <p className="text-sm text-ink-soft max-w-xl">{e.disclaimer}</p></div>); }
   if (v.stage === 'activity' && v.activity) {
     const a = v.activity, answered = v.answered ?? 0, pct = n ? Math.round((100 * answered) / n) : 0;
+    if (a.type === 'open') { const timed = v.phase === 'answer' && local(v.deadline) - Date.now() < 3600_000; return (
+      <>
+        <div className="px-6 sm:px-12 pt-6"><Bar pct={(100 * (v.index + (v.phase === 'reveal' ? 1 : 0))) / v.total} tone="teal" /></div>
+        <div className="flex-1 flex flex-col gap-4 p-6 sm:p-10 min-h-0">
+          <div className="flex flex-wrap items-center gap-2"><Chip>{t('stage.q', { i: v.index + 1, n: v.total })}</Chip>{v.paused && <Chip tone="coral">{t('stage.paused')}</Chip>}
+            {v.phase === 'read' && <span className="text-lg font-bold text-ink-soft">{t('stage.readOpen')} <Countdown until={local(v.phaseAt) + (v.timing?.readSec ?? 5) * 1000} /> {t('stage.s')}</span>}
+            {timed && <span className="ms-auto text-5xl font-extrabold text-violet-600 tabular-nums" data-testid="countdown">{v.paused ? '⏸' : <Countdown until={local(v.deadline)} alarm />}</span>}</div>
+          <h2 className="text-3xl sm:text-5xl font-extrabold leading-[1.1] max-w-[26ch]" dir="auto" data-testid="prompt" data-idx={v.index}>{a.prompt}</h2>
+          {v.phase !== 'read' && <OpenStage v={v} />}
+        </div>
+      </>); }
     const showOptions = v.phase !== 'reveal' && (a.type === 'poll' || (a.type === 'choice' && !a.shuffle)) && a.options;
     const d = v.reveal?.distribution;
     return (
@@ -96,14 +108,14 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
     const g = v.group, band = g.average != null ? (e.results ?? []).find(b => g.average! >= b.min && g.average! <= b.max) : undefined;
     if (g.suppressed) return <div className={`${PAD} items-center text-center`}><div className="text-6xl" aria-hidden>🚗💨</div><h2 className="text-3xl font-extrabold">{t('stage.noGroup')}</h2>
       <p className="text-lg text-ink-soft max-w-xl">{t('stage.noGroupWhy', { min: e.privacy.groupMinimum, n: g.valid })}</p></div>;
-    const tone = band?.tone ?? 'good';
+    const tone = band?.tone ?? 'good', v2 = e.scoring?.version === 2;
     const grad = { great: 'from-teal-500 to-[#0E8370]', good: 'from-violet-600 to-sky-500', watch: 'from-sun-500 to-[#E2553A]', grow: 'from-coral-500 to-violet-600' }[tone];
     const barC = { great: '#14A38B', good: '#2F6FEB', watch: '#E59A1C', grow: '#E2553A' } as const;
     return (
       <div className={`${PAD} items-center text-center !gap-4`} data-testid="group">
         <div className={`relative overflow-hidden w-full max-w-3xl rounded-[2rem] bg-gradient-to-br ${grad} text-white px-6 py-8 grid gap-2 place-items-center shadow-soft`}>
           {(tone === 'great' || tone === 'good') && <Confetti />}
-          <Chip>{t('stage.groupResult')}</Chip>
+          <Chip>{v2 ? `🏢 ${t('g2.heading')}` : t('stage.groupResult')}</Chip>
           <div className="text-[7rem] leading-none anim-rise drop-shadow-lg" aria-hidden>{band?.emoji}</div>
           <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight" dir="auto">{band?.groupTitle ?? band?.title}</h2>
           {band?.groupMessage && <p className="text-2xl font-bold opacity-95" dir="auto">{band.groupMessage}</p>}
@@ -120,7 +132,8 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
               <span className="h-4 rounded-full bg-paper-line overflow-hidden"><span className="block h-full rounded-full transition-all duration-1000" style={{ width: `${p}%`, background: barC[b.tone] }} /></span></span>
             <span className="text-end text-2xl font-extrabold tabular-nums">{p}%</span></div>; })}</div>
           : <p className="text-sm text-ink-soft">{t('stage.breakdownLater', { n: 2 * e.privacy.groupMinimum })}</p>}
-        <p className="text-sm text-ink-soft">{t('stage.notMeasure')}</p>
+        {v2 && <p className="text-xl font-bold max-w-2xl" dir="auto" data-testid="group-reflect">💬 {t('g2.prompt')}</p>}
+        <p className="text-sm text-ink-soft">{v2 ? t('g2.note') : t('stage.notMeasure')}</p>
       </div>
     );
   }
@@ -133,8 +146,9 @@ export function StageView({ v, off, joinUrl, practice, onKick }: { v: View; off:
 
 
 /** Phone, after joining. */
-export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
+export function PhoneView({ v, off, my, seed, nickname, avatar, onPick, onOpen }: {
   v: View; off: number; my: MyState; seed: string; nickname: string; avatar: string; onPick: (activityId: string, value: ResponseValue) => void;
+  onOpen?: (activityId: string, text: string, editId?: string) => Promise<string>;
 }) {
   const now = useNow(250);
   const [revealed, setRevealed] = useState(false);
@@ -143,6 +157,19 @@ export function PhoneView({ v, off, my, seed, nickname, avatar, onPick }: {
   if (v.stage === 'lobby' || v.stage === 'intro') return <div className="text-center grid gap-3 py-10"><div className="text-6xl anim-pop" aria-hidden>{avatar}</div><h3 className="text-xl font-extrabold">{t('phone.in', { name: nickname })}</h3><p className="text-ink-soft">{v.stage === 'intro' ? t('phone.getReady') : t('phone.watch')}</p></div>;
   if (v.stage === 'activity' && v.activity) {
     const a = v.activity, mine = my.answers[a.id], deadline = (v.deadline ?? 0) - off - 150;
+    if (a.type === 'open' && a.open) { const canSend = v.phase === 'answer' && !v.paused && deadline > now && !v.open?.closed, timed = deadline - now < 3600_000;
+      return (
+        <div className="grid gap-3">
+          <div className="flex justify-between"><Chip>Q{v.index + 1}/{v.total}</Chip><span className="text-sm text-ink-soft">{avatar} {nickname}</span></div>
+          <p className="text-xl font-extrabold leading-tight" dir="auto" data-testid="phone-prompt">{a.prompt}</p>
+          <div className="flex justify-between items-center font-extrabold min-h-[32px]" aria-live="polite">
+            {v.phase === 'read' && <span>{t('phone.read')} <span className="text-ink-soft text-sm">{t('phone.openSoon')}</span></span>}
+            {canSend && timed && <span className="ms-auto text-3xl text-violet-600 tabular-nums"><Countdown until={deadline} alarm /></span>}
+            {v.paused && <span>{t('phone.paused')}</span>}
+          </div>
+          {v.phase !== 'read' && <OpenPhone a={a} mine={my.open?.[a.id] ?? []} used={my.openUsed?.[a.id]} contentLangs={e.languages} canSend={canSend && !!onOpen} now={now + off}
+            onSend={(text, editId) => onOpen ? onOpen(a.id, text, editId) : Promise.resolve('not_open')} />}
+        </div>); }
     const open = v.phase === 'answer' && !v.paused && deadline > now && mine == null;
     return (
       <div className="grid gap-3">
@@ -170,11 +197,13 @@ export function HostBar({ v, busy, onCmd, onFs, extra, onEnd }: { v: View; busy?
   const label = v.stage === 'lobby' ? t('host.start') : v.stage === 'intro' ? t('host.first') : v.stage === 'activity'
     ? (v.phase === 'read' ? t('host.open') : v.phase === 'answer' ? t('host.waiting') : v.index < v.total - 1 ? t('host.next') : t('host.results'))
     : v.stage === 'results' ? (v.experience.scoringKind === 'aggregate' || v.experience.scoringKind === 'none' ? t('host.wrap') : t('host.group')) : v.stage === 'group' ? t('host.reflect') : t('host.done');
-  const waiting = v.stage === 'activity' && v.phase === 'answer' && (v.answered ?? 0) < v.joined;
+  const isOpen = v.activity?.type === 'open';
+  const waiting = v.stage === 'activity' && v.phase === 'answer' && !isOpen && (v.answered ?? 0) < v.joined;
+  const shown = isOpen && v.stage === 'activity' && v.phase === 'answer' ? t('oa.mod.close') : label;
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-paper-line bg-paper px-4 py-3">
       {v.stage === 'closing' && onEnd ? <button className="btn-primary" onClick={onEnd} data-testid="end-insights">{t('host.endInsights')}</button>
-        : <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{label}</button>}
+        : <button className="btn-primary" onClick={() => onCmd('next')} disabled={busy || v.stage === 'closing' || waiting} data-testid="next">{shown}</button>}
       {v.stage === 'activity' && (v.phase === 'answer' || v.phase === 'read') && <button className="btn-ghost" onClick={() => onCmd(v.paused ? 'resume' : 'pause')} data-testid="pause">{v.paused ? t('host.resume') : t('host.pause')}</button>}
       <button className="btn-ghost" onClick={onFs}>{t('host.fs')}</button>
       <LangSwitch />
@@ -193,7 +222,7 @@ function MyResult({ v, my, seed, revealed, onReveal }: { v: View; my: MyState; s
   if (gone) return <p className="card p-6 text-center" role="status">{t('keep.deleted')}</p>;
   if (!revealed) return <button className="w-full grid gap-3 place-items-center py-12 text-center" onClick={onReveal} data-testid="reveal"><span className="text-7xl anim-pulse" aria-hidden>🪞</span><span className="text-2xl font-extrabold">{t('phone.ready')}</span><span className="text-ink-soft">{t('phone.tap')}</span></button>;
   return <div className="grid gap-3">
-    <ResultCard r={r} disclaimer={e.disclaimer} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
+    <ResultCard r={r} disclaimer={e.disclaimer} showScore={v.snapshot?.scoring.showScore ?? true} onCopy={() => navigator.clipboard.writeText(resultText(e.title, r))} onTakeaway={() => navigator.clipboard.writeText(takeawayText(e.title, r))} onDelete={() => { deleteResult(v.code); setGone(true); }} />
     {my.boardName && <p className="text-sm text-center text-ink-soft">{t('phone.onBoard', { name: my.boardName })}</p>}
     {v.stage === 'closing' && e.closing && <div className="card p-4 grid gap-1 text-sm">{e.closing.questions.map((q, i) => <p key={i} dir="auto">{i + 1}. {q}</p>)}</div>}
   </div>;
