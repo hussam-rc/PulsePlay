@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import migration from '../../supabase/migrations/20261128_0200_pp_open_answers.sql?raw';
 import clientRules from '../src/engine/openAnswer.ts?raw';
+import stateCombined from '../../supabase/manual/pp_state_combined.sql?raw';
 import { Experience, OpenActivity as OpenSchema, validateExperience, timingOf } from '../src/engine/schema';
 import { answerKey, checkAnswer, cleanAnswer, cloud, cloudSize, flagReason, isFlagged, looksLikeLink, looksLikeMarkup, OPEN_DEFAULTS, type OpenActivity } from '../src/engine/openAnswer';
 import { personalResult } from '../src/engine/scoring';
@@ -59,6 +60,12 @@ describe('open answer rules (shared by phone, practice engine and server)', () =
   it('flags common offensive words in EN/DE/FR/AR, including leetspeak, without false positives', () => {
     for (const w of ['sh1t', 'F U C K'.replace(/ /g, ''), 'Arschloch', 'putain', 'شرموط']) expect(isFlagged(w), w).toBe(true);
     for (const w of ['Shitake', 'Scunthorpe', 'class', 'كلب', 'Dick Fosbury', 'nazi history']) expect(isFlagged(w), w).toBe(false);
+  });
+  it('the manual combined pp._state is identical to the migration (integration with scoring v2)', () => {
+    const block = (x: string) => x.slice(x.indexOf('create or replace function pp._state('), x.indexOf('end $$;', x.indexOf('create or replace function pp._state(')) + 7);
+    expect(block(stateCombined)).toBe(block(migration));
+    expect(block(migration)).toContain("'scoring', case when s.snapshot->'scoring' ? 'version'");
+    expect(block(migration)).toContain('_open_view(s, a, p_host)');
   });
   it('uses the same blocklist as the database', () => {
     const sqlList = migration.match(/_open_flag[\s\S]*?unnest\(array\[([\s\S]*?)\]\)/)![1].match(/'([^']+)'/g)!.map((x: string) => x.slice(1, -1));
